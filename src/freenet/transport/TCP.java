@@ -125,7 +125,7 @@ public class TCP extends tcpTransport {
 		ServerSocket sock = chan.socket();
 		chan.configureBlocking(false);
 		sock.setReuseAddress(true);
-		sock.bind(new InetSocketAddress(ifAddress,port),backlog);
+		sock.bind(new InetSocketAddress(ifAddress,port)/* ignore backlog */);
             return sock;
         }
     }

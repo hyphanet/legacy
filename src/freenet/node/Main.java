@@ -1636,36 +1636,13 @@ public class Main {
         TCP fntcp;
         ListeningAddress fnla;
 
-        if (params.getString("ipAddress").length() > 0) {
-            try {
-                InetAddress listenAddress = InetAddress.getByName(params.getString("ipAddress"));
-                fntcp = new TCP(listenAddress, 1, false);
-                fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
-
-                iv.addElement(new PublicNIOInterface(fnla, node, tf, fnp,
-                        contactCounter, "FNP"));
-
-                Core.logger.log(Main.class, "Listening on " + listenAddress.toString() + " for FNP traffic", Logger.MINOR);
-                
-            } catch (Exception e) {
-                fntcp = new TCP(1, false);
-                fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
-
-                iv.addElement(new PublicNIOInterface(fnla, node, tf, fnp,
-                        contactCounter, "FNP"));
-
-                Core.logger.log(Main.class, "ipAddress set, but got an exception, listening on all interfaces for FNP traffic", e, Logger.NORMAL);
-
-            }
-        } else {
-            fntcp = new TCP(1, false);
-            fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
+        fntcp = new TCP(1, false);
+        fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
 
         iv.addElement(new PublicNIOInterface(fnla, node, tf, fnp,
                 contactCounter, "FNP"));
 
-            Core.logger.log(Main.class, "Listening on all interfaces for FNP traffic", Logger.MINOR);
-        }
+        Core.logger.log(Main.class, "Listening on all interfaces for FNP traffic", Logger.MINOR);
 
 
         if (params.getBoolean("logOutboundContacts")) {
