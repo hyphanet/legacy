@@ -124,8 +124,7 @@ public class ParamParse {
             Logger.DEBUG);
       } catch (Exception e) {
         lg.log(ParamParse.class, "Couldn't parse " + name + " from initParameters, using: "
-             + ret,
-            Logger.ERROR);
+             + ret+" - reason: "+e + " - string was "+valueAsString, e, Logger.ERROR);
       }
     }
     else {

@@ -21,7 +21,7 @@ public abstract class Version {
 	public static String altProtocolVersion = "1.52";
 
 	/** The build number of the current revision */
-	public static final int buildNumber = 60263;
+	public static final int buildNumber = 60264;
 
 	/** Oldest build of Fred we will talk to */
 	public static final int lastGoodBuild = 60235;
@@ -46,7 +46,7 @@ public abstract class Version {
 	private static boolean logDEBUG = Core.logger.shouldLog(Logger.DEBUG,Version.class);
 	static {
 		StringTokenizer cvsId =
-			new StringTokenizer("$Id: Version.java,v 1.961 2005/01/28 18:42:21 amphibian Exp $");
+			new StringTokenizer("$Id: Version.java,v 1.962 2005/01/28 19:26:15 amphibian Exp $");
 		cvsId.nextToken();
 		cvsId.nextToken();
 		cvsRevision = cvsId.nextToken();

@@ -821,8 +821,8 @@ public class Node extends Core implements ConnectionThrottler{
 			4179);
 		config.addOption(
 		    "mainport.params.servlet.7.params.maxRetries",
+		    1,
 		    50,
-		    true,
 		    4179);
 
 		String downloadDir;
