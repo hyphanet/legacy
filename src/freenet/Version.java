@@ -33,17 +33,17 @@ public abstract class Version {
 	public static final String unstableNodeVersion = "0.6";
 
 	/** The unstable protocol version supported */
-	public static String unstableProtocolVersion = "1.50";
+	public static String unstableProtocolVersion = "1.51";
 
 	/** Oldest unstable build of Fred we will talk to */
-	public static final int lastGoodUnstableBuild = 60084;
+	public static final int lastGoodUnstableBuild = 60235;
 	// Reverts 60083's breakage, improves rate limiting
 	
 	/** Revision number of Version.java as read from CVS */
 	public static final String cvsRevision;
 	static {
 		StringTokenizer cvsId =
-			new StringTokenizer("$Id: Version.java,v 1.90.2.50.2.129 2005/01/28 22:24:02 amphibian Exp $");
+			new StringTokenizer("$Id: Version.java,v 1.90.2.50.2.130 2005/02/25 18:59:08 conrads Exp $");
 		cvsId.nextToken();
 		cvsId.nextToken();
 		cvsRevision = cvsId.nextToken();
