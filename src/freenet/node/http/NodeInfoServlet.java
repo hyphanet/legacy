@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import freenet.Core;
+import freenet.client.http.StupidBrowserCheck;
 import freenet.node.Main;
 import freenet.node.Node;
 import freenet.node.http.infolets.DefaultInfolet;
@@ -28,6 +29,7 @@ import freenet.node.http.infolets.OpenConnections;
 import freenet.node.http.infolets.ReadMeInfolet;
 import freenet.node.http.infolets.TickerContents;
 import freenet.support.Logger;
+import freenet.support.URLEncodedFormatException;
 import freenet.support.servlet.HtmlTemplate;
 
 /**
@@ -137,8 +139,9 @@ public class NodeInfoServlet extends HttpServlet {
     // thread-unsafe
     public synchronized void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
+      if (StupidBrowserCheck.didWarning(req, resp, Core.logger.shouldLog(Logger.DEBUG, this), Core.logger, this)) return;
         String path = req.getPathInfo();
-        Core.logger.log(this, "getPathInfo returned " + path, Logger.DEBUG);
+      Core.logger.log(this, "getPathInfo returned " + path, Logger.DEBUG);
 
         int x = (path == null) ? -1 : path.indexOf('/');
         int y = (path == null) ? -1 : path.lastIndexOf('/');
