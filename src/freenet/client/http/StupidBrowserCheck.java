@@ -60,7 +60,7 @@ public class StupidBrowserCheck {
                         StringWriter sw = new StringWriter(200);
                         PrintWriter pw = new PrintWriter(sw);
                         pw
-                                .println("Freenet has determined that you are using Internet Explorer or Opera. Please be aware that Internet Explorer treats contents in a manner that makes it impossible for us to protect your anonymity while browsing Freenet using this browser. Opera also does this by default but can be configured not to, and thus be safe to use with Freenet - please refer to the <a href=\"/servlet/nodeinfo/documentation/readme\">README</a>. Some browsers that do not do this are Mozilla, K-Meleon, Firebird (from Mozilla.org), Lynx, Links, Amaya, Arena, or a correctly configured Opera.");
+                                .println("Freenet has determined that you are using Internet Explorer or Opera. Please be aware that Internet Explorer treats contents in a manner that makes it impossible for us to protect your anonymity while browsing Freenet using this browser. Opera also does this by default but can be configured not to, and thus be safe to use with Freenet - please refer to the <a href=\"/servlet/nodeinfo/documentation/readme\">README</a>. Some browsers that do not do this are Mozilla, K-Meleon, Firefox (from Mozilla.org), Lynx, Links, Amaya, Arena, or a correctly configured Opera.");
                         pw.println("<p>If you are really really sure you want to proceed, don't ");
                         pw.println("say we didn't warn you, and click <a href=\"" + req.getRequestURI()
                                 + ((req.getQueryString() != null) ? ("?" + req.getQueryString()) : "") + "\">here</a> to continue.</p>");
