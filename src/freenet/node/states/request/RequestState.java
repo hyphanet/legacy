@@ -282,15 +282,19 @@ public abstract class RequestState extends State {
     }
 
 	/** The number of hops assumed at the end of the request.
-	 * 99% of all requests will finish with 4 extra hops or less.
+	 * 95% of all requests will finish with 10 extra hops or less.
 	 */ 
-    public static final int TIMEOUT_EXTRA_HTL = 4;
+    public static final int TIMEOUT_EXTRA_HTL = 10;
     
 	/**
      * @return the timeout for the current HTL
      */
     public static long hopTimeHTL(int htl, int queueTime) {
-        return Core.hopTime(htl + RequestState.TIMEOUT_EXTRA_HTL, queueTime);
+        // Add extra if needed
+        if(htl == Node.maxHopsToLive) htl += RequestState.TIMEOUT_EXTRA_HTL;
+        // Kludge to avoid having to decrease the timeout on a live network:
+        else htl += 4;
+        return Core.hopTime(htl, queueTime);
     }
     
     /**

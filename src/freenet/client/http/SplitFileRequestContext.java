@@ -27,6 +27,7 @@ import freenet.client.http.filter.FilterException;
 import freenet.client.metadata.MimeTypeUtils;
 import freenet.client.metadata.SplitFile;
 import freenet.message.client.FEC.SegmentHeader;
+import freenet.node.Node;
 import freenet.support.ArrayBucket;
 import freenet.support.Bucket;
 import freenet.support.BucketFactory;
@@ -600,6 +601,7 @@ public class SplitFileRequestContext extends BaseContext {
             requester.setSplitFileThreads(threads);
             requester.setNonLocal(skipDS);
             requester.setRandomSegs(randomSegs);
+            requester.setSplitFileMaxHTL(Node.perturbHTL(Node.maxHopsToLive));
 
             // TODO: make parameters, add to GUI options.
 

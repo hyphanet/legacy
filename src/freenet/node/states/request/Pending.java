@@ -120,12 +120,14 @@ public abstract class Pending extends RequestState {
 		this.routeToNewestNodes = routeToNewestNodes;
 		this.ignoreDS = ignoreDS;
 
+		if (logMINOR) {
+		    String s = "Created new Pending from scratch: " + this +
+		    	", routeToNewestNodes="+routeToNewestNodes;
 		if (logDEBUG)
-			Core.logger.log(
-				this,
-				"Created new Pending from scratch: " + this +
-				", routeToNewestNodes="+routeToNewestNodes,
-				new Exception("debug"), Logger.DEBUG);
+		        Core.logger.log(this, s, new Exception("debug"), Logger.MINOR);
+		    else
+		        Core.logger.log(this, s, Logger.MINOR);
+		}
 	}
 
 	/** We don't retain the state variables above

@@ -29,6 +29,7 @@ public class SplitFileRequestProcess extends RequestProcess {
                                           ms.getHealPercentage(),
                                           ms.getHealingHtl(),
                                           ms.getSplitFileThreads(),
+                                          ms.getSplitFileMaxHTL(),
                                           ms.getClientFactory(),
                                           bf,
                                           data,

@@ -259,7 +259,6 @@ public class FproxyServlet extends HttpServlet {
         if (passThroughMimeTypes == null) throw new NullPointerException();
 
         requestHtl = ParamParse.readInt(this, logger, "requestHtl", requestHtl, 0, 100);
-        requestHtl = Node.perturbHTL(requestHtl);
 
         noCache = ParamParse.readBoolean(this, logger, "noCache", noCache);
 
@@ -632,7 +631,7 @@ public class FproxyServlet extends HttpServlet {
             FailureListener listener = new FailureListener(logger);
             r.addEventListener(listener);
 
-            if (!r.doGet(uri, data, htlUsed)) {
+            if (!r.doGet(uri, data, Node.perturbHTL(htlUsed))) {
                 if (!(queryRDate && listener.dr != null)) {
                     if (logDEBUG) logger.log(this, "Request process returned error for " + uri + " with htl " + htlUsed, Logger.DEBUG);
                     writeErrorMessage(listener.getException(r, uri, req), req, resp, null, key, uri, htlUsed, queryDate, queryMime, queryForce,
@@ -1119,7 +1118,6 @@ public class FproxyServlet extends HttpServlet {
                 int htlNew = htl;
                 if (((RequestFailedException) e).isDNF) {
                     htlNew = htlNew + 4;
-                    htlNew = Node.perturbHTL(htlNew);
                     if (htlNew > Node.maxHopsToLive) htlNew = Node.maxHopsToLive;
                 }
                 pageTmp = refreshPageTmp;
@@ -1149,7 +1147,7 @@ public class FproxyServlet extends HttpServlet {
                 //String encKey = HTMLEncoder.encode(key);
                 if (SimpleAdvanced_ModeUtils.isAdvancedMode(req)) {
                     pw.println("<form name=\"changeHTL\" action=\"/" + encKey + "\">");
-                    pw.println("<p>Change Hops To Live to <input type=\"text\" " + "size=\"3\" name=\"htl\" value=\"" + htl
+                    pw.println("<p>Change Hops To Live to <input type=\"text\" " + "size=\"3\" name=\"htl\" value=\"" + htlNew
                             + "\"/> and <input type=\"submit\" value=\"Retry\"/>");
                 } else {
                     pw.println("Retrying...");
@@ -1545,7 +1543,7 @@ public class FproxyServlet extends HttpServlet {
                     + " that this is caused by the node running out of disk space, please check if this happens repeatedly. If"
                     + " it still happens constantly, then there is a bug; report it to support@freenetproject.org";
                     summary = "Transfer Failed";
-                return new RequestFailedException(msg, summary, true);
+                return new RequestFailedException(msg, summary, false);
             } else {
                 Throwable t = r.getThrowable();
                 if (!(t instanceof Exception)) {

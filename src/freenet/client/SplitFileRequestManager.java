@@ -64,6 +64,7 @@ class SplitFileRequestManager extends RequestManager {
 
 	int defaultHealingHtl = 5;
 	int healPercentage = 10;
+	int maxBlockHTL = 20;
 	Vector healingInserts = new Vector();
 	// REDFLAG:
 	final static String BLOCK_CIPHER = "Twofish";
@@ -79,6 +80,7 @@ class SplitFileRequestManager extends RequestManager {
 			req.bf);
 		this.destBucket = req.destBucket;
 		this.request = req;
+		this.maxBlockHTL = req.maxBlockHTL;
 		this.doParanoidChecks = req.doParanoidChecks;
 		if (req.sf.getFECAlgorithm() == null)
 			this.doParanoidChecks = false;
@@ -159,7 +161,7 @@ class SplitFileRequestManager extends RequestManager {
 		}
 
 		int realHtl() {
-			return htl + retryCount * htlRetryIncrement;
+			return Math.min(htl + retryCount * htlRetryIncrement, maxBlockHTL);
 		}
 		void onSuccess() {
 			synchronized (SplitFileRequestManager.this) {

@@ -134,23 +134,25 @@ public abstract class NewRequest extends State {
 			long time5 = System.currentTimeMillis();
 			logTime(4, time5 - time4, shouldLog);
 
-			double threshold;
-			if (htl == Node.maxHopsToLive)
-				// If it is == maxHopsToLive, 50% chance of not decrementing
-				// This is for plausible deniability
-				threshold = 0.5F;
-			else
-				threshold = Math.exp(HTL_FACTOR * htl * htl);
-
-			if (threshold < 1 - Core.getRandSource().nextDouble()) {
-				//Core.logger.log(this, "Decrementing HTL",
-				//             Logger.DEBUG);
-				--htl;
+			if (htl == Node.maxHopsToLive) {
+			    // Probabilistic decrement at maximum.
+			    // Not calculated on each request because that makes correlation
+			    // attacks FAR easier.
+			    // The decision is made once for each node sending requests,
+			    // to prevent nodes probing for it.
+			    if(ph.decrementMaxHTL) htl--;
 			} else {
-				//Core.logger.log(this, "Not decrementing HTL",
-				//             Logger.DEBUG);
-			}
-			
+				double threshold = Math.exp(HTL_FACTOR * htl * htl);
+
+				if (threshold < 1 - Core.getRandSource().nextDouble()) {
+				    //Core.logger.log(this, "Decrementing HTL",
+				    //             Logger.DEBUG);
+				    --htl;
+				} else {
+				    //Core.logger.log(this, "Not decrementing HTL",
+				    //             Logger.DEBUG);
+				}
+			}			
 
 			long time6 = System.currentTimeMillis();
 			logTime(5, time6 - time5, shouldLog);

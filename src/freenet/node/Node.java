@@ -741,7 +741,7 @@ public class Node extends Core implements ConnectionThrottler{
 		config.addOption(
 			"mainport.params.servlet.7.params.requestHtl",
 			1,
-			10,
+			20,
 			4164);
 		config.addOption(
 			"mainport.params.servlet.7.params.sfBlockRequestHtl",
@@ -753,10 +753,11 @@ public class Node extends Core implements ConnectionThrottler{
 			1,
 			4,
 			4166);
+		// Safer to go straight from 0 to 20
 		config.addOption(
 			"mainport.params.servlet.7.params.sfRetryHtlIncrement",
 			1,
-			5,
+			20,
 			4167);
 		config.addOption(
 			"mainport.params.servlet.7.params.sfRequestThreads",
@@ -5086,22 +5087,39 @@ public class Node extends Core implements ConnectionThrottler{
 		connections.unsendMessage(i, cb);
 	}
 
+	/**
+	 * Change the HTL given slightly, randomly, if it is high enough.
+	 * Use with care. Specifically, because of the 50% chance of not
+	 * decrementing the HTL at maxHTL, should NOT be used on individual
+	 * blocks. Otherwise you get a telltale distribution of HTLs which
+	 * can distinguish between first hop and second hop (i.e. you get 
+	 * equal numbers on 16,17,18,19,20 on the first hop, on the second
+	 * hop you get half as many on 20 and 19 but equal numbers on 15-18,
+	 * on the third hop... etc). So only use this for individual 
+	 * requests.
+	 * @param htl
+	 * @return
+	 */
 	public static int perturbHTL(int htl) {
 		float f = getRandSource().nextFloat();
+		Core.logger.log(Node.class, "Perturbing HTL: htl="+htl, Logger.MINOR);
 		if (maxHopsToLive == 0) return htl;
-		if (htl > 3 && (htl / maxHopsToLive) > f) {
+		if (htl > 3 && ((float)htl / (float)maxHopsToLive) > 0.5) {
+		    if(htl > (maxHopsToLive - 2)) htl = (maxHopsToLive - 2);
+		    Core.logger.log(Node.class, "HTL now "+htl, Logger.MINOR);
 			f = getRandSource().nextFloat();
-			if (f < (1 / 5))
+			if (f < 0.2)
 				htl += 2;
-			else if (f < (2 / 5))
+			else if (f < 0.4)
 				htl += 1;
-			else if (f < (3 / 5))
+			else if (f < 0.6)
 				htl += 0;
-			else if (f < (4 / 5))
+			else if (f < 0.8)
 				htl -= 1;
 			else
 				htl -= 2;
 		}
+		Core.logger.log(Node.class, "HTL now: "+htl, Logger.MINOR);
 		if (htl > maxHopsToLive)
 			htl = maxHopsToLive;
 		return htl;

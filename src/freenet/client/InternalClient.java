@@ -290,7 +290,8 @@ public class InternalClient implements ClientFactory {
         public InternalGetToken(GetRequest req) {
             super(req);
             this.req = req;
-	    this.req.htl = Node.perturbHTL(this.req.htl);
+            // Don't perturb on all requests - see comments on Node.perturbHTL.
+            //this.req.htl = Node.perturbHTL(this.req.htl);
             req.addEventListener(new TransferCompleteListener());
         }
         
@@ -412,7 +413,8 @@ public class InternalClient implements ClientFactory {
         public InternalPutToken(PutRequest req) {
             super(req);
             this.req = req;
-	    this.req.htl = Node.perturbHTL(this.req.htl);
+            // Don't perturb all requests - see comments on Node.perturbHTL
+            //this.req.htl = Node.perturbHTL(this.req.htl);
         }
 
         public final void dataNotFound(Node n, long timeOfQuery,

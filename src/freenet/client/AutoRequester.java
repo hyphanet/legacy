@@ -54,6 +54,7 @@ public class AutoRequester {
 	private int splitFileRetries = 5;
 	private int splitFileRetryHtlIncrement = 5;
 	private int splitFileThreads = 5;
+	private int splitFileMaxHTL = 20;
 	private int healPercentage = 100;
 	private int healingHtl = freenet.node.Node.maxHopsToLive;
 	private int maxLog2Size = 0;
@@ -660,6 +661,7 @@ public class AutoRequester {
 		ms.setSplitFileRetryHtlIncrement(splitFileRetryHtlIncrement);
 		ms.setSplitFileRetries(splitFileRetries);
 		ms.setSplitFileThreads(splitFileThreads);
+		ms.setSplitFileMaxHTL(splitFileMaxHTL);
 		ms.setClientFactory(clientFactory);
 		ms.enableParanoidChecks(doParanoidChecks);
 		ms.setBackgroundInserter(inserter);
@@ -998,4 +1000,11 @@ public class AutoRequester {
 				+ AutoRequester.this.toString();
 		}
 	}
+
+    /**
+     * Set maximum HTL for splitfile blocks. This is for safety.
+     */
+    public void setSplitFileMaxHTL(int htl) {
+        this.splitFileMaxHTL = htl;
+    }
 }

@@ -103,13 +103,17 @@ public class SplitFileRequestServlet extends ServletWithContext {
         // Some params will need to be duped in fproxy? REDFLAG: revisit
 
         defaultHtl = ParamParse.readInt(this, logger, "requestHtl", defaultHtl, 0, 100);
+        // _DO_ perturb the overall HTL
         defaultHtl = Node.perturbHTL(defaultHtl);
         defaultBlockHtl = ParamParse.readInt(this, logger, "sfBlockRequestHtl", defaultBlockHtl, 0, 100);
+        // _DO_ perturb the overall block HTL
         defaultBlockHtl = Node.perturbHTL(defaultBlockHtl);
         defaultRetries = ParamParse.readInt(this, logger, "sfRequestRetries", defaultRetries, 0, 50);
         maxRetries = ParamParse.readInt(this, logger, "maxRetries", maxRetries, 0, Integer.MAX_VALUE);
         defaultRetryHtlIncrement = ParamParse.readInt(this, logger, "sfRetryHtlIncrement", defaultRetryHtlIncrement, 0, 100);
         defaultHealHtl = ParamParse.readInt(this, logger, "sfHealHtl", defaultHealHtl, 0, 100);
+        // _DO_ perturb the overall healing HTL
+        // But DO NOT perturb the HTL for the individual blocks.
         defaultHealHtl = Node.perturbHTL(defaultHealHtl);
         defaultHealPercentage = ParamParse.readInt(this, logger, "sfHealPercentage", defaultHealPercentage, 0, 100);
         defaultThreads = ParamParse.readInt(this, logger, "sfRequestThreads", defaultThreads, 0, 100);
