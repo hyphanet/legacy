@@ -1,11 +1,25 @@
 package freenet.node.ds;
 
-import freenet.*;
-import freenet.fs.dir.*;
-import freenet.support.*;
-import freenet.support.io.*;
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UTFDataFormatException;
+import java.util.Enumeration;
+import java.util.Stack;
+
+import freenet.Core;
+import freenet.FieldSet;
+import freenet.Key;
+import freenet.fs.dir.Buffer;
+import freenet.fs.dir.FileNumber;
+import freenet.fs.dir.LossyDirectory;
+import freenet.fs.dir.RangeFilePattern;
+import freenet.support.EnumerationWalk;
+import freenet.support.KeyHistogram;
+import freenet.support.KeySizeHistogram;
+import freenet.support.Logger;
+import freenet.support.Walk;
+import freenet.support.io.WriteOutputStream;
 
 /**
  * A DataStore implementation that uses a freenet.fs.LossyDirectory
