@@ -52,6 +52,8 @@ public class Main {
         sim.logger.log(Main.class, "Started simulator", Logger.NORMAL);
         System.err.println("Started simulator");
         // Now run it
+        Main.lastTotalAttemptedConnections = sim.totalAttemptedConnections;
+        Main.lastTotalConnections = sim.totalConnections;
         runTests();
     }
 
@@ -159,13 +161,19 @@ public class Main {
     }
 
     public static void runRequest(Stats globalStats, Stats localStats, KeyCollector keys) {
-        Key k = keys.getRandomKey();
+        KeyWithCounter kc = keys.getRandomKey();
+        boolean keyIsNew = kc.getCount() == 0;
+        Key k = kc.getKeyIncCounter();
         sim.logger.log(Main.class, "Running request: "+k, Logger.MINOR);
         Node n = sim.randomNode();
         RequestContext rc = new RequestContext(sim.myConfig.requestHTL);
         boolean success = n.runRequest(k, null, rc);
         globalStats.totalRequests++;
         localStats.totalRequests++;
+        if(keyIsNew) {
+            globalStats.totalFirstTimeRequests++;
+            localStats.totalFirstTimeRequests++;
+        }
         if(!success) {
             if(logDEBUG)
                 sim.logger.log(Main.class, "Return code: "+rc.lastFailureCodeToString(), Logger.DEBUG);
@@ -173,8 +181,15 @@ public class Main {
         if(success) {
             globalStats.successfulRequests++;
             localStats.successfulRequests++;
+            if(keyIsNew) {
+                globalStats.totalFirstTimeSuccessfulRequests++;
+                localStats.totalFirstTimeSuccessfulRequests++;
+            }
         }
     }
+    
+    static long lastTotalConnections = 0;
+    static long lastTotalAttemptedConnections = 0;
     
     /**
      * Write the statistics to stderr in a reasonably easy to parse and read format.
@@ -187,11 +202,21 @@ public class Main {
         String message = "INSERTS: "+mformat(globalStats.successfulInserts, globalStats.totalInserts) +
         	" "+mformat(localStats.successfulInserts,localStats.totalInserts)+"\n"+
         	"REQUESTS: "+mformat(globalStats.successfulRequests, globalStats.totalRequests)+
-        	" "+mformat(localStats.successfulRequests,localStats.totalRequests)+"\n";
+        	" "+mformat(localStats.successfulRequests,localStats.totalRequests)+"\n"+
+        	"FIRST-TIME: "+mformat(globalStats.totalFirstTimeSuccessfulRequests, globalStats.totalFirstTimeRequests)+
+        	" "+mformat(localStats.totalFirstTimeSuccessfulRequests, localStats.totalFirstTimeRequests)+"\n";
         System.err.print(message);
         resultsStream.print(message);
         // Now some more detailed stats
         sim.dumpStats();
+        long d = sim.totalConnections - lastTotalConnections;
+        System.err.println("Connections made: "+d);
+        resultsStream.println("Connections made: "+d);
+        lastTotalConnections = sim.totalConnections;
+        d = sim.totalAttemptedConnections - lastTotalAttemptedConnections;
+        System.err.println("Connections attempted: "+d);
+        resultsStream.println("Connections attempted: "+d);
+        lastTotalAttemptedConnections = sim.totalAttemptedConnections;
     }
 
     private static String mformat(int success, int total) {

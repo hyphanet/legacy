@@ -9,13 +9,13 @@ import freenet.Key;
  */
 public class KeyCollector {
 
-    Key[] keys;
+    KeyWithCounter[] keys;
     int totalKeys;
     int index;
     final Random r;
     
     public KeyCollector(int numkeys, Random r) {
-        keys = new Key[numkeys];
+        keys = new KeyWithCounter[numkeys];
         totalKeys = 0;
         index = 0;
         this.r = r;
@@ -23,16 +23,16 @@ public class KeyCollector {
 
     public void add(Key k) {
         if(k == null) throw new NullPointerException();
-        keys[index] = k;
+        keys[index] = new KeyWithCounter(k);
         totalKeys++;
         index++;
         if(index == keys.length) index = 0;
     }
 
-    public Key getRandomKey() {
+    public KeyWithCounter getRandomKey() {
         int range = Math.min(totalKeys, keys.length);
         int x = r.nextInt(range);
-        Key k = keys[x];
+        KeyWithCounter k = keys[x];
         if(k == null) throw new NullPointerException();
         return k;
     }

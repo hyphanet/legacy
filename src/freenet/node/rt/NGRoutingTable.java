@@ -1149,6 +1149,7 @@ public class NGRoutingTable
 		NodeEstimator[] ea = estimators.toArray();
 		for(int i = 0;i<ea.length;i++){
 	        NodeEstimator est = ea[i];
+	        if(est.consecutiveFailedConnects() > 0) continue;
 			count++;
 			NodeReference ref = est.getReference();
 			String id = ref == null ? "" : 

@@ -53,6 +53,7 @@ public class Connections {
      */
     private boolean connect(Node n2, boolean force, boolean confirmed) {
         // First check the obvious stuff
+        node.sim.totalAttemptedConnections++;
         if(n2 == node) return true; // already connected to self
         if(isConnected(n2)) return true; // already connected
         if(isFull()) {
@@ -67,6 +68,7 @@ public class Connections {
         }
         // Now add the node to the various data structures
         addConnectedNode(n2);
+        node.sim.totalConnections++;
         return true;
     }
 
@@ -94,10 +96,12 @@ public class Connections {
         // Now find a node we can drop
         if(node.sim.myConfig.dontDropInexperiencedNodes) {
             // Need to find an experienced node
-            return (Node) lruExperienced.tail();
+            Route r = (Route) lruExperienced.tail();
+            return r.connectedTo;
         }
-        Node n = (Node) lruExperienced.tail();
-        if(n == null) n = (Node) lruInexperienced.tail();
+        Route r = (Route) lruExperienced.tail();
+        Node n = r.connectedTo;
+        if(n == null) n = ((Route) lruInexperienced.tail()).connectedTo;
         return n;
     }
 

@@ -85,6 +85,11 @@ public class Node {
     }
 
     private void maybeCache(Key k, BaseContext ic) {
+        if(sim.myConfig.doPCaching && ic instanceof RequestContext) {
+            double d = Math.pow(0.8, ((RequestContext)ic).hopsSinceReset);
+            double r = sim.r.nextFloat();
+            if(r > d) return;
+        }
         // FIXME: implement pcaching
         if(datastore.contains(k)) return;
         datastore.push(k);
@@ -177,6 +182,7 @@ public class Node {
             // Return from store
             // No impact on our estimators as we didn't route
             datastore.push(k);
+            rc.setDataSource(this);
             return true;
         }
         if(rc.id == lastID) {
@@ -202,6 +208,11 @@ public class Node {
                 // Yay!
                 next.succeeded(k, sim.clock - startTime);
                 maybeCache(k, rc);
+                if(sim.myConfig.doRequestConnections) {
+                    Node src = rc.getDataSource();
+                    rc.stepDataSource(this);
+                    conns.connect(src, false);
+                }
                 return true;
             } else {
                 if(rc.lastFailureCode == BaseContext.REJECTED_LOOP) {

@@ -27,6 +27,9 @@ public class Simulator {
     /** The Logger */
     final Logger logger;
     final KeyspaceEstimatorFactory kef;
+    /** The total number of connections made */
+    long totalConnections = 0;
+    long totalAttemptedConnections = 0;
     
     public Simulator(SimConfig sc, Random r, Logger l) {
         myConfig = sc;

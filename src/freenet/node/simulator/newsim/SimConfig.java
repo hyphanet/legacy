@@ -43,10 +43,14 @@ public class SimConfig {
     final int requestHTL;
     /** Type of estimator */
     final int estimatorClass;
+    /** If true, do probabilistic caching */
+    final boolean doPCaching;
     static final int CLASS_PROBABILITY_ONLY = 0;
     static final int CLASS_ALL_THREE = 1;
     static final int CLASS_TSUCCESS_FIXED_PENALTY = 2;
     private static Config config = new Config();
+    /** Whether to create connections from successful requests */
+    boolean doRequestConnections;
     
     static {
         config.addOption("fullyconnected", 1, true, 1);
@@ -61,6 +65,8 @@ public class SimConfig {
         config.addOption("requestHTL", 1, -1, 12);
         config.addOption("estimatorClass", 1, "3est", 13);
         config.addOption("maxDSSize", 1, 100, 14);
+        config.addOption("doConns", 1, true, 15);
+        config.addOption("doPcaching", 1, true, 16);
         // Logging options - parsed directly by Main
         config.addOption("logFile", 1, "", 101);
         config.addOption("logLevel", 1, "normal", 102);
@@ -94,6 +100,8 @@ public class SimConfig {
         config.argDesc("estimatorClass", "3est, psuccess or tsuccess-kludge");
         config.shortDesc("maxDSSize", "Number of keys to store in each node's datastore");
         config.argDesc("estimatorClass", "<Number of files>");
+        config.shortDesc("doConns", "If false, don't connect to nodes when they reply successfully with data");
+        config.argDesc("doConns", "<true|false>");
     }
     
     /** @param params
@@ -142,6 +150,8 @@ public class SimConfig {
         } else {
             throw new OptionParseException("Unknown estimator class: "+eclassString);
         }
+        doRequestConnections = params.getBoolean("doConns");
+        this.doPCaching = params.getBoolean("doPcaching");
     }
 
     public static Params paramsFromArgs(String[] args) {
@@ -171,6 +181,8 @@ public class SimConfig {
             	append("insertHTL=").append(insertHTL).append('-');
         }
         sb.append("estimatorClass=").append(estimatorClassName()).append('-');
+        sb.append("doConns=").append(doRequestConnections).append('-');
+        sb.append("doPcaching=").append(doPCaching).append('-');
         sb.append("maxDSSize=").append(maxDSSize);
         return sb.toString();
     }
