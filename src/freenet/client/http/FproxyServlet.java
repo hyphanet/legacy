@@ -259,6 +259,8 @@ public class FproxyServlet extends HttpServlet {
         if (passThroughMimeTypes == null) throw new NullPointerException();
 
         requestHtl = ParamParse.readInt(this, logger, "requestHtl", requestHtl, 0, 100);
+        // Perturb the default
+        requestHtl = Node.perturbHTL(requestHtl);
 
         noCache = ParamParse.readBoolean(this, logger, "noCache", noCache);
 
