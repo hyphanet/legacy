@@ -143,7 +143,7 @@ public final class tcpAddress extends Address {
     }
     
     public final ListeningAddress listenPart(boolean dontThrottle) {
-        return new tcpListeningAddress(transport, port, dontThrottle);
+        return new tcpListeningAddress(transport, null, port, dontThrottle);
     }
     
     final void setPort(int port) throws BadAddressException {

@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import freenet.node.Node;
+
 /**
  * Takes a snapshot of the current thread hiearchy and allow the user to access
  * various status information as well as dumping some stats to HTML.
@@ -103,7 +105,20 @@ public class ThreadStatusSnapshot {
 			while (it.hasNext()) {
 				ThreadInfo t = (ThreadInfo) it.next();
 				buffer.append("\n<li>" + t.name);
-                if (t.jobString != null) buffer.append(": " + t.jobString);
+                String job = t.jobString;
+                if (job != null) {
+                    long start;
+                    try {
+                        start = new Long(job.substring(job.lastIndexOf(" ")+1)).longValue();
+                    } catch (Throwable x) {
+                        start = 0;
+                    }
+                    if (start > Node.startupTimeMs && start < System.currentTimeMillis() - 30 * 60 * 1000)
+                        buffer.append("<FONT COLOR=Red>");
+                    buffer.append(": " + t.jobString);
+                    if (start > Node.startupTimeMs && start < System.currentTimeMillis() - 30 * 60 * 1000)
+                        buffer.append("</FONT>");
+                }
                 buffer.append("</li>");
 			}
 			it = lSubGRoups.iterator();

@@ -20,16 +20,12 @@ public final class tcpListeningAddress extends ListeningAddress {
 
     private final tcpTransport t;
 
-    tcpListeningAddress(tcpTransport t, int portnum, boolean dontThrottle) {
+    tcpListeningAddress(tcpTransport t, InetAddress bindAddr, 
+                        int portnum, boolean dontThrottle) {
         super(t);
         this.t = t;
         port = portnum;
 	this.dontThrottle = dontThrottle;
-    }
-
-    tcpListeningAddress(tcpTransport t, InetAddress bindAddr, 
-                        int portnum, boolean dontThrottle) {
-        this(t, portnum, dontThrottle);
         this.bindAddr = bindAddr;
     }
 
@@ -38,15 +34,24 @@ public final class tcpListeningAddress extends ListeningAddress {
     }
     
     public final NIOListener getNIOListener() throws ListenException {
-    	return new tcpNIOListener(t, this, bindAddr,dontThrottle);
+    	return new tcpNIOListener(this);
     }
     
     public final String getValString() {
-        return Integer.toString(port);
+        return (bindAddr == null ? "*" : bindAddr.toString()) +
+        	":"+Integer.toString(port);
     }
 
     final int getPort() {
         return port;
+    }
+
+    public InetAddress getBindAddress() {
+        return bindAddr;
+    }
+
+    public boolean getDontThrottle() {
+        return dontThrottle;
     }
 }
 

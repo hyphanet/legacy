@@ -528,10 +528,12 @@ public class Main {
             // set up stuff for handling the node's transports,
             // sessions, and presentations
             th = new TransportHandler();
+            
             SessionHandler sh = new SessionHandler();
             PresentationHandler ph = new PresentationHandler();
 
             tcp = new TCP(100, strictAddresses);
+
             th.register(tcp);
             FNPmgr = new FnpLinkManager(negotiationLimit);
             sh.register(FNPmgr, 100);
@@ -1460,7 +1462,7 @@ public class Main {
     private static Address[] getAddresses(Address preferred) {
         // Firstly, if there is an explicit ipAddress set, honour it.
         String ipAddress = params.getString("ipAddress");
-        if (ipAddress.equals("")) ipAddress = null;
+        if (ipAddress.length()==0) ipAddress = null;
         if (ipAddress != null) {
             // We have a configured address.
             // That doesn't mean it's a usable one...
@@ -1613,11 +1615,8 @@ public class Main {
         // we start an FNP interface for each of our external addresses
         ConnectionRunner fnp = new FreenetConnectionRunner(node, node.sessions,
                 node.presentations, ocm, 3, true);
-        // FNP: Open to all the Net
 
-        TCP fntcp = new TCP(1, false);
-        ListeningAddress fnla = fntcp.getListeningAddress("" + listenPort,
-                Node.dontLimitClients);
+
         ContactCounter contactCounter = null;
         if (params.getBoolean("logInboundContacts")
                 && (Core.inboundContacts == null)) {
@@ -1631,8 +1630,43 @@ public class Main {
             Core.inboundContacts = new ContactCounter();
         }
         contactCounter = Core.inboundContacts;
+        
+        // FNP: if ipAddress is set and is resolvable, bind only to it, otherwise bind to 0.0.0.0 (any IP)
+       
+        TCP fntcp;
+        ListeningAddress fnla;
+
+        if (params.getString("ipAddress").length() > 0) {
+            try {
+                InetAddress listenAddress = InetAddress.getByName(params.getString("ipAddress"));
+                fntcp = new TCP(listenAddress, 1, false);
+                fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
+
+                iv.addElement(new PublicNIOInterface(fnla, node, tf, fnp,
+                        contactCounter, "FNP"));
+
+                Core.logger.log(Main.class, "Listening on " + listenAddress.toString() + " for FNP traffic", Logger.MINOR);
+                
+            } catch (Exception e) {
+                fntcp = new TCP(1, false);
+                fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
+
+                iv.addElement(new PublicNIOInterface(fnla, node, tf, fnp,
+                        contactCounter, "FNP"));
+
+                Core.logger.log(Main.class, "ipAddress set, but got an exception, listening on all interfaces for FNP traffic", e, Logger.NORMAL);
+
+            }
+        } else {
+            fntcp = new TCP(1, false);
+            fnla = fntcp.getListeningAddress(listenPort, Node.dontLimitClients);
+
         iv.addElement(new PublicNIOInterface(fnla, node, tf, fnp,
                 contactCounter, "FNP"));
+
+            Core.logger.log(Main.class, "Listening on all interfaces for FNP traffic", Logger.MINOR);
+        }
+
 
         if (params.getBoolean("logOutboundContacts")) {
             // Enable monitoring of outbound contact addresses

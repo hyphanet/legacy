@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.NumberFormat;
 import java.util.Date;
-import java.util.Hashtable;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,7 +15,6 @@ import freenet.node.http.Infolet;
 import freenet.node.http.SimpleAdvanced_ModeUtils;
 import freenet.support.Logger;
 import freenet.support.servlet.HtmlTemplate;
-import freenet.thread.PooledThread;
 import freenet.thread.ThreadStatusSnapshot;
 import freenet.transport.tcpAddress;
 
@@ -194,49 +192,5 @@ public final class EnvironmentInfolet extends Infolet {
         if (bytes << 44 == 0) return nf.format(bytes >> 20) + " MiB";
         if (bytes << 54 == 0) return nf.format(bytes >> 10) + " KiB";
 		return nf.format(bytes) + " Bytes";
-	}
-
-    private void doGroup(ThreadGroup group, StringBuffer buffer, Hashtable consumers, ThreadCount tc) {
-		buffer.append("\n<li><b>" + group.getName() + "</b><ul>");
-		Thread[] tArray = new Thread[group.activeCount()];
-		int threads = group.enumerate(tArray, false);
-		for (int j = 0; j < threads; j++) {
-			buffer.append("\n<li>" + tArray[j].getName());
-			if (tArray[j] instanceof PooledThread) {
-				tc.total++;
-				try {
-					String type = ((PooledThread) tArray[j]).job().toString();
-					buffer.append(": " + type);
-					type = type.substring(0, type.indexOf("@"));
-					Consumer con = (Consumer) consumers.get(type);
-					if (con == null) {
-						con = new Consumer();
-						consumers.put(type, con);
-					}
-					con.number++;
-				} catch (NullPointerException e) {
-					tc.available++;
-				}
-			}
-		}
-		ThreadGroup[] tgArray = new ThreadGroup[group.activeGroupCount()];
-		int groups = group.enumerate(tgArray, false);
-		for (int i = 0; i < groups; i++) {
-			doGroup(tgArray[i], buffer, consumers, tc);
-		}
-		buffer.append("</ul>");
-	}
-
-	private class Consumer {
-
-		/** The number of current consumers of this type. */
-		int number = 0;
-	}
-
-	private class ThreadCount {
-
-		int total = 0;
-
-		int available = 0;
 	}
 }

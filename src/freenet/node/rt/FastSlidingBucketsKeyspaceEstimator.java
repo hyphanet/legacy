@@ -1089,6 +1089,9 @@ public class FastSlidingBucketsKeyspaceEstimator extends NumericKeyKeyspaceEstim
             bd.buckets[i] = x;
             bd.vals[i] = getBucketValue(i);
             bd.ras[i] = ra[i].toString();
+            BigDecimal centerDec = new BigDecimal(centers[i]);
+            BigInteger centerInt = centerDec.toBigInteger();
+            bd.center[i] = new Key(centerInt);
             max = Math.max(x, max);
             min = Math.min(x, min);
         }

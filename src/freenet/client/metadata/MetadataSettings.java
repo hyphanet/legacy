@@ -20,6 +20,7 @@ public class MetadataSettings {
     private int splitFileRetryHtlIncrement = -1;
     private int healPercentage = 0;
     private int healingHtl = 5;
+    private int sfMaxHTL = 20;
     
     private int splitFileThreads = -1;
     private ClientFactory clientFactory = null;
@@ -82,6 +83,7 @@ public class MetadataSettings {
     public final void enableParanoidChecks(boolean value) { doParanoidChecks = value;}
     public final void setMaxLog2Size(int sz) { maxLog2Size = sz; }
     public final void setFollowContainers(boolean f) { followContainers = f; }
+    public final void setSplitFileMaxHTL(int htl) { sfMaxHTL = htl; }
     
     public final boolean isNonLocal() { return nonLocal; }
     public final boolean getHandleSplitFiles() { return handleSplitFiles; }
@@ -92,6 +94,7 @@ public class MetadataSettings {
     public final int getHealingHtl() { return healingHtl; }
     public final int getSplitFileThreads() { return splitFileThreads; }
     public final String getSplitFileAlgoName() { return splitFileAlgoName; }
+    public final int getSplitFileMaxHTL() { return sfMaxHTL; }
     
     public final ClientFactory getClientFactory() { return clientFactory; }
     public final boolean doParanoidChecks() { return doParanoidChecks; }

@@ -583,6 +583,8 @@ public abstract class AbstractSelectorLoop implements SelectorLoop{
 			logger.log(this, "mySelect caught " + e, e, Logger.MINOR);
 			return false;
 		} catch (IOException e) {
+		    if(logDebug)
+		        logger.log(this, "Caught "+e, e, Logger.DEBUG);
 			String msg = e.getMessage().toLowerCase();
 			if(msg.indexOf("interrupted system call") != -1) {
 				logger.log(

@@ -69,7 +69,7 @@ public final class tcpListener implements Listener {
     }
 
     public final String toString() {
-        return t.getName()+'/'+port;
+        return t.getName()+'/'+address.getValString();
     }
 
     public final void close() {

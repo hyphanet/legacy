@@ -1,10 +1,7 @@
 package freenet.support;
 
 import freenet.Core;
-import freenet.node.rt.SimpleIntervalledRunningAverage;
 import freenet.node.rt.ValueConsumer;
-import freenet.support.DoublyLinkedList;
-import freenet.support.DoublyLinkedListImpl;
 import freenet.support.DoublyLinkedList.Item;
 
 /**

@@ -27,3 +27,6 @@ prng.seed
 .classpath
 .project
 .externalToolBuilders
+lock.lck
+ratedata_a
+ratedata_b

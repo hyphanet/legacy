@@ -54,6 +54,31 @@ public class PeerHandler {
 	
 	private TrailerFlowCreditMessage queuedCreditMessage;
 
+    /*
+     * Whether to decrement the HTL on requests received at maximum HTL
+     * from this node. Decided once and for all for each requestor, to
+     * make correlation attacks a lot harder. If this is done per request,
+     * then the original requestor for a splitfile can be identified much 
+     * more easily:
+     * Node 0:
+     * 20	1000
+     * Node 1:
+     * 20	500
+     * 19	500
+     * Node 2:
+     * 20	250
+     * 19	250
+     * 18	500
+     * Node 3:
+     * 20	125
+     * 19	125
+     * 18	250
+     * 17	500
+     * And so on! This is pretty bad!
+     * FIXME: format the above as HTML and add a * at the top to make it javadoc.
+     */
+    public final boolean decrementMaxHTL;
+
 	public static class MessageAccounter {
         
 		private Presentation defaultPresentation;
@@ -685,6 +710,8 @@ public class PeerHandler {
 		trailerWriteManager = new MuxTrailerWriteManager(this);
         recentlyReceivedRequests = new ExtrapolatingTimeDecayingEventCounter(Node.rateLimitingInterval, 100);
         receivedRequestAverage = new TimeDecayingRunningAverage(-1, Node.rateLimitingInterval/2, 0, 1000*3600*24*7); // initial
+        // 25% chance of decrementing
+        decrementMaxHTL = Node.getRandSource().nextFloat() > 0.75;
     }
 	
 	public long timeSinceLastMessageSent() {

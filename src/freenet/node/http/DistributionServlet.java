@@ -46,6 +46,8 @@ import freenet.client.ClientFactory;
 import freenet.client.FreenetURI;
 import freenet.client.events.RedirectFollowedEvent;
 import freenet.client.http.ImageServlet;
+import freenet.config.Params;
+import freenet.interfaces.AllowedHosts;
 import freenet.node.Node;
 import freenet.node.rt.RoutingMemory;
 import freenet.node.rt.RoutingStore;
@@ -96,6 +98,8 @@ public class DistributionServlet extends HttpServlet {
     
     private HtmlTemplate pageTmp, titleBoxTmp;
     
+    private static AllowedHosts generatorAllowedHosts;
+    
     public void init() throws ServletException {
 	logDEBUG = Core.logger.shouldLog(Logger.DEBUG,this);
 	Core.logger.log(this, "init()", Logger.DEBUG);
@@ -134,6 +138,7 @@ public class DistributionServlet extends HttpServlet {
         if (logDEBUG) Core.logger.log(DistributionServlet.class, "Initializing Distribution Servlet with " + context, Logger.DEBUG);
 	
         node = (Node)context.getAttribute("freenet.node.Node");
+        generatorAllowedHosts = new AllowedHosts(context.getInitParameter("generatorAllowedHosts"));
         getPages();
 
         imageServlet = new ImageServlet();
@@ -258,31 +263,29 @@ public class DistributionServlet extends HttpServlet {
             //System.err.println(uri);
             if (logDEBUG) Core.logger.log(this, "URI: " + uri + " IP=" + req.getRemoteAddr(), Logger.DEBUG);
             if (uri.length()==0 || uri.equals("index.html")) {
-		String s = req.getRemoteAddr();
-		if (isLocalAddress(s))
+                if (generatorAllowedHosts.match(req.getRemoteAddr())) {
 		    sendIndex(resp, req, pages);
-		else {
+                } else {
 		    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		    resp.getWriter().print("Error");
 		}
 	    } else if (uri.equals("disturl.txt")) {
-		String s = req.getRemoteAddr();
-		if (isLocalAddress(s))
+		if (generatorAllowedHosts.match(req.getRemoteAddr())) {
 		    sendDistURL(resp, req, pages);
-		else {
+		} else {
 		    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		    resp.getWriter().print("Error");
 		}
-            } else if (uri.equals("node.ref")) {
+            } else if (generatorAllowedHosts.match(req.getRemoteAddr()) && uri.equals("node.ref")) {
                 sendNodeRef(req, resp);
-            } else if (uri.endsWith("addDistPage.html")) {
+            } else if (generatorAllowedHosts.match(req.getRemoteAddr()) && uri.endsWith("addDistPage.html")) {
                 addDistPage(req, resp, pages);
             } else if (uri.endsWith("/") && pages.containsKey(uri.substring(0, uri.length() - 1))) {
                 if (logDEBUG) Core.logger.log(this, "Sending Distribution Page to " + req.getRemoteAddr(), Logger.DEBUG);
                 sendDistPage((DistributionPage) pages.get(uri.substring(0, uri.length() - 1)), req, resp);
             } else if (uri.endsWith("/freenet.zip") && pages.containsKey(uri.substring(0, uri.length() - "/freenet.zip".length()))) {
                 sendDistro((DistributionPage) pages.get(uri.substring(0, uri.length() - 12)), req, resp);
-            } else if (uri.indexOf("servlet/images/") == 0 && isLocalAddress(req.getRemoteAddr())) {
+            } else if (uri.indexOf("servlet/images/") == 0 && generatorAllowedHosts.match(req.getRemoteAddr())) {
 		sendImage(uri.substring("servlet/images/".length()), req, resp);
             } else if (uri.indexOf("/servlet/images/") != -1 && pages.containsKey(uri.substring(0, uri.indexOf("/servlet/images/")))) {
                 sendImage(uri.substring(uri.indexOf("/servlet/images/") + "/servlet/images/".length()), req, resp);
@@ -511,7 +514,7 @@ public class DistributionServlet extends HttpServlet {
       "CHK@h2CNT10djQ9d6u4BeMPZqsIOAo4KAwI,AqCdUrCb8Laml9l8aDlg9A", // stop-freenet.sh
       "CHK@ix0Z0wFt5jfWFGmbIZaLud~VOIsPAwI,2MBdgGPT57XMzl0AxpSKyA", // README
       "CHK@W35kJctCO55GvexkgIhSysCxgCkKAwI,IQGXJmmv20zPTqU~UiHv5Q", // preconfig.sh
-      "CHK@dfW6SO3~ExozhEOpGhbllnSS~ZsKAwI,m8PVn8Sbi3-sTSKThaq8uQ", // update.sh
+            "CHK@4uh8GbwLebPGeQH3OPyUesaHJBMKAwI,IRYliW4Lkk4gHQvNaVRfAQ", // update.sh
       "CHK@c~fw58SjxQ~5TppuciSXd1OZRcARAwI,~MBTCdzHObqXmf8mUplXFg", // freenet-webinstall.exe
       "CHK@VjDL1olHjKPMT7-sQFA0GpJGz-kRAwI,N5XM9rOqS8c1RAcnZ~EY~g", // NodeConfig.exe
       "CHK@7fWN2TWdHoIODoxCeD1OebVdUB8QAwI,uLq58BoeKATpIJFa8PCiJA", // freenet.exe

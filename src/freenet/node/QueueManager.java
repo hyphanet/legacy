@@ -345,7 +345,7 @@ public final class QueueManager {
                         if(!r.hasNode(id)) continue;
                         if(r.haveRoutedTo(id)) continue;
                         if(now - qe.expiresAt > 10000) {
-                            Core.logger.log(this, "Removing "+qe+" in queue run core - timed out "+(qe.expiresAt-now)+"ms ago", Logger.ERROR);
+                            Core.logger.log(this, "Removing "+qe+" in queue run core - timed out "+(now-qe.expiresAt)+"ms ago", Logger.ERROR);
                             // Infinite loop?
                             j.remove();
                             // Will get removed from requests later

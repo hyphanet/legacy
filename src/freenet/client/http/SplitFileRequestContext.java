@@ -27,6 +27,7 @@ import freenet.client.http.filter.FilterException;
 import freenet.client.metadata.MimeTypeUtils;
 import freenet.client.metadata.SplitFile;
 import freenet.message.client.FEC.SegmentHeader;
+import freenet.node.Node;
 import freenet.support.ArrayBucket;
 import freenet.support.Bucket;
 import freenet.support.BucketFactory;
@@ -119,7 +120,7 @@ public class SplitFileRequestContext extends BaseContext {
 
     protected Logger logger = null;
 
-    protected SplitFileRequestServlet servlet = null;
+    protected final SplitFileRequestServlet servlet;
 
     SplitFileRequestContext(long lifeTimeMs, String uri, String path, SplitFileRequestServlet servlet, BucketFactory bf) {
         super(lifeTimeMs);
@@ -239,7 +240,7 @@ public class SplitFileRequestContext extends BaseContext {
         retryHtlIncrement = ParamParse.readInt(req, logger, "retryHtlIncrement", retryHtlIncrement, 0, 100);
         healHtl = ParamParse.readInt(req, logger, "healHtl", healHtl, 0, 100);
         healPercentage = ParamParse.readInt(req, logger, "healPercentage", healPercentage, 0, 100);
-        retries = ParamParse.readInt(req, logger, "retries", retries, 0, 50);
+        retries = ParamParse.readInt(req, logger, "retries", retries, 0, servlet.maxRetries);
         threads = ParamParse.readInt(req, logger, "threads", threads, 0, 100);
         useUI = ParamParse.readBoolean(req, logger, "useUI", useUI);
         //useUIMinSize = ParamParse.readInt(req, logger, "useUIMinSize",
@@ -600,6 +601,7 @@ public class SplitFileRequestContext extends BaseContext {
             requester.setSplitFileThreads(threads);
             requester.setNonLocal(skipDS);
             requester.setRandomSegs(randomSegs);
+            requester.setSplitFileMaxHTL(Node.perturbHTL(Node.maxHopsToLive));
 
             // TODO: make parameters, add to GUI options.
 

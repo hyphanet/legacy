@@ -22,6 +22,7 @@ class SplitFileGetRequest extends Request {
     int healPercentage;
     int healingHtl;
     int maxThreads;
+    int maxBlockHTL;
     ClientFactory cf;
     BucketFactory bf;
     Bucket destBucket;
@@ -46,6 +47,7 @@ class SplitFileGetRequest extends Request {
                                int healPercentage,
                                int healingHtl,
                                int maxThreads,
+                               int maxBlockHTL,
                                ClientFactory cf,
                                BucketFactory bf,
                                Bucket destBucket,
@@ -61,6 +63,7 @@ class SplitFileGetRequest extends Request {
         this.healPercentage = healPercentage;
         this.healingHtl = healingHtl;
         this.maxThreads = maxThreads;
+        this.maxBlockHTL = maxBlockHTL;
         this.cf = cf;
         this.bf = bf;
         this.destBucket = destBucket;

@@ -36,25 +36,17 @@ public final class tcpNIOListener implements NIOListener {
 
     private final tcpTransport t;
 
-   public tcpNIOListener(tcpTransport t, tcpListeningAddress addr,
-		boolean dontThrottle) throws ListenException {
-        this(t, addr, null,dontThrottle);
-        
-    }
-
-    tcpNIOListener(tcpTransport t, tcpListeningAddress addr,
-                InetAddress bindAddr, boolean dontThrottle)
+    public tcpNIOListener(tcpListeningAddress addr)
 	throws ListenException {
-        this.t = t;
-	this.bindAddr = bindAddr;
+        
+        this.t = (tcpTransport)addr.getTransport();
+        this.bindAddr = addr.getBindAddress();
+        this.address = addr;
+
+		this.dontThrottle = addr.getDontThrottle();
+
+		this.port = addr.getPort();
 	
-	//TODO: Why do we not just use the provided 'addr'?
-	//It has port#, it has 'dontThrottle' and it can have a 'bindAddr'
-	//Do those variables contiain the wrong values for us?
-	this.address = new tcpListeningAddress(t, bindAddr,addr.getPort(),
-					      dontThrottle);
-	this.dontThrottle = dontThrottle;
-	port = address.getPort();
 	startListener();
     }
     
@@ -86,7 +78,7 @@ public final class tcpNIOListener implements NIOListener {
     }
 
     public final String toString() {
-        return t.getName()+'/'+port;
+        return address.toString();
     }
 
     /*************** OK HERE WE GO ************/

@@ -1,6 +1,7 @@
 package freenet.keys;
 
 import java.io.InputStream;
+import java.util.Random;
 
 import freenet.Core;
 import freenet.Key;
@@ -31,15 +32,15 @@ public final class CHK extends Key {
 	/**
 	 * Create a random CHK
 	 */
-	private CHK() throws KeyException {
+	private CHK(Random r) {
 	    super(20, 15, keyNumber);
 	    byte[] buf = new byte[20];
-	    Core.getRandSource().nextBytes(buf);
+	    r.nextBytes(buf);
 	    System.arraycopy(buf, 0, val, 0, 20);
 	}
 	
-	public static CHK randomKey() throws KeyException {
-	    return new CHK();
+	public static CHK randomKey(Random r) {
+	    return new CHK(r);
 	}
 	
 	/**

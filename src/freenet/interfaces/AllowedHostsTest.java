@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 
 /**
  * @author David Roden <dr@todesbaum.dyndns.org>
- * @version $Id: AllowedHostsTest.java,v 1.1 2005/01/08 17:50:39 droden Exp $
+ * @version $Id: AllowedHostsTest.java,v 1.1.2.1 2005/01/28 22:24:01 amphibian Exp $
  */
 public class AllowedHostsTest extends TestCase {
 

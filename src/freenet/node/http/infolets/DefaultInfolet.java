@@ -3,6 +3,7 @@ package freenet.node.http.infolets;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.text.NumberFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -13,6 +14,7 @@ import freenet.client.ClientFactory;
 import freenet.client.FreenetURI;
 import freenet.client.InternalClient;
 import freenet.config.Params;
+import freenet.diagnostics.Diagnostics;
 import freenet.node.ConfigUpdateListener;
 import freenet.node.Main;
 import freenet.node.Node;
@@ -36,7 +38,7 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 
 	static boolean sentFirstTimeWarning = false;
 
-	HtmlTemplate titleBoxTmp, relBarTmp, barTmp, insertTmp;
+    HtmlTemplate titleBoxTmp,insertTmp;
 
 	private volatile Params bookmarks;
 
@@ -67,13 +69,14 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 
 	public void init(Node n) {
 		try {
-            relBarTmp = HtmlTemplate.createTemplate("relbar.tpl");
-            barTmp = HtmlTemplate.createTemplate("bar.tpl");
+            //relBarTmp = HtmlTemplate.createTemplate("relbar.tpl");
+            //barTmp = HtmlTemplate.createTemplate("bar.tpl");
             titleBoxTmp = HtmlTemplate.createTemplate("titleBox.tpl");
 			insertTmp = HtmlTemplate.createTemplate("fproxyInsert.tpl");
 		} catch (java.io.IOException e) {
 			///BAD BOY!!!
 		}
+        
 		node = n;
 		factory = new InternalClient(n);
 		backgroundFetch();
@@ -83,10 +86,27 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 	public void toHtml(PrintWriter pw) {
 	}
 
+	protected static String format(long bytes) {
+		NumberFormat nf = NumberFormat.getInstance();
+		if (bytes == 0)
+			return "None";
+		if (bytes > (2L << 32))
+			return (nf.format(bytes >> 30) + " GiB").replaceAll(
+				" ",
+				"&nbsp;");
+		if (bytes > (2 << 22))
+			return (nf.format(bytes >> 20) + " MiB").replaceAll(
+				" ",
+				"&nbsp;");
+		if (bytes > (2 << 12))
+			return (nf.format(bytes >> 10) + " KiB").replaceAll(
+				" ",
+				"&nbsp;");
+		return (nf.format(bytes) + " Bytes").replaceAll(" ", "&nbsp;");
+	}
+	
 	public void toHtml(PrintWriter pw, HttpServletRequest req) {
 		// Copy local versions for thread safety
-		HtmlTemplate relBarTmp = new HtmlTemplate(this.relBarTmp);
-		HtmlTemplate barTmp = new HtmlTemplate(this.barTmp);
 		HtmlTemplate titleBoxTmp = new HtmlTemplate(this.titleBoxTmp);
 		HtmlTemplate insertTmp = new HtmlTemplate(this.insertTmp);
 		// Figure out the prefix for FProxy
@@ -125,33 +145,21 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 		// Status Bar
 		ssw = new StringWriter(100);
 		sw = new PrintWriter(ssw);
-
-		sw.println("<p align=\"center\">Build: " + Version.buildNumber);
+        sw.println("<TABLE align = 'center'><TR align = 'left'><TD colspan=2>Build " + Version.buildNumber);
         if (node.getHighestSeenBuild() > Version.buildNumber) sw.println(" (<b>Latest: " + Version.highestSeenBuild + "</b>)");
-
-		int load = (int) (node.estimatedLoad(false) * 100);
-		int overloadLow = (int)(Node.overloadLow * 100);
-		int overloadHigh = (int)(Node.overloadHigh * 100);
-		if (load > 0 || node.getThreadFactory().maximumThreads() > 0) {
+        //sw.println("</TD></TR><TR><TD align='center'>");
 			sw.println("&nbsp;&nbsp;Load: ");
-			if (load == 0) {
-				barTmp.set("COLOR", "");
-                barTmp.set("WIDTH","100");
-				barTmp.toHtml(sw);
-			} else if (load == 100) {
-				barTmp.set("COLOR", "l");
-                barTmp.set("WIDTH","100");
-				barTmp.toHtml(sw);
-			} else {
-                relBarTmp.set("LCOLOR", (load < overloadLow) ? "g" : ((load < overloadHigh) ? "y" : "l"));
-                relBarTmp.set("LBAR", (load < overloadLow) ? "g" : ((load < overloadHigh) ? "y" : "l"));
-				relBarTmp.set("LBARWIDTH", "" + load);
-				relBarTmp.set("RBARWIDTH", "" + (100 - load));
-				relBarTmp.toHtml(sw);
-			}
-			sw.println(" " + load + " %");
+        //sw.println("</TD><TD align='center'>");
+        renderLoadBar(sw);
+        if (Node.logOutputBytes) {
+			sw.println("</TD></TR><TR><TD align='left' colspan=2>&nbsp;</TD</TR>");
+			sw.println("</TD></TR><TR><TD align='left' colspan=2>");
+			sw.println("Outbound message overhead:");
+			sw.println("</TD></TR><TR><TD align='center' colspan=2>");
+			renderMessageOverheadBar(sw);
 		}
-		sw.println("</p>");
+        sw.println("</TD></TR></TABLE>");
+        
 		titleBoxTmp.set("TITLE", "Status");
 		titleBoxTmp.set("CONTENT", ssw.toString());
 		titleBoxTmp.toHtml(pw);
@@ -199,6 +207,29 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 				titleBoxTmp.toHtml(pw);
 			}
 		}
+	}
+
+    private void renderMessageOverheadBar(PrintWriter sw) {
+		double trailerChunkBytes = Core.diagnostics.getCountingValue("outputBytesTrailerChunks",Diagnostics.HOUR,Diagnostics.COUNT_CHANGE);
+        double totalBytes = Core.diagnostics.getCountingValue("outputBytes",Diagnostics.HOUR,Diagnostics.COUNT_CHANGE);
+        double bytesWasted = totalBytes-trailerChunkBytes;
+        long overhead = Math.round((bytesWasted/totalBytes)*100);
+        HTMLProgressBar overheadBar = new HTMLProgressBar(overhead,100);
+        overheadBar.setLowColorThreshold(20,HTMLProgressBar.COLOR_YELLOW);
+        overheadBar.setHighColorThreshold(40,HTMLProgressBar.COLOR_RED);
+        sw.println(overheadBar.render());
+        sw.println(" " + overhead + "% ("+format(Math.round(bytesWasted))+" wasted in the last hour)");
+	}
+
+	private void renderLoadBar(PrintWriter sw) {
+		int load = (int) (node.estimatedLoad(false) * 100);
+        int overloadLow = (int) (Node.overloadLow * 100);
+        int overloadHigh = (int) (Node.overloadHigh * 100);
+        HTMLProgressBar progress = new HTMLProgressBar(load,100);
+        progress.setLowColorThreshold(overloadLow,HTMLProgressBar.COLOR_YELLOW);
+        progress.setHighColorThreshold(overloadHigh,HTMLProgressBar.COLOR_RED);
+        sw.println(progress.render());
+        sw.println(" " + load + "%");
 	}
 
 	private String getBookmarkHTML() {

@@ -42,10 +42,8 @@ public final class PublicNIOInterface extends NIOInterface {
         throws ListenException {
         super(listenAddr,symbolicName);
 	try {
-	    this.listener = new tcpNIOListener((tcpTransport)listenAddr.getTransport(),
-					       (tcpListeningAddress)listenAddr, false);
+	    this.listener = new tcpNIOListener((tcpListeningAddress)listenAddr);
 	} catch (ListenException e) {
-	    System.err.println("Couldn't open listener for "+listenAddr);
 	    throw e;
 	}
         this.conThrottler = conThrottler;

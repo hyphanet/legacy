@@ -511,10 +511,10 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 				if(logDebug)
 					logger.log(this, "Registering channel "+currentJob+
 									" with selector", Logger.DEBUG);
-				currentJob.destination.register(sel, SelectionKey.OP_WRITE, currentJob);
+				SelectionKey sk = currentJob.destination.register(sel, SelectionKey.OP_WRITE, currentJob);
 				if(logDebug)
 					logger.log(this, "Registered channel "+currentJob+
-									" with selector", Logger.DEBUG);
+									" with selector, sk: "+sk, Logger.DEBUG);
 			}catch (ClosedChannelException e) {
 				if(logDebug)
 					logger.log(this, "Channel closed: "+currentJob+": "+e,
@@ -554,6 +554,8 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 		int pseudoThrottledBytes = 0;
 		int bytesSent = 0;
 		Iterator i = currentSet.iterator();
+		//Iterator i = sel.keys().iterator();
+		if(logDebug) logger.log(this, "Jobs: "+sel.keys().size(), Logger.DEBUG);
 		Vector ts =new Vector(currentSet.size());
 		while(i.hasNext()) {
 			SelectionKey curKey = (SelectionKey)i.next();
@@ -561,6 +563,7 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 			SendJob currentJob = (SendJob)(curKey.attachment());
 			currentJob.update();
 			ts.add(currentJob);
+			if(logDebug) logger.log(this, "Job: "+currentJob+" : "+curKey, Logger.DEBUG);
 		}
 		sorter.sort(new VectorSorter(ts));
 		if (logDebug)logger.log(this, "Sorted jobs, "+ts.size(), Logger.DEBUG);
@@ -573,6 +576,7 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 			boolean localSuccess = true;
 			SendJob currentJob = (SendJob)(i.next());
 			SelectionKey curKey = currentJob.destination.keyFor(sel);
+			if(logDebug) logger.log(this, "Current job: "+currentJob+", curKey: "+curKey, Logger.DEBUG);
 			if(currentJob == null || currentJob.data.remaining() <= 0) {
 				curKey.cancel(); // leave running, but cancel
 				if(curKey.channel() != null) {
@@ -581,7 +585,7 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 									" from uniqueness, now "+uniqueness.size(),
 									Logger.DEBUG);
 				}
-				logger.log(this, "Cancelled "+currentJob+
+				logger.log(this, "Cancelled "+currentJob+":"+curKey+
 								" - already done?", Logger.ERROR);
 			}
 			

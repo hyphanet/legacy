@@ -26,7 +26,7 @@ public abstract class ClientRequest extends ClientMessage {
             uri = new FreenetURI(otherFields.getString("URI"));
             otherFields.remove("URI");
             htl = Integer.parseInt(otherFields.getString("HopsToLive"), 16);
-	    htl = Node.perturbHTL(htl);
+            //htl = Node.perturbHTL(htl);
             otherFields.remove("HopsToLive");
             if (otherFields.containsKey("Flags")) {
 		int flags=Integer.parseInt(otherFields.getString("Flags"), 16);

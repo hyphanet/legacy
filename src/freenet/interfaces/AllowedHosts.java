@@ -32,7 +32,7 @@ import freenet.transport.tcpAddress;
  * 
  * @author David Roden &lt;dr@todesbaum.dyndns.org&gt;, original code most
  *              probably by Matthew 'toad' Toseland &lt;toad@amphibian.dyndns.org&gt;
- * @version $Id: AllowedHosts.java,v 1.1 2005/01/08 17:50:06 droden Exp $
+ * @version $Id: AllowedHosts.java,v 1.1.2.1 2005/01/28 22:24:00 amphibian Exp $
  * @since 2005-01-07
  */
 public class AllowedHosts {
@@ -283,7 +283,7 @@ public class AllowedHosts {
 	 * @author David Roden &lt;dr@todesbaum.dyndns.org&gt;, original code most
 	 *              probably by Matthew 'toad' Toseland
 	 *              &lt;toad@amphibian.dyndns.org&gt;
-	 * @version $Id: AllowedHosts.java,v 1.1 2005/01/08 17:50:06 droden Exp $
+	 * @version $Id: AllowedHosts.java,v 1.1.2.1 2005/01/28 22:24:00 amphibian Exp $
 	 */
 	private static class HostAndSubnetPair {
 

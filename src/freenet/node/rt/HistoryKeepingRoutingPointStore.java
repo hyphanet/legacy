@@ -11,7 +11,6 @@ import java.util.LinkedList;
 
 import freenet.FieldSet;
 import freenet.Key;
-import freenet.node.rt.RoutingPointStore.RoutingPoint;
 import freenet.support.Unit;
 
 /**

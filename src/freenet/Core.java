@@ -762,7 +762,7 @@ public class Core {
         return randSource;
     }
 
-    public static void setupErrorLogger() {
+    public static void setupErrorLogger(String detail) {
 		if(logger != null && !(logger instanceof VoidLogger))
 			throw new IllegalStateException("Cannot set up logger, logger already set up");
 		LoggerHookChain chl =new LoggerHookChain(); 
@@ -775,6 +775,7 @@ public class Core {
 		chl.setThreshold(Logger.NORMAL);
         loggerHook.start();
         logger = chl;
+		chl.setDetailedThresholds(detail);
     }
     
 	public static void setupLogger(Params params,boolean dontCheck) {
