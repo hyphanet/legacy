@@ -25,7 +25,7 @@ public class Reaverage {
         if(args.length > 0) {
             interval = Integer.parseInt(args[0]);
         }
-        RunningAverageFactory raf = new BootstrappingDecayingRunningAverageFactory(0.0, 1.0, interval);
+        RunningAverageFactory raf = new BootstrappingDecayingRunningAverageFactory(0.0, Double.MAX_VALUE, interval);
         RunningAverage ra = raf.create(0);
         while(true) {
             String s;
