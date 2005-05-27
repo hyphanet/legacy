@@ -1,6 +1,13 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import freenet.Key;
+import freenet.node.rt.BucketDistribution;
 import freenet.node.rt.KeyspaceEstimator;
 import freenet.node.rt.KeyspaceEstimatorFactory;
 import freenet.node.rt.RunningAverage;
@@ -31,17 +38,19 @@ public class PathCountingStandardRouteEstimator implements RouteEstimator {
     final boolean productTSuccessIncludeBoth;
     
     public PathCountingStandardRouteEstimator(KeyspaceEstimatorFactory kef, int initTimeVal, SuccessFailureStats st, boolean halfValues, boolean probRA, boolean noTDNF, boolean tSuccessTimesPFailure, boolean doNoPathCounting, boolean productTSuccessIncludeBoth) {
-        epDNF = kef.createProbability(1.0, null);
-        etDNF = kef.createTime(null, initTimeVal, initTimeVal, null);
+        productOfTSuccessAndPFailure = tSuccessTimesPFailure;
+        this.doNoPathCounting = doNoPathCounting;
+        this.productTSuccessIncludeBoth = productTSuccessIncludeBoth;
+        if(probRA) epDNF = null;
+        else epDNF = kef.createProbability(1.0, null);
+        if(productOfTSuccessAndPFailure) etDNF = null;
+        else etDNF = kef.createTime(null, initTimeVal, initTimeVal, null);
         etSuccess = kef.createTime(null, initTimeVal, initTimeVal, null);
         sfStats = st;
         this.halfValues = halfValues;
         this.probRA = probRA;
         rapDNF = Main.rafb.create(1.0);
         this.noTDNF = noTDNF;
-        productOfTSuccessAndPFailure = tSuccessTimesPFailure;
-        this.doNoPathCounting = doNoPathCounting;
-        this.productTSuccessIncludeBoth = productTSuccessIncludeBoth;
     }
 
     public double estimate(Key k) {
@@ -76,14 +85,67 @@ public class PathCountingStandardRouteEstimator implements RouteEstimator {
     }
 
     public void succeeded(Key k, long time) {
-        epDNF.reportProbability(k, 0.0);
+        if(!probRA)
+            epDNF.reportProbability(k, 0.0);
         etSuccess.reportTime(k, time);
         rapDNF.report(0.0);
     }
 
     public void failed(Key k, long time) {
-        epDNF.reportProbability(k, 1.0);
-        etDNF.reportTime(k, time);
+        if(!probRA)
+            epDNF.reportProbability(k, 1.0);
+        if(!productOfTSuccessAndPFailure)
+            etDNF.reportTime(k, time);
         rapDNF.report(1.0);
+    }
+
+    public void dump(PrintWriter pw, String filenameBase) {
+        pw.println(getClass().getName());
+        BucketDistribution bd = new BucketDistribution();
+        if(epDNF != null) {
+            pw.println("epDNF:");
+            epDNF.getBucketDistribution(bd);
+            pw.println(bd.toString());
+            dump_graphable(bd, pw, filenameBase+"-epDNF");
+        }
+        if(etDNF != null) {
+            pw.println("etDNF:");
+            etDNF.getBucketDistribution(bd);
+            pw.println(bd.toString());
+            dump_graphable(bd, pw, filenameBase+"-etDNF");
+        }
+        if(etSuccess != null) {
+            pw.println("etSuccess:");
+            etSuccess.getBucketDistribution(bd);
+            pw.println(bd.toString());
+            dump_graphable(bd, pw, filenameBase+"-etSuccess");
+        }
+        if(probRA) {
+            pw.println("rapDNF:");
+            pw.println(rapDNF.toString());
+        }
+    }
+
+    /**
+     * @param bd
+     * @param pw
+     * @param filenameBase
+     */
+    private void dump_graphable(BucketDistribution bd, PrintWriter pw, String filenameBase) {
+        try {
+            File f = new File(filenameBase);
+            FileOutputStream fos = new FileOutputStream(f);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            PrintWriter fpw = new PrintWriter(bos);
+            bd.dump_graphable(fpw);
+            fpw.close();
+            try {
+                bos.close();
+            } catch (IOException e) {}
+        } catch (IOException e) {
+            System.err.println("Couldn't dump: "+e);
+            e.printStackTrace();
+        }
+        bd.dump_graphable(pw);
     }
 }

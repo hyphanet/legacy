@@ -1,5 +1,7 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.PrintWriter;
+
 import freenet.Key;
 
 /**
@@ -29,4 +31,9 @@ public interface RouteEstimator {
      * @param time The time, in hops, taken to get the DNF.
      */
     void failed(Key k, long time);
+
+    /**
+     * @param pw
+     */
+    void dump(PrintWriter pw, String filenameBase);
 }

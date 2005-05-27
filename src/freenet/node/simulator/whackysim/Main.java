@@ -1,9 +1,14 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
@@ -13,6 +18,7 @@ import freenet.Key;
 import freenet.keys.CHK;
 import freenet.node.rt.BootstrappingDecayingRunningAverageFactory;
 import freenet.node.rt.EdgeKludgingBinaryRunningAverage;
+import freenet.node.rt.EdgeKludgingWrapperRunningAverageFactory;
 import freenet.node.rt.KeyspaceEstimatorFactory;
 import freenet.node.rt.RunningAverageFactory;
 import freenet.node.rt.SimpleRunningAverage;
@@ -49,12 +55,37 @@ import freenet.node.rt.SlidingBucketsKeyspaceEstimatorFactory;
  */
 public class Main {
 
+
+    static class PSuccessEntry implements Comparable {
+        double psuccess;
+        Node node;
+
+        PSuccessEntry(double p, Node n) {
+            psuccess = p;
+            node = n;
+        }
+        
+        public int compareTo(Object o) {
+            PSuccessEntry p = (PSuccessEntry) o;
+            if(p.psuccess < psuccess) return -1;
+            else if(p.psuccess > psuccess) return 1;
+            if(p.node.totalHits > node.totalHits) return 1;
+            if(p.node.totalHits < node.totalHits) return -1;
+            return 0;
+        }
+        
+        public String toString() {
+            return Double.toString(psuccess) + " ("+
+            	node.totalHits+")";
+        }
+    }
+    
     // This is the maximum
     public final static int NUMBER_OF_NODES = 10000;
     // Initial size of mesh
-    public final static int INITIAL_NODES = 100;
+    public final static int INITIAL_NODES = 200;
     public final static int CONNECTIONS = 10;
-    public static int INSERT_HTL = 10;
+    public static int INSERT_HTL = 20;
     private static int FETCH_HTL = 20;
     public static RunningAverageFactory rafb;
     public static RunningAverageFactory raf;
@@ -63,18 +94,30 @@ public class Main {
     static final boolean DO_BAD_LINKS = false;
     static final boolean GREEDY_ROUTING_INCREASING_ONLY = false;
     static final boolean DO_VARIABLE_HTL = false;
-    static final double TARGET_PSUCCESS = 0.98;
+    static final double TARGET_PSUCCESS = 0.80;
+    static final boolean DO_LOG_REQUESTS_PER_CYCLE = false;
+    static final boolean DO_LOGSQUARED_REQUESTS_PER_CYCLE = true;
+    static final boolean DO_LOGCUBED_REQUESTS_PER_CYCLE = false;
+    static final boolean DO_DUMP = true;
+    static final int BASE_CYCLE_LENGTH = 10000; // number of requests in the first cycle
     private static Node[] nodes;
     private static Random r = new Random();
     private static KeyCollector kc = new KeyCollector(INITIAL_NODES*Node.MAX_DATASTORE_SIZE/10, r);
     private static double lastRequestSuccessRatio = 0;
+    private static long startTime = System.currentTimeMillis();
     
     static Vector activeNodes = new Vector();
     static HashSet borderNodes = new HashSet();
     static LinkedList borderQueue = new LinkedList();
+    static int cycleCounter;
     
     /** Run the simulation */
     public static void main(String[] args) {
+        
+        DateFormat df;
+        df = new SimpleDateFormat();
+        System.out.println(df.format(new Date()));
+        
         // Create 1000 nodes, each has an identity number (a long int).
         // Create an explicit 1/D structure from the identity numbers.
         // Each node has 10 links.
@@ -84,8 +127,10 @@ public class Main {
         // Run NGR.
         
         // First create a KEF
-        raf = new BootstrappingDecayingRunningAverageFactory(0, Double.MAX_VALUE, 10);
-        rafb = EdgeKludgingBinaryRunningAverage.factory(500, 0);
+        int MAX_REPORTS = 50;
+        raf = new BootstrappingDecayingRunningAverageFactory(0, Double.MAX_VALUE, MAX_REPORTS);
+        rafb = new EdgeKludgingWrapperRunningAverageFactory(raf, MAX_REPORTS);
+        //rafb = EdgeKludgingBinaryRunningAverage.factory(500, 0);
         KeyspaceEstimatorFactory kef = 
             new SlidingBucketsKeyspaceEstimatorFactory(raf, rafb, raf, /*Node.BUCKET_COUNT*/16, /*Node.MOVEMENT_FACTOR*/0.05, /*Node.DO_SMOOTHING*/false, /*Node.DO_FAST_ESTIMATORS*/true);
         
@@ -122,15 +167,17 @@ public class Main {
         System.out.println("Running some requests...");
         
         int i = 0;
+        int j = 0;
         runNGR();
-//        while(i < 20) {
-//            if(lastRequestSuccessRatio < 0.9) i = 0;
-//            else i++;
-//            System.out.println("Consecutive >0.9: "+i);
+        while(i < 20 && j < 1000) {
+            if(lastRequestSuccessRatio < TARGET_PSUCCESS) i = 0;
+            else i++;
+            j++;
+            System.out.println("Consecutive >"+TARGET_PSUCCESS+": "+i);
 ////        for(int i=0;i<20;i++) {
 ////        //for(int i=0;i<10;i++)
-//            runNGR();
-//        }
+            runNGR();
+        }
 //        
         System.out.println("Growing the network...");
 //        
@@ -272,18 +319,27 @@ public class Main {
 
     private static long cycleNumber = 0;
 
+    static int currentCycles = 3;
+    
     /**
      * Run NGRouting across the mesh.
      * @param r A Random.
      * @param nodes The nodes.
      */
     private static void runNGR() {
+        cycleCounter++;
         // Do a bazillion requests.
         System.err.println("Nodes active: "+activeNodes.size());
-        int keepKeys = (int)(activeNodes.size()*Node.MAX_DATASTORE_SIZE/40);
+        int keepKeys = (int)(activeNodes.size()*Node.MAX_DATASTORE_SIZE/20);
         if(kc.keepingKeys() != keepKeys) {
         	kc.setKeep(keepKeys);
         	System.out.println("Keeping "+keepKeys+" keys");
+        }
+        if(shouldDump()) try { 
+            dumpAll();
+        } catch (IOException e) {
+            System.err.println("Could not dump: "+e);
+            e.printStackTrace();
         }
         int nodeCount = activeNodes.size();
 //        double log2 = Math.log(nodeCount)/Math.log(2.0);
@@ -303,24 +359,39 @@ public class Main {
         long totalFirstTimeFetchHops = 0;
         int miniCycles = 0;
         
-        while(sra.currentValue() < TARGET_PSUCCESS || sra.countReports() < 5) {
+//        for(int x=0;x<currentCycles;x++) {
+//        while(sra.currentValue() < TARGET_PSUCCESS || sra.countReports() < 5) {
             miniCycles++;
-            totalFetchHops = 0;
-            totalFetches = 0;
-            firstTimeFetches = 0;
-            successfulFetches = 0;
-            successfulFirstTimeFetches = 0;
-            totalInserts = 0;
-            successfulInserts = 0;
-            totalFirstTimeFetchHops = 0;
+//            totalFetchHops = 0;
+//            totalFetches = 0;
+//            firstTimeFetches = 0;
+//            successfulFetches = 0;
+//            successfulFirstTimeFetches = 0;
+//            totalInserts = 0;
+//            successfulInserts = 0;
+//            totalFirstTimeFetchHops = 0;
         // Run one mini-cycle
-        for(int i=0;i<nodeCount*CONNECTIONS;i++) {
+        // Fixed length mini-cycles - if they are O(n), then we get O(n^2) overall...
+           
+        int requestsPerCycle;
+        final int baseCycleLength = BASE_CYCLE_LENGTH;
+        final double baseLog = Math.log(INITIAL_NODES);
+        double l = Math.log(activeNodes.size());
+        if(DO_LOG_REQUESTS_PER_CYCLE)
+            requestsPerCycle = (int)(baseCycleLength * l / baseLog);
+        else if(DO_LOGSQUARED_REQUESTS_PER_CYCLE)
+            requestsPerCycle = (int) (baseCycleLength * l*l / (baseLog*baseLog));
+        else if(DO_LOGCUBED_REQUESTS_PER_CYCLE)
+            requestsPerCycle = (int) (baseCycleLength * l*l*l / (baseLog*baseLog*baseLog));
+        else requestsPerCycle = baseCycleLength;
+        for(int i=0;i<requestsPerCycle;i++) {
             // Insert a file
             // Then fetch it
             // FIXME: maybe we should do the insert-1-then-fetch-100 thing for realism?
             int fetchHops;
             Key key;
             long id;
+            //if(i % 10 == 0) {
                 key = CHK.randomKey(r);
                 id = r.nextLong();
                 totalInserts++;
@@ -333,6 +404,7 @@ public class Main {
                     successfulInserts++;
                     kc.add(key);
                 }
+            //}
             //for(int j=0;j<CONNECTIONS;j++) {
             KeyWithCounter kwc = kc.getRandomKey();
             boolean firstTime = kwc.getCount() == 0;
@@ -355,15 +427,15 @@ public class Main {
             }
             //}
         }
-        lastRequestSuccessRatio = ((double)successfulFetches)/((double)totalFetches);
-        double lastFirstTimeSuccessRatio = ((double)successfulFirstTimeFetches)/((double)firstTimeFetches);
-        
-        double lastWorstRatio = Math.min(lastRequestSuccessRatio, lastFirstTimeSuccessRatio);
-        
-        System.out.println("Cycle "+cycleNumber+" mini-cycle "+miniCycles+" -> avg: "+lastRequestSuccessRatio+" first-time: "+lastFirstTimeSuccessRatio+" worst: "+lastWorstRatio);
-
-        sra.report(lastWorstRatio);
-        }
+//        lastRequestSuccessRatio = ((double)successfulFetches)/((double)totalFetches);
+//        double lastFirstTimeSuccessRatio = ((double)successfulFirstTimeFetches)/((double)firstTimeFetches);
+//        
+//        double lastWorstRatio = Math.min(lastRequestSuccessRatio, lastFirstTimeSuccessRatio);
+//        
+//        System.out.println("Cycle "+cycleNumber+" mini-cycle "+miniCycles+" -> avg: "+lastRequestSuccessRatio+" first-time: "+lastFirstTimeSuccessRatio+" worst: "+lastWorstRatio);
+//
+//        sra.report(lastWorstRatio);
+//        }
         // Now verify the keys exist
         int vc = kc.countValidKeys();
         System.out.println("Keys: "+vc);
@@ -401,9 +473,55 @@ public class Main {
         lastRequestSuccessRatio = ((double)successfulFetches)/((double)totalFetches);
         System.err.println("Cycle "+cycleNumber+": Average path length: "+((double)totalFetchHops)/((double)successfulFetches)+", Success probability: "+lastRequestSuccessRatio+
                 ", inserts: "+(((double)successfulInserts)/((double)totalInserts))+", first-time success ratio: "+((double)successfulFirstTimeFetches)/((double)firstTimeFetches)+
-                " ("+firstTimeFetches+") - first time path length "+((double)totalFirstTimeFetchHops)/successfulFirstTimeFetches+", mini-cycles: "+miniCycles+" - "+activeNodes.size()+" nodes");
+                " ("+firstTimeFetches+") - first time path length "+((double)totalFirstTimeFetchHops)/successfulFirstTimeFetches+", mini-cycles: "+miniCycles+" - "+activeNodes.size()+" nodes, "+
+                requestsPerCycle+" requests");
+        double lastFirstTimeSuccessRatio = ((double)successfulFirstTimeFetches)/((double)firstTimeFetches);
+        
+        double lastWorstRatio = Math.min(lastRequestSuccessRatio, lastFirstTimeSuccessRatio);
+        if(lastWorstRatio < TARGET_PSUCCESS) {
+            currentCycles++;
+        } else if(lastWorstRatio > TARGET_PSUCCESS) {
+            if(currentCycles > 3)
+                currentCycles--;
+        }
         dumpLoadDistribution();
         cycleNumber++;
+    }
+
+    /**
+     * Dump all nodes
+     */
+    private static void dumpAll() throws IOException {
+        String filename = getDumpFilename();
+        File dumpTo = new File(filename);
+        System.err.println("Dumping to "+dumpTo.getPath());
+        FileOutputStream fos = new FileOutputStream(dumpTo);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        PrintWriter pw = new PrintWriter(bos);
+        pw.println("Node count: "+activeNodes.size());
+        for(int i=0;i<activeNodes.size();i++) {
+            ((Node)activeNodes.get(i)).dump(pw, filename);
+        }
+        bos.close();
+        System.err.println("Dumped to "+dumpTo.getPath());
+    }
+
+    private static String getDumpFilename() {
+    	return "dump-"+startTime+"-"+activeNodes.size();
+    }
+
+    /**
+     * @return True if we should dump all
+     */
+    private static boolean shouldDump() {
+        if(!DO_DUMP) return false;
+        int x = cycleCounter - 20;
+        if(x % 250 == 0) return true;
+        if(x == 201) return true;
+        if(x == 250) return true;
+        if(x == 300) return true;
+        if(x == 400) return true;
+        return false;
     }
 
     private static int findInStores(Key k) {
@@ -424,18 +542,27 @@ public class Main {
 
     static int x = 0;
     static long[] fullLoad = new long[NUMBER_OF_NODES];
+    static PSuccessEntry[] fullPSuccess = new PSuccessEntry[NUMBER_OF_NODES];
     private static void dumpLoadDistribution() {
         long totalSinceLastTime = 0;
         long max = 0;
         long min = Long.MAX_VALUE;
         int maxStore = 0;
         int minStore = Integer.MAX_VALUE;
+        double maxPSuccess = 0;
+        double minPSuccess = Double.MAX_VALUE;
         long totalStore = 0;
         for(int i=0;i<activeNodes.size();i++) {
             Node n = (Node)activeNodes.get(i);
             long sinceLastTime = n.totalHits - n.lastCycleHits;
+            long successesSinceLastTime = n.totalSuccesses - n.lastCycleSuccesses;
+            double psuccess = ((double) successesSinceLastTime) / ((double) sinceLastTime);
+            if(psuccess > maxPSuccess) maxPSuccess = psuccess;
+            if(psuccess < minPSuccess) minPSuccess = psuccess;
             fullLoad[i] = sinceLastTime;
+            fullPSuccess[i] = new PSuccessEntry(psuccess, n);
             n.lastCycleHits = n.totalHits;
+            n.lastCycleSuccesses = n.totalSuccesses;
             totalSinceLastTime += sinceLastTime;
             if(max < sinceLastTime) max = sinceLastTime;
             if(min > sinceLastTime) min = sinceLastTime;
@@ -446,6 +573,7 @@ public class Main {
         }
         System.out.println("Load: max: "+max+", min: "+min+", avg: "+(totalSinceLastTime/activeNodes.size()));
         System.out.println("Stores: max: "+maxStore+", min: "+minStore+", avg: "+((double)totalStore)/activeNodes.size());
+        System.out.println("PSuccess: max: "+max+", min: "+min+", avg: "+(totalSinceLastTime/activeNodes.size()));
         x++;
         if(x % 16 == 0) {
             java.util.Arrays.sort(fullLoad, 0, activeNodes.size());
@@ -455,6 +583,12 @@ public class Main {
                 System.out.print(' ');
             }
             System.out.println();
+            java.util.Arrays.sort(fullPSuccess, 0, activeNodes.size());
+            System.out.print("Full psuccess: ");
+            for(int i=0;i<activeNodes.size();i++) {
+                System.out.print(fullPSuccess[i]);
+                System.out.print(' ');
+            }
         }
     }
 
@@ -569,9 +703,9 @@ public class Main {
                 }
                 int distance;
                 if(DO_BAD_LINKS)
-                    distance = r.nextInt(NUMBER_OF_NODES-1)+1;
+                    distance = r.nextInt(NUMBER_OF_NODES/2-1)+1;
                 else
-                    distance = (int)Math.pow(NUMBER_OF_NODES, r.nextDouble());
+                    distance = (int) Math.floor(Math.pow(NUMBER_OF_NODES/2-1, r.nextDouble()))+1;
                 if(distance == 0) continue;
                 if(r.nextBoolean()) distance = -distance;
                 int nodeToConnectTo = wrap(start + distance);

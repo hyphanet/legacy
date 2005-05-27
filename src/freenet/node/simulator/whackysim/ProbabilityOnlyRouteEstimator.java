@@ -1,6 +1,9 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.PrintWriter;
+
 import freenet.Key;
+import freenet.node.rt.BucketDistribution;
 import freenet.node.rt.KeyspaceEstimator;
 import freenet.node.rt.KeyspaceEstimatorFactory;
 
@@ -25,6 +28,13 @@ public class ProbabilityOnlyRouteEstimator implements RouteEstimator {
 
     public void failed(Key k, long time) {
         pFailure.reportProbability(k, 1.0);
+    }
+
+    public void dump(PrintWriter pw, String dumpFilename) {
+        pw.println(getClass().getName());
+        BucketDistribution bd = new BucketDistribution();
+        pFailure.getBucketDistribution(bd);
+        pw.println(bd.toString());
     }
 
 }

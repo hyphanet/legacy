@@ -20,17 +20,17 @@ public class KeyCollector {
         keys = new KeyWithCounter[numkeys];
         totalKeys = 0;
         index = 0;
-        mark = numkeys;
+        mark = 0;
         this.r = r;
     }
 
     public void add(Key k) {
         if(k == null) throw new NullPointerException();
         keys[index] = new KeyWithCounter(k);
-        if(index >= mark) mark = index;
         totalKeys++;
         index++;
         if(index == keys.length) index = 0;
+        if(index >= mark) mark = index;
         hasKeys = true;
     }
 
@@ -61,9 +61,9 @@ public class KeyCollector {
             System.arraycopy(keys, 0, newKeys, 0, keepKeys);
             keys = newKeys;
             if(keepKeys == 0) hasKeys = false;
+            mark = Math.min(mark, keepKeys);
         } else if(keepKeys > keys.length) {
             // Harder...
-            mark = keys.length;
             KeyWithCounter[] newKeys = new KeyWithCounter[keepKeys];
             System.arraycopy(keys, 0, newKeys, 0, keys.length);
             keys = newKeys;

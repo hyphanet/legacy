@@ -32,10 +32,16 @@ public class BootstrappingDecayingRunningAverage implements
     double currentValue;
     long reports;
     final int maxReports;
+    // FIXME: debugging!
+    long zeros;
+    long ones;
     
     public String toString() {
         return super.toString() + ": min="+min+", max="+max+", currentValue="+
-        	currentValue+", reports="+reports+", maxReports="+maxReports;
+        	currentValue+", reports="+reports+", maxReports="+maxReports
+        	// FIXME
+        	+", zeros: "+zeros+", ones: "+ones
+        	;
     }
     
     public BootstrappingDecayingRunningAverage(double defaultValue, double min,
@@ -66,6 +72,8 @@ public class BootstrappingDecayingRunningAverage implements
         double decayFactor = 1.0 / (Math.min(reports, maxReports));
         currentValue = (d * decayFactor) + 
         	(currentValue * (1-decayFactor));
+        if(d < 0.1 && d >= 0.0) zeros++;
+        if(d > 0.9 && d <= 1.0) ones++;
     }
 
     public void report(long d) {

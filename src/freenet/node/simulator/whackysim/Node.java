@@ -1,5 +1,6 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -50,15 +51,17 @@ public class Node {
     long lastRequestID = -1;
     long totalHits;
     long lastCycleHits;
+    long totalSuccesses;
+    long lastCycleSuccesses;
     boolean active;
     
     // NGR
     final LRUQueue datastore;
-    static final int MAX_DATASTORE_SIZE = 10;
+    static final int MAX_DATASTORE_SIZE = 800;
     static final boolean DO_RANDOM_ROUTING = false;
     static final boolean DO_FAKE_PCACHING = false;
     static final boolean DO_THREE_ESTIMATORS = false;
-    static final boolean DO_PATHCOUNTING_THREE_ESTIMATORS = true;
+    static final boolean DO_PATHCOUNTING_THREE_ESTIMATORS = false;
     static final boolean DO_NO_PATHCOUNTING = true;
     static final boolean PATHCOUNTING_HALF_VALUES = false;
     static final boolean DO_PATHCOUNTING_NO_TDNF = false;
@@ -67,7 +70,11 @@ public class Node {
     static final boolean PRODUCT_TSUCCESS_INCLUDE_BOTH_AVERAGES = false;
     static final boolean DO_PROB_ESTIMATOR = false;
     static final boolean DO_IAN_CRAZY_ONE = false;
-    static final int REQUEST_FAKE_PCACHING_NODES = 3;
+    static final boolean RANDOM_REINSERT = false;
+    static final boolean DO_PROBE_REQUESTS = false;
+    static final boolean DO_PREFIX = false;
+    static final double RANDOM_REINSERT_PROBABILITY = 0.005;
+    static final int REQUEST_FAKE_PCACHING_NODES = 5;
     static final int INSERT_FAKE_PCACHING_NODES = 5;
     private final SuccessFailureStats timeCounter;
     
@@ -147,12 +154,14 @@ public class Node {
             return new ProbabilityOnlyRouteEstimator(kef);
         else if(DO_PATHCOUNTING_THREE_ESTIMATORS)
             return new PathCountingStandardRouteEstimator(kef, 0, timeCounter, PATHCOUNTING_HALF_VALUES, PROBABILITY_RUNNING_AVERAGE, DO_PATHCOUNTING_NO_TDNF, PRODUCT_OF_TSUCCESS_AND_PFAILURE, DO_NO_PATHCOUNTING, PRODUCT_TSUCCESS_INCLUDE_BOTH_AVERAGES);
+        else if(DO_IAN_CRAZY_ONE || DO_RANDOM_ROUTING)
+            return null;
         else
             return new SuccessDistanceOnlyRouteEstimator(kef);
     }
 
 	public int outerRunRequest(Key key, int htl, long requestID, Random r) {
-	    int x = runRequest(key, htl, requestID, r);
+	    int x = runRequest(key, htl, requestID, r, DO_PREFIX);
 	    if(x >= 0)
 	        timeCounter.reportSuccess(x);
 	    else
@@ -165,35 +174,48 @@ public class Node {
     /**
      * Run a request.
      * @param key The key to find.
+     * @param prefix If true, we are in the prefix stage.
+     * We will not cache the data, and we route randomly, and we
+     * don't decrement HTL. 33% chance of un-prefixing at each hop.
      * @return The number of hops it took to find the key. -1
      * if it could not be found in a reasonable time.
      */
-    public int runRequest(Key key, int htl, long requestID, Random r) {
-        raKeys.report(key.toBigInteger().doubleValue());
+    public int runRequest(Key key, int htl, long requestID, Random r, boolean prefix) {
+        if(Node.DO_IAN_CRAZY_ONE)
+            raKeys.report(key.toDouble());
         totalHits++;
         lastRequestID = requestID;
         // First check the datastore
-        if(datastore.contains(key)) {
+        if((!prefix) && datastore.contains(key)) {
+            totalSuccesses++;
             return 0; // found it
         }
         if(htl == 0) return -1;
+        if(prefix) {
+            if(r.nextInt(3) == 1) prefix=false;
+        } else
+            htl--;
         // Otherwise route it
         randomizeMyConns(r);
-        route(key, htl, requestID, r);
+        route(key, htl, requestID, r, prefix);
         // FIXME: RNFs are fatal
         if(routingResult.best == null) return -1;
-        int result = routingResult.best.runRequest(key, htl-1, requestID, r);
+        int result = routingResult.best.runRequest(key, htl, requestID, r, prefix);
         if(result < 0) {
-            routingResult.est.failed(key, -1-result);
+            if(routingResult.est != null)
+                routingResult.est.failed(key, -1-result);
             return result-1;
         }
         // Otherwise, it succeeded
         // Update estimator
-        if(!DO_RANDOM_ROUTING)
+        if(routingResult.est != null)
             routingResult.est.succeeded(key, result);
         // Store data
-        if((!DO_FAKE_PCACHING) || result <= REQUEST_FAKE_PCACHING_NODES)
+        if((!prefix) && (!DO_FAKE_PCACHING) || (result <= REQUEST_FAKE_PCACHING_NODES))
             store(key);
+        if(RANDOM_REINSERT && r.nextDouble() < RANDOM_REINSERT_PROBABILITY)
+            runInsert(key, Main.INSERT_HTL, r.nextLong(), r);
+        totalSuccesses++;
         return result+1;
     }
 
@@ -203,25 +225,36 @@ public class Node {
      * @param requestID
      * @param r
      */
-    private void route(Key key, int htl, long requestID, Random r) {
+    private void route(Key key, int htl, long requestID, Random r, boolean inPrefix) {
         Node best = null;
         RouteEstimator est = null;
         double bestEstimate = Double.MAX_VALUE;
-        double kval = key.toBigInteger().doubleValue();
+        double kval = key.toDouble();
+        boolean probeRequest = DO_PROBE_REQUESTS && r.nextInt(20) == 0;
         for(int i=0;i<myConns.length;i++) {
             Node n = myConns[i];
             // First check for loop
             // FIXME: should reduce HTL?
-            if(!n.active) continue;
-            if(n.lastRequestID == requestID) continue;
-            RouteEstimator e = (RouteEstimator)estimators.get(n);
+            if(!n.active) {
+                //System.out.println("Not active: "+n.myValue);
+                continue;
+            }
+            if(n.lastRequestID == requestID) {
+                //System.out.println("Loop: "+n.myValue);
+                continue;
+            }
             double estimate;
-            if(DO_IAN_CRAZY_ONE)
+            RouteEstimator e = (RouteEstimator)estimators.get(n);
+            if(probeRequest)
+                estimate = n.totalHits;
+            else if(DO_IAN_CRAZY_ONE)
                 estimate = Math.abs(n.raKeys.currentValue() - kval);
-            else if(DO_RANDOM_ROUTING)
+            else if(inPrefix || DO_RANDOM_ROUTING)
                 estimate = r.nextDouble();
-            else
-                estimate = e.estimate(key); 
+            else {
+                estimate = e.estimate(key);
+            }
+            //System.out.println("Estimate: "+estimate+" for "+n.myValue+", best="+bestEstimate);
             if(estimate < bestEstimate) {
                 bestEstimate = estimate;
                 best = n;
@@ -272,12 +305,12 @@ public class Node {
         randomizeMyConns(r);
         int countTried = 0;
         while(true) {
-            route(key, htl, id, r);
+            route(key, htl, id, r, false);
         if(routingResult.best == null) {
             //System.err.println("RNF inserting data, returning "+-(countTried+1));
             return -(countTried+1);
         }
-        //System.out.println("Routing to "+best.myValue+" from "+this.myValue+" for "+key);
+        //System.out.println("Routing to "+routingResult.best.myValue+" from "+this.myValue+" for "+key);
         int result = routingResult.best.runInsert(key, htl-1, id, r);
         if(result >= 0) {
             if((!DO_FAKE_PCACHING) || result <= INSERT_FAKE_PCACHING_NODES)
@@ -344,5 +377,25 @@ public class Node {
     public void clearStructure() {
         myConns = new Node[0];
         estimators.clear();
+    }
+
+    /**
+     * Dump this node
+     */
+    public void dump(PrintWriter pw, String filenameBase) {
+        pw.println("Node: "+myValue);
+        pw.println("Total hits: "+totalHits);
+        pw.println("Total successes: "+totalSuccesses);
+        for(int i=0;i<myConns.length;i++) {
+            Node n = myConns[i];
+            if(!n.active) {
+                pw.println("Inactive link: "+n.myValue);
+                continue;
+            }
+            pw.println("Active link: "+n.myValue);
+            pw.println("His estimator for me:");
+            RouteEstimator r = (RouteEstimator)(n.estimators.get(this));
+            r.dump(pw, filenameBase+"-"+n.myValue+"-for-"+myValue);
+        }
     }
 }
