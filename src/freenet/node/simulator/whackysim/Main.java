@@ -96,7 +96,7 @@ public class Main {
     static final boolean DO_VARIABLE_HTL = false;
     static final double TARGET_PSUCCESS = 0.80;
     static final boolean DO_LOG_REQUESTS_PER_CYCLE = false;
-    static final boolean DO_LOGSQUARED_REQUESTS_PER_CYCLE = true;
+    static final boolean DO_LOGSQUARED_REQUESTS_PER_CYCLE = false;
     static final boolean DO_LOGCUBED_REQUESTS_PER_CYCLE = false;
     static final boolean DO_DUMP = true;
     static final int BASE_CYCLE_LENGTH = 10000; // number of requests in the first cycle

@@ -57,11 +57,11 @@ public class Node {
     
     // NGR
     final LRUQueue datastore;
-    static final int MAX_DATASTORE_SIZE = 800;
+    static final int MAX_DATASTORE_SIZE = 100;
     static final boolean DO_RANDOM_ROUTING = false;
     static final boolean DO_FAKE_PCACHING = false;
     static final boolean DO_THREE_ESTIMATORS = false;
-    static final boolean DO_PATHCOUNTING_THREE_ESTIMATORS = false;
+    static final boolean DO_PATHCOUNTING_THREE_ESTIMATORS = true;
     static final boolean DO_NO_PATHCOUNTING = true;
     static final boolean PATHCOUNTING_HALF_VALUES = false;
     static final boolean DO_PATHCOUNTING_NO_TDNF = false;
