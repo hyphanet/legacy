@@ -22,6 +22,7 @@ import freenet.client.http.ImageServlet.Dimension;
 import freenet.keys.SVK;
 import freenet.message.client.FEC.SegmentHeader;
 import freenet.node.Node;
+import freenet.node.http.infolets.HTMLTransferProgressIcon;
 import freenet.support.HTMLEncoder;
 import freenet.support.Logger;
 import freenet.support.URLDecoder;
@@ -349,50 +350,48 @@ public class InsertServlet extends ServletWithContext {
             } else {
                 int c = 0;
                 for (int p = 0, i = 0; i < totalBlocks; i++) {
-                    String img = "";
+                    int img;
                     String alt = "[Block " + i + "] ";
                     switch (context.status.insertedBlockStatus(i)) {
                     case SplitFileStatus.RUNNING:
-                        img = "progress";
+                        img = HTMLTransferProgressIcon.ICONTYPE_PROGRESS;
                         alt += "In Progress... (" + (context.status.insertedBlockRetries(i) + 1) + ". Try)";
                         break;
                     case SplitFileStatus.FAILED_RNF:
-                        img = "failed";
+                        img = HTMLTransferProgressIcon.ICONTYPE_FAILURE;
                         alt += "Failed (Route Not Found)";
                         break;
                     case SplitFileStatus.FAILED_DNF:
-                        img = "failed";
+                        img = HTMLTransferProgressIcon.ICONTYPE_FAILURE;
                         alt += "Failed (Data Not Found)";
                         break;
                     case SplitFileStatus.FAILED:
-                        img = "failed";
+                        img = HTMLTransferProgressIcon.ICONTYPE_FAILURE;
                         alt += "Failed (Unknown Reason)";
                         break;
                     case SplitFileStatus.REQUEUED_RNF:
-                        img = "retry";
+                        img = HTMLTransferProgressIcon.ICONTYPE_RETRY;
                         alt += "Route Not Found, Will Retry";
                         break;
                     case SplitFileStatus.REQUEUED_DNF:
-                        img = "retry";
+                        img = HTMLTransferProgressIcon.ICONTYPE_RETRY;
                         alt += "Data Not Found, Will Retry";
                         break;
                     case SplitFileStatus.REQUEUED:
-                        img = "retry";
+                        img = HTMLTransferProgressIcon.ICONTYPE_RETRY;
                         alt += "Unknown Error, Will Retry";
                         break;
                     case SplitFileStatus.SUCCESS:
-                        img = "success";
+                        img = HTMLTransferProgressIcon.ICONTYPE_SUCCESS;
                         alt += "Success (" + (p = context.status.insertedBlockRetries(i)) + " Retr" + ((p == 1) ? "y" : "ies") + ")";
                         c++;
                         break;
                     case SplitFileStatus.QUEUED:
                     default:
-                        img = "waiting";
+                        img = HTMLTransferProgressIcon.ICONTYPE_WAITING;
                         alt += "Queued";
                     }
-                    size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/" + img + ".png");
-                    pw.println("<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/" + img + ".png\" title=\"" + alt + "\" alt=\""
-                            + alt + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img> ");
+                    pw.println(new HTMLTransferProgressIcon(img, alt, alt).render());
                 }
                 titleBoxTmp.set("TITLE", "Segment " + (h.getSegmentNum() + 1) + " of " + h.getSegments() + ", Upload Queue: " + +totalBlocks
                         + " Blocks, Remaining: " + +(totalBlocks - c) + " Blocks");
