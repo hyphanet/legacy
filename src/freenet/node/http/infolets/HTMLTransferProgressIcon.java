@@ -14,6 +14,9 @@ import freenet.support.servlet.HtmlTemplate;
 public class HTMLTransferProgressIcon {
 
 	private final int type;
+	private final String altText;
+	private final String titleText;
+	
 	public final static int ICONTYPE_WAITING=0;
 	public final static int ICONTYPE_TRANSFERING=1;
 	public final static int ICONTYPE_SUCCESS=2;
@@ -28,8 +31,17 @@ public class HTMLTransferProgressIcon {
 	 * Should be one of the above values.
 	 */
 	public HTMLTransferProgressIcon(int type) {
-		super();
+		this(type, "");
+	}
+	
+	public HTMLTransferProgressIcon(int type, String altText) {
+		this(type, altText, altText);
+	}
+	
+	public HTMLTransferProgressIcon(int type, String altText, String titleText) {
 		this.type = type;
+		this.altText = altText;
+		this.titleText = titleText;
 	}
 	
 	
@@ -37,35 +49,35 @@ public class HTMLTransferProgressIcon {
 		switch (type) {
 		case ICONTYPE_SUCCESS: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/success.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/success.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/success.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_WAITING: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/waiting.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/waiting.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/waiting.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_FAILURE: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/failed.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/failed.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/failed.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_TRANSFERING: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/transfer.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/transfer.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/transfer.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_RETRY: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/retry.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/retry.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/retry.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_RETRY2: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/retry2.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/retry2.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/retry2.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_PROGRESS: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/progress.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/progress.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/progress.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		case ICONTYPE_REFRESH: {
 			Dimension size = ImageServlet.getSize(HtmlTemplate.defaultTemplateSet + "/refresh.png");
-			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/refresh.png\" alt=\"\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
+			return "<img src=\"/servlet/images/" + HtmlTemplate.defaultTemplateSet + "/refresh.png\" alt=\"" + altText + "\" title=\"" + titleText + "\" width=\"" + size.getWidth() + "\" height=\"" + size.getHeight() + "\"></img>";
 		}
 		}
 		return null;

@@ -536,7 +536,7 @@ public class SplitFileRequestServlet extends ServletWithContext {
                     img = HTMLTransferProgressIcon.ICONTYPE_RETRY2;
                     alt = alt + " (" + context.status.retrievedBlockRetries(i) + ". Retry)";
                 }
-                tpw.println(new HTMLTransferProgressIcon(img).render());
+                tpw.println(new HTMLTransferProgressIcon(img, alt).render());
             }
             if (header.getCheckBlockCount() != 0) {
                 titleBoxTmp.set("TITLE", "Segment " + (header.getSegmentNum() + 1) + ", " + (context.status.segmentNr() + 1) + " of "

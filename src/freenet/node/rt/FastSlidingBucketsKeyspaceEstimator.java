@@ -435,21 +435,21 @@ public class FastSlidingBucketsKeyspaceEstimator extends NumericKeyKeyspaceEstim
     }
 
     public double guessRaw(Key k) {
-        return guess(k.toBigInteger(),0);
+        return guess(k.toDouble(),0);
     }
 
     public double guessRaw(Key k, int age) {
-        return guess(k.toBigInteger(), 0);
+        return guess(k.toDouble(), 0);
     }
     
     public double guessTime(Key k) {
         checkType(TIME, false);
-        return guess(k.toBigInteger(),0);
+        return guess(k.toDouble(),0);
     }
 
     public double guessProbability(Key k) {
         checkType(PROBABILITY, false);
-        double d = guess(k.toBigInteger(),0);
+        double d = guess(k.toDouble(),0);
         if(d < 0.0) {
             Core.logger.log(this, "Guessed probability: "+d+" on "+this,
                     Logger.ERROR);
@@ -465,12 +465,12 @@ public class FastSlidingBucketsKeyspaceEstimator extends NumericKeyKeyspaceEstim
 
     public double guessTransferRate(Key k) {
         checkType(TRANSFER_RATE, false);
-        return guess(k.toBigInteger(),0);
+        return guess(k.toDouble(),0);
     }
 
     public void reportTime(Key k, long millis) {
         checkType(TIME, true);
-        report(k.toBigInteger(), millis);
+        report(k.toDouble(), millis);
     }
 
     /**
@@ -488,12 +488,12 @@ public class FastSlidingBucketsKeyspaceEstimator extends NumericKeyKeyspaceEstim
 
     public void reportProbability(Key k, double p) {
         checkType(PROBABILITY, true);
-        report(k.toBigInteger(), p);
+        report(k.toDouble(), p);
     }
 
     public void reportTransferRate(Key k, double rate) {
         checkType(TRANSFER_RATE, true);
-        report(k.toBigInteger(), rate);
+        report(k.toDouble(), rate);
     }
 
     protected Object getGDSSync() {

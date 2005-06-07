@@ -186,11 +186,13 @@ public class Key implements Measurable { //Cloneable {
 	}
 
 	/** Key value. Do not modify once initialized. */
-	protected byte[] val;
+	protected final byte[] val;
 
 	// Cached calculations.
 	private BigInteger valCachedBigInt = null;
 	private String valCachedHexString = null;
+	private double doubleValue = -1;
+	
 
 	/**
 	 * General constructor - just uses the byte array as given.
@@ -217,8 +219,19 @@ public class Key implements Measurable { //Cloneable {
 		}
 	}
 
+	public double toDouble() {
+	    if(doubleValue == -1)
+	        doubleValue = toBigInteger(true).doubleValue();
+	    return doubleValue;
+	}
+	
+	public final BigInteger toBigInteger() {
+	    return toBigInteger(false);
+	}
+	
 	/** Interpret key as value between 0 and 2^183. */
-	public BigInteger toBigInteger() {
+	public BigInteger toBigInteger(boolean dontCache) {
+	    NativeBigInteger bi = null;
 		if (valCachedBigInt == null) {
 			byte[] b = getVal();
 			if (b.length < KEYBYTES) {
@@ -236,9 +249,13 @@ public class Key implements Measurable { //Cloneable {
 				b = ob;
 			}
 			// Probably going to get routed so make it an NBI
-			valCachedBigInt = new NativeBigInteger(1, b);
-		}
-		return valCachedBigInt;
+			bi = new NativeBigInteger(1, b);
+			if(!dontCache) {
+			    valCachedBigInt = bi;
+			}
+			// Don't waste the memory if they'll just use the double value
+		} else return valCachedBigInt;
+		return bi;
 	}
 
 	/**
