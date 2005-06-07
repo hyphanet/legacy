@@ -534,144 +534,165 @@ public class Node extends Core implements ConnectionThrottler{
 			"Oldest living Freenet portal",
 			6103);
 
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.1.key",
+//			1,
+//			"SSK@rjYFfgPHfolmcStiaoxESFfBXz8PAgM/FreenetHelp//",
+//			6110);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.1.title",
+//			1,
+//			"The Freenet Help Index",
+//			6111);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.1.activelinkFile",
+//			1,
+//			"ActiveLink.png",
+//			6112);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.1.description",
+//			1,
+//			"Index of Freenet help resources",
+//			6113);
+//
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.2.key",
+//			1,
+//			"SSK@IWmzQkYKOlOefQoWbGCQSrkS3vsPAgM,NzRr-Pj88cVT0bN~1urLVg/FIND//",
+//			6120);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.2.title",
+//			1,
+//			"FIND is Not Dolphin",
+//			6121);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.2.activelinkFile",
+//			1,
+//			"activelink.png",
+//			6122);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.2.description",
+//			1,
+//			"Index of sites available within the \"stable\" network, often available here too",
+//			6123);
+//
 		config.addOption(
 			"mainport.params.servlet.2.bookmarks.1.key",
-			1,
-			"SSK@rjYFfgPHfolmcStiaoxESFfBXz8PAgM/FreenetHelp//",
-			6110);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.title",
-			1,
-			"The Freenet Help Index",
-			6111);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.activelinkFile",
-			1,
-			"ActiveLink.png",
-			6112);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.description",
-			1,
-			"Index of Freenet help resources",
-			6113);
-
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.key",
-			1,
-			"SSK@IWmzQkYKOlOefQoWbGCQSrkS3vsPAgM,NzRr-Pj88cVT0bN~1urLVg/FIND//",
-			6120);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.title",
-			1,
-			"FIND is Not Dolphin",
-			6121);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.activelinkFile",
-			1,
-			"activelink.png",
-			6122);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.description",
-			1,
-			"Index of sites available within the \"stable\" network, often available here too",
-			6123);
-
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.key",
 			1,
 			"SSK@9G4s~jLQJB7ALQg-v2q5xKAJy9YPAgM/CofE//",
 			6130);
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.title",
+			"mainport.params.servlet.2.bookmarks.1.title",
 			1,
 			"Content of Evil",
 			6131);
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
+			"mainport.params.servlet.2.bookmarks.1.activelinkFile",
 			1,
 			"CofETitle.jpg",
 			6132);
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.description",
+			"mainport.params.servlet.2.bookmarks.1.description",
 			1,
 			"One of Freenet's oldest Freesites, witty discussion of Freenet, the universe, and everything",
 			6133);
 
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.4.key",
+//			1,
+//			"SSK@Sc6qV~D6iFhaYord6HtbjJ8MaEYPAgM/YoYo//",
+//			6140);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.4.title",
+//			1,
+//			"YoYo!",
+//			6141);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//			1,
+//			"activelink.png",
+//			6142);
+//		config.addOption(
+//			"mainport.params.servlet.2.bookmarks.4.description",
+//			1,
+//			"Categorized freenet index",
+//			6143);
+//		
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.4.key",
-			1,
-			"SSK@Sc6qV~D6iFhaYord6HtbjJ8MaEYPAgM/YoYo//",
-			6140);
+		    "mainport.params.servlet.2.bookmarks.2.key",
+		    1,
+		    "SSK@JiqlnfX6MK4nHDl6ZjOrSaMnDB8PAgM,CUnDuNQdRTeTXiDMRM93dQ/OFIFY//",
+		    6150);
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.4.title",
-			1,
-			"YoYo!",
-			6141);
+		    "mainport.params.servlet.2.bookmarks.2.title",
+		    1,
+		    "Oskar Finds It For You",
+		    6151);
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-			1,
-			"activelink.png",
-			6142);
+		    "mainport.params.servlet.2.bookmarks.2.activelinkFile",
+		    1,
+		    "activelink.png",
+		    6152);
 		config.addOption(
-			"mainport.params.servlet.2.bookmarks.4.description",
-			1,
-			"Categorized freenet index",
-			6143);
+		    "mainport.params.servlet.2.bookmarks.2.description",
+		    1,
+		    "Another index freesite",
+		    6153);
 
-		config.addOption(
-			"mainport.params.servlet.3.uri",
-			1,
-			"/servlet/images/",
-			4130);
-		config.addOption("mainport.params.servlet.3.method", 1, "GET", 4131);
-		config.addOption(
-			"mainport.params.servlet.3.class",
-			1,
-			"freenet.client.http.ImageServlet",
-			4132);
-		config.addOption(
-			"mainport.params.servlet.3.name",
-			1,
-			"Server Images",
-			4133);
-
-		config.addOption(
-			"mainport.params.servlet.4.uri",
-			1,
-			"/servlet/Insert",
-			4140);
-		config.addOption("mainport.params.servlet.4.method", 1, "BOTH", 4141);
-		config.addOption(
-			"mainport.params.servlet.4.class",
-			1,
-			"freenet.client.http.InsertServlet",
-			4142);
-		config.addOption(
-			"mainport.params.servlet.4.name",
-			1,
-			"Insert Proxy Status",
-			4143);
-		config.addOption(
-			"mainport.params.servlet.4.params.insertHtl",
-			1,
-			20,
-			4144);
-		config.addOption(
-			"mainport.params.servlet.4.params.sfInsertThreads",
-			1,
-			30,
-			4145);
-		config.addOption(
-			"mainport.params.servlet.4.params.sfInsertRetries",
-			1,
-			3,
-			4146);
-		config.addOption(
-			"mainport.params.servlet.4.params.sfRefreshIntervalSecs",
-			1,
-			15,
-			4147);
-
+//		config.addOption(
+//			"mainport.params.servlet.3.uri",
+//			1,
+//			"/servlet/images/",
+//			4130);
+//		config.addOption("mainport.params.servlet.3.method", 1, "GET", 4131);
+//		config.addOption(
+//			"mainport.params.servlet.3.class",
+//			1,
+//			"freenet.client.http.ImageServlet",
+//			4132);
+//		config.addOption(
+//			"mainport.params.servlet.3.name",
+//			1,
+//			"Server Images",
+//			4133);
+//
+//		config.addOption(
+//			"mainport.params.servlet.4.uri",
+//			1,
+//			"/servlet/Insert",
+//			4140);
+//		config.addOption("mainport.params.servlet.4.method", 1, "BOTH", 4141);
+//		config.addOption(
+//			"mainport.params.servlet.4.class",
+//			1,
+//			"freenet.client.http.InsertServlet",
+//			4142);
+//		config.addOption(
+//			"mainport.params.servlet.4.name",
+//			1,
+//			"Insert Proxy Status",
+//			4143);
+//		config.addOption(
+//			"mainport.params.servlet.4.params.insertHtl",
+//			1,
+//			20,
+//			4144);
+//		config.addOption(
+//			"mainport.params.servlet.4.params.sfInsertThreads",
+//			1,
+//			30,
+//			4145);
+//		config.addOption(
+//			"mainport.params.servlet.4.params.sfInsertRetries",
+//			1,
+//			3,
+//			4146);
+//		config.addOption(
+//			"mainport.params.servlet.4.params.sfRefreshIntervalSecs",
+//			1,
+//			15,
+//			4147);
+//
 		config.addOption("mainport.params.servlet.6.uri", 1, "/", 4190);
 		config.addOption("mainport.params.servlet.6.method", 1, "POST", 4191);
 		config.addOption(

@@ -98,8 +98,9 @@ public class Main {
     static final boolean DO_LOG_REQUESTS_PER_CYCLE = false;
     static final boolean DO_LOGSQUARED_REQUESTS_PER_CYCLE = false;
     static final boolean DO_LOGCUBED_REQUESTS_PER_CYCLE = false;
-    static final boolean DO_DUMP = true;
-    static final int BASE_CYCLE_LENGTH = 10000; // number of requests in the first cycle
+    static final boolean DO_LINEAR_REQUESTS_PER_CYCLE = true;
+    static final boolean DO_DUMP = false;
+    static final int BASE_CYCLE_LENGTH = 40000; // number of requests in the first cycle
     private static Node[] nodes;
     private static Random r = new Random();
     private static KeyCollector kc = new KeyCollector(INITIAL_NODES*Node.MAX_DATASTORE_SIZE/10, r);
@@ -330,7 +331,7 @@ public class Main {
         cycleCounter++;
         // Do a bazillion requests.
         System.err.println("Nodes active: "+activeNodes.size());
-        int keepKeys = (int)(activeNodes.size()*Node.MAX_DATASTORE_SIZE/20);
+        int keepKeys = (int)(activeNodes.size()*Node.MAX_DATASTORE_SIZE/40);
         if(kc.keepingKeys() != keepKeys) {
         	kc.setKeep(keepKeys);
         	System.out.println("Keeping "+keepKeys+" keys");
@@ -376,6 +377,7 @@ public class Main {
         int requestsPerCycle;
         final int baseCycleLength = BASE_CYCLE_LENGTH;
         final double baseLog = Math.log(INITIAL_NODES);
+        int nodes = activeNodes.size();
         double l = Math.log(activeNodes.size());
         if(DO_LOG_REQUESTS_PER_CYCLE)
             requestsPerCycle = (int)(baseCycleLength * l / baseLog);
@@ -383,7 +385,10 @@ public class Main {
             requestsPerCycle = (int) (baseCycleLength * l*l / (baseLog*baseLog));
         else if(DO_LOGCUBED_REQUESTS_PER_CYCLE)
             requestsPerCycle = (int) (baseCycleLength * l*l*l / (baseLog*baseLog*baseLog));
-        else requestsPerCycle = baseCycleLength;
+        else if(DO_LINEAR_REQUESTS_PER_CYCLE)
+            requestsPerCycle = (int) (baseCycleLength * nodes / INITIAL_NODES);
+        else
+            requestsPerCycle = baseCycleLength;
         for(int i=0;i<requestsPerCycle;i++) {
             // Insert a file
             // Then fetch it
@@ -391,7 +396,7 @@ public class Main {
             int fetchHops;
             Key key;
             long id;
-            //if(i % 10 == 0) {
+            if(i % 100 == 0) {
                 key = CHK.randomKey(r);
                 id = r.nextLong();
                 totalInserts++;
@@ -404,7 +409,7 @@ public class Main {
                     successfulInserts++;
                     kc.add(key);
                 }
-            //}
+            }
             //for(int j=0;j<CONNECTIONS;j++) {
             KeyWithCounter kwc = kc.getRandomKey();
             boolean firstTime = kwc.getCount() == 0;

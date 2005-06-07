@@ -109,6 +109,8 @@ public class LiveJournalScraper {
         
     }
 
+    static StringBuffer fullHeaders = new StringBuffer();
+    
     /**
      * Fetch a friend datum
      * @param name
@@ -120,6 +122,7 @@ public class LiveJournalScraper {
             "Connection: keep-alive\r\n"+
             "User-Agent: toadljfetch/0.1; toad@amphibian.dyndns.org\r\n\r\n";
         byte[] reqBytes = request.getBytes();
+        fullHeaders.setLength(0);
 //        try {
             outStream.write(reqBytes);
             // Catch the response
@@ -135,12 +138,16 @@ public class LiveJournalScraper {
                     // New line
                     String line = new String(lineBuf, 0, ctr);
                     while(line.length()>0 && (line.charAt(line.length()-1) == '\n' || line.charAt(line.length()-1) == '\r')) {
-                        line = line.substring(0, line.length()-2);
+                        if(line.length() == 1) line = "";
+                        else line = line.substring(0, line.length()-2);
                     }
+                    fullHeaders.append(line).append('\n');
                     if(line.length() == 0) { // \r\n
                         // End of header
-                        if(contentLength == -1)
+                        if(contentLength == -1) {
+                            System.err.println(fullHeaders);
                             throw new Error("No content-length");
+                        }
                         break;
                     }
                     //System.err.println("Got line: "+line);
@@ -148,7 +155,7 @@ public class LiveJournalScraper {
                         // Parse first line
                         if(line.startsWith("HTTP/1.0 200 OK")) {
                             //System.err.println("OK: "+line);
-                        } else throw new Error("Unexpected response: "+line);
+                        } else throw new IOException("Unexpected response: "+line);
                     }
                     line = line.toLowerCase();
                     if(line.startsWith("content-length: ")) {
