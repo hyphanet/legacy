@@ -1,11 +1,13 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.Serializable;
+
 import freenet.node.rt.BootstrappingDecayingRunningAverage;
 
 /**
  * Class to store average times for DNF and success.
  */
-public class SuccessFailureStats {
+public class SuccessFailureStats implements Serializable {
     
     SuccessFailureStats() {
         tDNF = new BootstrappingDecayingRunningAverage(0.0, 0.0, Double.MAX_VALUE, 100);

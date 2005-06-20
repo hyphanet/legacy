@@ -1,0 +1,179 @@
+Nobody should attempt to implement the below before discussing it
+further on the list and with the key developers. Searching is not
+likely to happen before 1.0, and the below algorithm probably
+doesn't scale well. But it's here so it can be found reasonably
+easily.
+
+------------------------------------------------------------------
+From: Tom Kaitchuck <tkaitchuck@comcast.net>
+To: tech@freenetproject.org
+Subject: [Tech] Keyword search on Freenet
+
+A distributed, somewhat scalable, fairly attack resistant and acceptably
+anonymous keyword search protocol for Freenet;
+
+This proposal is far from perfect, however it would be much better than any
+equivlent proposal I have previously seen. Much of this is inspired from
+"Making Gnutella-like P2P Systems Scalable" online at
+www.acm.org/sigcomm/sigcomm2003/ papers/p407-chawathe.pdf any many other
+sites.
+
+As we know keyword searching is somewhat problematic in an anonymous network,
+because it requires someone to generate the index, as well as the users to
+trust that person. Not only does this introduce a single point of failure,
+but it also makes censorship and accidental omissions possible.
+
+The solution is to have an index that works by allowing each user on the
+network to contribute. The problem with this is that one user can masquerade
+as hundreds and bias the results. Another problem is that there is no single
+correct description of a single piece of data. Many different users may have
+differing opinions. So there cannot be a single piece of meta data inserted
+into the network in the normal way. Nor can the normal network routing be
+used to insert multiple values under the same key, otherwise they would end
+up on the same node. Finally if the descriptions are to be encrypted, no node
+that does not have the encryption key can trust to cache any metadata for
+that key, as it could be false and inserted by a malicious node.
+
+So normal routing cannot be used for keyword searching. However there are
+other styles of networks that do not depend on a specific location for the
+data. A similar system could be used for keywords.
+
+The most obvious system is Gnutella. However a broadcast search is hardly
+scaleable, and it introduces a statistical attack against the identity of the
+original requester. The paper I referenced above proposes a four fold
+solution to this problem. The two most important aspects are: replacing the
+fixed depth broadcast biased search, with a single outgoing request that gets
+routed randomly through the network until it gets to the data, and then is
+returned through the return path. (This also gives anonymity) And having "one
+hop replication", that is having each node know the content stored by each of
+it's peers, so that if one gets within one hop of the data, it will be found
+immediately. (This improves scalability.)
+
+So, I propose a solution that works as follows: Each user keeps their own list
+of sites and descriptions for each keyword they have retrieved or inserted
+under. These are stored in a separate system. So when a user wants the
+metadata corresponding to a keyword, they send out a metadata request for
+H(H(H(keyword))). This is routed randomly through the network. (NOTE: To
+lower vulnerability attacks of nodes pretending to be many nodes, requests
+should be only passed on to nodes in the routing table. To improve throughput
+they should also be biased towards those that are preforming better with
+normal requests.)
+
+Then when it arrives at a node, that node needs to determine whether or not
+any of the nodes it knows have the data. Here I propose to go one step beyond
+simple "One Hop Replication", I propose that each node store each
+H(H(H(Keyword))) that is claimed to be held by each of it's neighbors. But
+also to then generate a bloom filter biased on the sum total of all of those
+keys (including it's own) and give that out to all of it's neighbors. This
+way, if the request which is routing randomly happens to land within 2 hops
+of any node that has the metadata for that keyword, it will be found.
+
+Now, the provider of the metadata still needs to have probabilistic
+denyability, so each node should additionally claim some keys that their
+neighbors claim, but they do not know about. I would suggest that this be
+fairly aggressive, something like 50% of all keyword that we don't know
+about, up to 50% as many as our own keywords. These should be biased towards
+those that we think that we are more likely to be able to retrieve. (IE: ones
+that are on multiple or reliable nodes) Then if asked for these we would
+retrieve them from the appropriate node.
+
+Then when the data is located, it is returned through the request chain.
+However we can do some very aggressive path shortening, because nobody is
+going to cache the data.
+
+To verify the data is authentic, they should return the data encrypted with
+H(keyword), as well as the value of H(H(keyword)), this way only nodes that
+know what the keyword is can return data for it.
+
+One vulnerability to this system is that one person could have many nodes
+running in a certain area of the network, then they might overwhelm the
+search results of nodes locally. However it would be rather difficult to do
+on a network wide basis. Because anyone can offer their own description, and
+they will be likely to do so if they think your results are innaccurate, or
+inferior to another set. So if an attacker were to try to takeover a keyword,
+if someone were to find any revelvent data, then they could make that their
+own metadata for that key, thus making it easier for others. So in order to
+succeed the attacker would need to control a huge portion of the
+*contributing* nodes on the network. A local attack could be prevented in the
+future through premix-routing.
+
+This system would require each node to store all of the metadata for all of
+the keywords they have requested. Now this would be considered a security
+threat, but they would be too big for memory. So I would suggest encrypting
+them with a key that is stored only in memory. Then they would be cleared
+each restart. So we need to store in memory:
+256 bits for the file name and 160 bits for the triple hash, for all of our
+metadata.
+160 bits for the triple hash for each of our neighbors keys.
+And roughly 8 bits for each entry in our neighbors bloom filter.
+
+So for a rather high estimate a node with 20000 metadata keywords, each padded
+to 4KB. That is 80megs on disk (less if more than one keyword is assigned to
+the same metadata). And 256 * 20000 + 160 * 20000 + 256 * 2 (for encryption
+keys for the filenames and data) + 8.5KB overhead == 1MB for our data.
+
+Then if our peers have a total of 200000 unique keywords, we need an
+additional 160 * 200000 / 8/1024/1024 = 3.81MB
+
+Then if each of our 50 our peers each know of 100000 keys they can reliably
+retrieve and we use a bloom filter with 6 bits and 3 hashes, we get a 5.6%
+false positive rate and need 3.57MB of memory (totaled). Or if they limit
+themselves to 80000 keywords each, we could raise the the number of bits per
+item to 8 and lower the false positive rate to 2.15% and still only use
+3.81MB (total). Using compressed bloom filters
+http://citeseer.nj.nec.com/mitzenmacher01compressed.html could decrease this
+even further.
+
+This means we would need a total of 8.62MB of ram for this system. At first
+this may seem like a lot. However the numbers I have quoted represent what I
+believe is a reasonable upper bound on the number of keywords needed by the
+system. I would not expect normal users to generate 80MB of descriptions for
+data on the network. The closest compairson I can draw is the number of files
+shared on a normal peer to peer network. On guntella the upper 5% of all
+hosts share an average of 1309 files. Even if each user added this many
+descriptions each time they started their node and there was 0 redundancy,
+the requirements would be less. However if the memory requirements are still
+too high, Nodes could use a bloom filter to store their own files and keep a
+full list on disk. They could also simply not store the lists of files they
+are given by their neighbor nodes. This would require each node to use "delta
+compression" for their advertised filter (See end of paper on compressed
+bloom filters). Then each node could simply keep the advertised filter for
+each of their peers and when they sent a new key that they have, add it to
+our advertised bloom filter.
+
+This system would be workable for returning data. It would be much more
+scalable than Gnutella (See the Gia article for numbers). So the question
+remains one of a user interface. I get the impression that as soon as users
+see a search box they are going to expect Google and be disappointed if it
+doesn't work as well. One thing that needs to be considered is that the
+storage and transfer of the metadata are comparatively cheep to locating
+them. So there is little harm in letting them get fairly big. Also a lot of
+plaintext can be stored in 4KB especially if it is compressed. So the
+interface should be conducive to users combining all of their favorite sites
+and descriptions under each keyword and then allowing their node to offer up
+that for their own content. This is much preferable to something where users
+would simply reference a single file or site under a few dozen keywords. Also
+it must have some some sort of a black (or at least gray) list. This way if a
+user searches for a key and finds some site that they believe is
+miscatagoized then if other users get results that contain both that key and
+your results, it should be labled as potentially miscategorized. There would
+also need to be some sort of link "Remove results form this node".
+
+There is also the problem of multiple keywords. One way to handle this would
+be to take the entire user input, strip all misc symbols, convert to all
+lower case, arrange the words an alphabetical order, and then concatenate
+them all together with some delimiter, and use that as the keyword. This
+would ensure that the user gets only results that contain all the words they
+are looking for, but it means that each node must store many more hashes. A
+simpler approach would be to only allow one primary keyword that is searched
+for on the network and then have other keywords that could be used to sort
+results. I think this approach might be better because it might encourage
+users to search for sites that contain lots of data related to what they are
+looking for, rather that sub-pages or individual files.
+
+Any thoughts?
+
+_______________________________________________
+Tech mailing list
+Tech@freenetproject.org
+http://dodo.freenetproject.org/cgi-bin/mailman/listinfo/tech

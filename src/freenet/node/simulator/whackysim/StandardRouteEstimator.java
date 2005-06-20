@@ -17,7 +17,7 @@ public class StandardRouteEstimator implements RouteEstimator {
     final KeyspaceEstimator etSuccess;
     
     public StandardRouteEstimator(KeyspaceEstimatorFactory kef, int initTimeVal) {
-        epDNF = kef.createProbability(1.0, null);
+        epDNF = kef.createProbability(0.0, null);
         etDNF = kef.createTime(null, initTimeVal, initTimeVal, null);
         etSuccess = kef.createTime(null, initTimeVal, initTimeVal, null);
     }
@@ -57,6 +57,10 @@ public class StandardRouteEstimator implements RouteEstimator {
         pw.println("tSuccess:");
         etSuccess.getBucketDistribution(bd);
         pw.println(bd.toString());
+    }
+
+    public long hits() {
+        return epDNF.countReports();
     }
 
 }

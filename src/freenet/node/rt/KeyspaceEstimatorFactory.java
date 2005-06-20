@@ -3,8 +3,9 @@ import freenet.FieldSet;
 import freenet.Key;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 
-public interface KeyspaceEstimatorFactory {
+public interface KeyspaceEstimatorFactory extends Serializable {
     /** Create a smooth time estimator with
      * all values initially zero.
      */

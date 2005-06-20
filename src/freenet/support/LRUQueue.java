@@ -1,9 +1,10 @@
 package freenet.support;
 
+import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-public class LRUQueue {
+public class LRUQueue implements Serializable {
 
     /*
      * I've just converted this to using the DLList and Hashtable
@@ -83,7 +84,7 @@ public class LRUQueue {
         }
     }
 
-    private static class QItem extends DoublyLinkedListImpl.Item {
+    private static class QItem extends DoublyLinkedListImpl.Item implements Serializable {
         public Object obj;
 
         public QItem(Object obj) {

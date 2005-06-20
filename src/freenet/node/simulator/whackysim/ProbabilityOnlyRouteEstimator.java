@@ -15,7 +15,7 @@ public class ProbabilityOnlyRouteEstimator implements RouteEstimator {
     final KeyspaceEstimator pFailure; // the lower the better!
     
     public ProbabilityOnlyRouteEstimator(KeyspaceEstimatorFactory kef) {
-        pFailure = kef.createProbability(1.0, null);
+        pFailure = kef.createProbability(0.0, null);
     }
 
     public double estimate(Key k) {
@@ -35,6 +35,10 @@ public class ProbabilityOnlyRouteEstimator implements RouteEstimator {
         BucketDistribution bd = new BucketDistribution();
         pFailure.getBucketDistribution(bd);
         pw.println(bd.toString());
+    }
+
+    public long hits() {
+        return pFailure.countReports();
     }
 
 }

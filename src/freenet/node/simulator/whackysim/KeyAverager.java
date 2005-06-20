@@ -6,13 +6,14 @@ package freenet.node.simulator.whackysim;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Random;
 
 import freenet.FieldSet;
 import freenet.Key;
 import freenet.node.rt.RunningAverage;
 
-public class KeyAverager implements RunningAverage {
+public class KeyAverager implements RunningAverage, Serializable {
 
     double value;
     

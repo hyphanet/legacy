@@ -42,7 +42,7 @@ public class PathCountingStandardRouteEstimator implements RouteEstimator {
         this.doNoPathCounting = doNoPathCounting;
         this.productTSuccessIncludeBoth = productTSuccessIncludeBoth;
         if(probRA) epDNF = null;
-        else epDNF = kef.createProbability(1.0, null);
+        else epDNF = kef.createProbability(0.0, null);
         if(productOfTSuccessAndPFailure) etDNF = null;
         else etDNF = kef.createTime(null, initTimeVal, initTimeVal, null);
         etSuccess = kef.createTime(null, initTimeVal, initTimeVal, null);
@@ -106,19 +106,19 @@ public class PathCountingStandardRouteEstimator implements RouteEstimator {
             pw.println("epDNF:");
             epDNF.getBucketDistribution(bd);
             pw.println(bd.toString());
-            dump_graphable(bd, pw, filenameBase+"-epDNF");
+            dump_graphable(bd, pw, filenameBase+"-epDNF-"+epDNF.countReports()+"hits");
         }
         if(etDNF != null) {
             pw.println("etDNF:");
             etDNF.getBucketDistribution(bd);
             pw.println(bd.toString());
-            dump_graphable(bd, pw, filenameBase+"-etDNF");
+            dump_graphable(bd, pw, filenameBase+"-etDNF-"+etDNF.countReports()+"hits");
         }
         if(etSuccess != null) {
             pw.println("etSuccess:");
             etSuccess.getBucketDistribution(bd);
             pw.println(bd.toString());
-            dump_graphable(bd, pw, filenameBase+"-etSuccess");
+            dump_graphable(bd, pw, filenameBase+"-etSuccess"+etSuccess.countReports()+"hits");
         }
         if(probRA) {
             pw.println("rapDNF:");
@@ -147,5 +147,9 @@ public class PathCountingStandardRouteEstimator implements RouteEstimator {
             e.printStackTrace();
         }
         bd.dump_graphable(pw);
+    }
+
+    public long hits() {
+        return epDNF.countReports();
     }
 }

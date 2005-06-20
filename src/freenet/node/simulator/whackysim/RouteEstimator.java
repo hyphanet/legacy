@@ -1,13 +1,14 @@
 package freenet.node.simulator.whackysim;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 
 import freenet.Key;
 
 /**
  * Roughly equivalent to NodeEstimator in the real code.
  */
-public interface RouteEstimator {
+public interface RouteEstimator extends Serializable {
 
     /**
      * Estimate goodness value of sending the request to this node. Lower is 
@@ -36,4 +37,9 @@ public interface RouteEstimator {
      * @param pw
      */
     void dump(PrintWriter pw, String filenameBase);
+
+    /**
+     * @return The total number of hits on this estimator.
+     */
+    long hits();
 }

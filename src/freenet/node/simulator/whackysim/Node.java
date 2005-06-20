@@ -1,13 +1,19 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Random;
 
 import freenet.Key;
+import freenet.node.rt.BootstrappingDecayingRunningAverage;
 import freenet.node.rt.KeyspaceEstimatorFactory;
 import freenet.node.rt.RunningAverage;
 import freenet.support.LRUQueue;
+import freenet.node.simulator.whackysim.Main.ReadFromDiskException;
 
 /**
  * @author amphibian
@@ -24,13 +30,13 @@ import freenet.support.LRUQueue;
  * Connections are unidirectional. Mainly because this is easier.
  * Previous simulations have nasty bugs relating to bidi connections.
  */
-public class Node {
+public class Node implements Serializable {
 
 
     /**
      * Contains the results of a call to the route function.
      */
-    public class RoutingResult {
+    public class RoutingResult implements Serializable {
 
         public Node best;
         public RouteEstimator est;
@@ -50,10 +56,16 @@ public class Node {
     
     long lastRequestID = -1;
     long totalHits;
-    long lastCycleHits;
+    long hitsUpToLastCycle;
+    long hitsLoad;
     long totalSuccesses;
     long lastCycleSuccesses;
+    long successesLoad;
     boolean active;
+    RunningAverage avgHits = new BootstrappingDecayingRunningAverage(1.0, 0.0, Long.MAX_VALUE, 100);
+    RunningAverage avgSuccesses = new BootstrappingDecayingRunningAverage(1.0, 0.0, Long.MAX_VALUE, 100);
+    final RouteEstimator globalEstimator;
+    final LRUDoubleRank storeEstimateRank = new LRUDoubleRank(PCACHE_BY_ESTIMATE_RANK_MAX);
     
     // NGR
     final LRUQueue datastore;
@@ -71,12 +83,76 @@ public class Node {
     static final boolean DO_PROB_ESTIMATOR = false;
     static final boolean DO_IAN_CRAZY_ONE = false;
     static final boolean RANDOM_REINSERT = false;
-    static final boolean DO_PROBE_REQUESTS = false;
+    static final boolean DO_PROBE_REQUESTS = true;
     static final boolean DO_PREFIX = false;
+    /** Count each hop as not 1 but (number of reqs served last cycle).
+     * Minimum of 1.
+     * Incompatible with fake-pcaching as presently implemented.
+     */
+    static final boolean DO_LOAD_COST = true;
+    static final boolean DO_LOAD_COST_TOTAL_HITS = false;
+    static final boolean DO_LOAD_COST_HITS = true;
+    static final boolean DO_LOAD_COST_TOTAL_SUCCESSES = false;
+    static final boolean LOAD_COST_AVERAGED = true;
     static final double RANDOM_REINSERT_PROBABILITY = 0.005;
-    static final int REQUEST_FAKE_PCACHING_NODES = 5;
-    static final int INSERT_FAKE_PCACHING_NODES = 5;
+    static final int REQUEST_FAKE_PCACHING_NODES = 2;
+    static final int INSERT_FAKE_PCACHING_NODES = 2;
+    static final boolean DO_CACHE_ADD_BY_ESTIMATE = false;
+    static final int PCACHE_BY_ESTIMATE_RANK_MAX = 100;
     private final SuccessFailureStats timeCounter;
+    
+    public static void getFilenameBase(StringBuffer sb) {
+        sb.append(MAX_DATASTORE_SIZE);
+        sb.append("store-");
+        if(DO_RANDOM_ROUTING)
+            sb.append("randomrouting-");
+        if(DO_FAKE_PCACHING) {
+            sb.append("fakepcaching-");
+            sb.append(REQUEST_FAKE_PCACHING_NODES);
+            sb.append("req-");
+            sb.append(INSERT_FAKE_PCACHING_NODES);
+            sb.append("insert-");
+        }
+        if(DO_THREE_ESTIMATORS)
+            sb.append("3est-");
+        if(DO_PATHCOUNTING_THREE_ESTIMATORS)
+            sb.append("pathcount3est-");
+        if(DO_NO_PATHCOUNTING)
+            sb.append("nopathcount-");
+        if(PATHCOUNTING_HALF_VALUES)
+            sb.append("pathcounthalfvalues-");
+        if(DO_PATHCOUNTING_NO_TDNF)
+            sb.append("nodnftime-");
+        if(PROBABILITY_RUNNING_AVERAGE)
+            sb.append("probra-");
+        if(PRODUCT_OF_TSUCCESS_AND_PFAILURE)
+            sb.append("pfailure_times_tsuccess-");
+        if(PRODUCT_TSUCCESS_INCLUDE_BOTH_AVERAGES)
+            sb.append("inc_both_averages-");
+        if(DO_PROB_ESTIMATOR)
+            sb.append("pureprob-");
+        if(DO_IAN_CRAZY_ONE)
+            sb.append("iancrazy1-");
+        if(RANDOM_REINSERT) {
+            sb.append("randomreinsert-");
+            sb.append(RANDOM_REINSERT_PROBABILITY);
+        }
+        if(DO_PROBE_REQUESTS)
+            sb.append("proberequests-");
+        if(DO_PREFIX)
+            sb.append("prefix-");
+        if(DO_LOAD_COST) {
+            sb.append("loadcost-");
+            if(DO_LOAD_COST_TOTAL_HITS)
+                sb.append("totalhits-");
+            if(DO_LOAD_COST_HITS)
+                sb.append("hits-");
+            if(DO_LOAD_COST_TOTAL_SUCCESSES)
+                sb.append("totalsuccesses-");
+            if(LOAD_COST_AVERAGED)
+                sb.append("avg100-");
+        }
+    }
     
     public Node(int i, KeyspaceEstimatorFactory kef, Random r) {
         myValue = i;
@@ -87,6 +163,7 @@ public class Node {
         active = false;
         timeCounter = new SuccessFailureStats();
         raKeys = new KeyAverager(r);
+        globalEstimator = newRouteEstimator();
     }
 
     /**
@@ -160,13 +237,18 @@ public class Node {
             return new SuccessDistanceOnlyRouteEstimator(kef);
     }
 
+    static int hopCounter = 0;
+    
 	public int outerRunRequest(Key key, int htl, long requestID, Random r) {
+	    hopCounter = 0;
 	    int x = runRequest(key, htl, requestID, r, DO_PREFIX);
-	    if(x >= 0)
+	    if(x >= 0) {
 	        timeCounter.reportSuccess(x);
-	    else
+	        return hopCounter;
+	    } else {
 	        timeCounter.reportDNF(-1-x);
-	    return x;
+	        return -hopCounter-1;
+	    }
 	}
 
 	RoutingResult routingResult = new RoutingResult();
@@ -181,6 +263,7 @@ public class Node {
      * if it could not be found in a reasonable time.
      */
     public int runRequest(Key key, int htl, long requestID, Random r, boolean prefix) {
+        hopCounter++;
         if(Node.DO_IAN_CRAZY_ONE)
             raKeys.report(key.toDouble());
         totalHits++;
@@ -200,23 +283,38 @@ public class Node {
         route(key, htl, requestID, r, prefix);
         // FIXME: RNFs are fatal
         if(routingResult.best == null) return -1;
+        int myDelta = 1;
+        if(Node.DO_LOAD_COST) {
+            if(DO_LOAD_COST_TOTAL_HITS)
+                myDelta = (int) (1 + hitsUpToLastCycle);
+            else if(DO_LOAD_COST_HITS)
+                myDelta = (int) (1 + (Node.LOAD_COST_AVERAGED ? avgHits.currentValue() : hitsLoad));
+            else if(DO_LOAD_COST_TOTAL_SUCCESSES)
+                myDelta = (int) (1 + totalSuccesses);
+            else
+                myDelta = (int) (1 + (Node.LOAD_COST_AVERAGED ? avgSuccesses.currentValue() : successesLoad));
+        }
         int result = routingResult.best.runRequest(key, htl, requestID, r, prefix);
         if(result < 0) {
-            if(routingResult.est != null)
-                routingResult.est.failed(key, -1-result);
-            return result-1;
+            if(routingResult.est != null) {
+                routingResult.est.failed(key, -myDelta-result);
+                globalEstimator.failed(key, -myDelta-result);
+            }
+            return result-myDelta;
         }
         // Otherwise, it succeeded
         // Update estimator
-        if(routingResult.est != null)
+        if(routingResult.est != null) {
             routingResult.est.succeeded(key, result);
+            globalEstimator.succeeded(key, result);
+        }
         // Store data
         if((!prefix) && (!DO_FAKE_PCACHING) || (result <= REQUEST_FAKE_PCACHING_NODES))
-            store(key);
+            store(key, r);
         if(RANDOM_REINSERT && r.nextDouble() < RANDOM_REINSERT_PROBABILITY)
             runInsert(key, Main.INSERT_HTL, r.nextLong(), r);
         totalSuccesses++;
-        return result+1;
+        return result+myDelta;
     }
 
     /**
@@ -296,7 +394,7 @@ public class Node {
         lastRequestID = id;
         if(htl == 0) {
             //System.out.println("Success inserting "+key+" on node "+myValue);
-            store(key);
+            store(key, r);
             return 0;
         }
         //System.out.println("Inserting "+key+" on node "+myValue+" at htl "+htl);
@@ -314,7 +412,7 @@ public class Node {
         int result = routingResult.best.runInsert(key, htl-1, id, r);
         if(result >= 0) {
             if((!DO_FAKE_PCACHING) || result <= INSERT_FAKE_PCACHING_NODES)
-                store(key);
+                store(key, r);
             return result+1;
         }
         // Decrement HTL
@@ -326,8 +424,20 @@ public class Node {
     /**
      * Store a key into the datastore.
      */
-    private void store(Key key) {
-        datastore.push(key);
+    private void store(Key key, Random r) {
+        if(DO_CACHE_ADD_BY_ESTIMATE) {
+            // Should we cache?
+            double d = globalEstimator.estimate(key);
+            int rank = storeEstimateRank.rank(d);
+            if(datastore.size() < MAX_DATASTORE_SIZE)
+                datastore.push(key);
+            else {
+                if(r.nextDouble() >= ((double)(rank+1)) / storeEstimateRank.currentMaxRank())
+                    datastore.push(key);
+            }
+        } else
+            datastore.push(key);
+        // Always strict LRU for _removals_
         while(datastore.size() > MAX_DATASTORE_SIZE)
             datastore.pop();
     }
@@ -367,6 +477,17 @@ public class Node {
         return count;
     }
 
+    public int countConnectionsToActiveNodes() {
+        int count = 0;
+        for(int i=0;i<myConns.length;i++) {
+            Node n = myConns[i];
+            if(n.active) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
     public boolean isConnected(Node node) {
         for(int i=0;i<myConns.length;i++) {
             if(myConns[i] == node) return true;
@@ -397,5 +518,96 @@ public class Node {
             RouteEstimator r = (RouteEstimator)(n.estimators.get(this));
             r.dump(pw, filenameBase+"-"+n.myValue+"-for-"+myValue);
         }
+    }
+
+    public String linkDistribution() {
+        StringBuffer sb = new StringBuffer();
+        for(int i=0;i<myConns.length;i++) {
+            Node n = myConns[i];
+            if(!n.active) continue;
+            sb.append(" ");
+            sb.append(n.myValue);
+            sb.append("=");
+            RouteEstimator r = (RouteEstimator)(n.estimators.get(this));
+            sb.append(r.hits());
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * @param oos
+     */
+    public static void writeStaticToDisk(ObjectOutputStream oos) throws IOException {
+        oos.writeInt(MAX_DATASTORE_SIZE);
+        oos.writeBoolean(DO_RANDOM_ROUTING);
+        oos.writeBoolean(DO_FAKE_PCACHING);
+        oos.writeBoolean(DO_THREE_ESTIMATORS);
+        oos.writeBoolean(DO_NO_PATHCOUNTING);
+        oos.writeBoolean(PATHCOUNTING_HALF_VALUES);
+        oos.writeBoolean(PROBABILITY_RUNNING_AVERAGE);
+        oos.writeBoolean(PRODUCT_OF_TSUCCESS_AND_PFAILURE);
+        oos.writeBoolean(PRODUCT_TSUCCESS_INCLUDE_BOTH_AVERAGES);
+        oos.writeBoolean(DO_PROB_ESTIMATOR);
+        oos.writeBoolean(DO_IAN_CRAZY_ONE);
+        oos.writeBoolean(RANDOM_REINSERT);
+        oos.writeBoolean(DO_PROBE_REQUESTS);
+        oos.writeBoolean(DO_PREFIX);
+        oos.writeDouble(RANDOM_REINSERT_PROBABILITY);
+        oos.writeInt(REQUEST_FAKE_PCACHING_NODES);
+        oos.writeInt(INSERT_FAKE_PCACHING_NODES);
+    }
+
+    public static void readFromDisk(ObjectInputStream ois) throws IOException, ReadFromDiskException {
+        int storeSize = ois.readInt();
+        if(storeSize != MAX_DATASTORE_SIZE)
+            throw new ReadFromDiskException("bad store size: "+storeSize+" expected "+MAX_DATASTORE_SIZE);
+        boolean randomRouting = ois.readBoolean();
+        if(randomRouting != DO_RANDOM_ROUTING)
+            throw new ReadFromDiskException("bad random routing: "+randomRouting+" expected "+DO_RANDOM_ROUTING);
+        boolean fakePCaching = ois.readBoolean();
+        if(fakePCaching != DO_FAKE_PCACHING)
+            throw new ReadFromDiskException("bad fake pcaching: "+fakePCaching+" should be "+DO_FAKE_PCACHING);
+        boolean threeEstimators = ois.readBoolean();
+        if(threeEstimators != DO_THREE_ESTIMATORS)
+            throw new ReadFromDiskException("bad 3est: "+threeEstimators+" should be "+DO_THREE_ESTIMATORS);
+        boolean noPathcounting = ois.readBoolean();
+        if(noPathcounting != DO_NO_PATHCOUNTING)
+            throw new ReadFromDiskException("bad no-pathcounting: "+noPathcounting+" should be "+DO_NO_PATHCOUNTING);
+        boolean halfValues = ois.readBoolean();
+        if(halfValues != PATHCOUNTING_HALF_VALUES)
+            throw new ReadFromDiskException("bad half-values: "+halfValues+" should be "+PATHCOUNTING_HALF_VALUES);
+        boolean probRA = ois.readBoolean();
+        if(probRA != PROBABILITY_RUNNING_AVERAGE)
+            throw new ReadFromDiskException("bad probRA: "+probRA+" should be "+PROBABILITY_RUNNING_AVERAGE);
+        boolean tSuccessTimesPFailure = ois.readBoolean();
+        if(tSuccessTimesPFailure != PRODUCT_OF_TSUCCESS_AND_PFAILURE)
+            throw new ReadFromDiskException("bad tsuccess_times_pfailure: "+tSuccessTimesPFailure+" should be "+PRODUCT_OF_TSUCCESS_AND_PFAILURE);
+        boolean bothAverages = ois.readBoolean();
+        if(bothAverages != PRODUCT_TSUCCESS_INCLUDE_BOTH_AVERAGES)
+            throw new ReadFromDiskException("bad both-averages: "+bothAverages+" should be "+PRODUCT_TSUCCESS_INCLUDE_BOTH_AVERAGES);
+        boolean probEstimator = ois.readBoolean();
+        if(probEstimator != DO_PROB_ESTIMATOR)
+            throw new ReadFromDiskException("bad probability-only-estimators: "+probEstimator+" should be "+DO_PROB_ESTIMATOR);
+        boolean ianCrazyOne = ois.readBoolean();
+        if(ianCrazyOne != DO_IAN_CRAZY_ONE)
+            throw new ReadFromDiskException("bad ian-crazy-one: "+ianCrazyOne+" should be "+DO_IAN_CRAZY_ONE);
+        boolean randomReinsert = ois.readBoolean();
+        if(randomReinsert != RANDOM_REINSERT)
+            throw new ReadFromDiskException("bad random reinsert: "+randomReinsert+" should be "+RANDOM_REINSERT);
+        boolean probeRequests = ois.readBoolean();
+        if(probeRequests != DO_PROBE_REQUESTS)
+            throw new ReadFromDiskException("bad probe requests: "+probeRequests+" should be "+DO_PROBE_REQUESTS);
+        boolean prefix = ois.readBoolean();
+        if(prefix != DO_PREFIX)
+            throw new ReadFromDiskException("bad prefix: "+prefix+" should be "+DO_PREFIX);
+        double randomReinsertProb = ois.readDouble();
+        if(randomReinsertProb != RANDOM_REINSERT_PROBABILITY)
+            throw new ReadFromDiskException("bad random reinsert probability: "+randomReinsertProb+" should be "+RANDOM_REINSERT_PROBABILITY);
+        int reqFakePCachingNodes = ois.readInt();
+        if(reqFakePCachingNodes != REQUEST_FAKE_PCACHING_NODES)
+            throw new ReadFromDiskException("bad request fake pcaching nodes: "+reqFakePCachingNodes+" should be "+REQUEST_FAKE_PCACHING_NODES);
+        int insFakePCachingNodes = ois.readInt();
+        if(insFakePCachingNodes != INSERT_FAKE_PCACHING_NODES)
+            throw new ReadFromDiskException("bad insert fake pcaching nodes: "+insFakePCachingNodes+" should be "+INSERT_FAKE_PCACHING_NODES);
     }
 }

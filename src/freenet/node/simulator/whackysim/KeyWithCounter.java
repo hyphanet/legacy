@@ -1,12 +1,14 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.Serializable;
+
 import freenet.Key;
 
 /**
  * Key with a counter to indicate how many times it has been requested
  * @author amphibian
  */
-public class KeyWithCounter {
+public class KeyWithCounter implements Serializable {
 
     private Key k;
     private int counter;

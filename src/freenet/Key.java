@@ -3,6 +3,7 @@ package freenet;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -31,7 +32,7 @@ import freenet.support.io.VerifyingInputStream;
  * @author oskar (total rewrite)
  * @author tavin (added more test code + cleaned up comparison methods)
  */
-public class Key implements Measurable { //Cloneable {
+public class Key implements Measurable, Serializable { //Cloneable {
 
 	/**
 	 * The largest acceptable size for the data of a key, after padding but

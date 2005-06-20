@@ -1,5 +1,6 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.Serializable;
 import java.util.Random;
 
 import freenet.Key;
@@ -7,7 +8,7 @@ import freenet.Key;
 /**
  * Class to collect the last N keys
  */
-public class KeyCollector {
+public class KeyCollector implements Serializable {
 
     KeyWithCounter[] keys;
     int totalKeys;

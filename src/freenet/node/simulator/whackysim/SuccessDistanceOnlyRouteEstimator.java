@@ -65,4 +65,8 @@ public class SuccessDistanceOnlyRouteEstimator implements RouteEstimator {
         }
         bd.dump_graphable(pw);
     }
+
+    public long hits() {
+        return tSuccess.countReports();
+    }
 }

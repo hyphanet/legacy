@@ -1,9 +1,11 @@
 package freenet.node.rt;
 
+import java.io.Serializable;
+
 import freenet.FieldSet;
 import freenet.support.DataObject;
 
-public interface RunningAverage extends DataObject,ValueConsumer {
+public interface RunningAverage extends DataObject, ValueConsumer, Serializable {
     
     public Object clone();
     

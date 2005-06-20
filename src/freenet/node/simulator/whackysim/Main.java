@@ -1,10 +1,16 @@
 package freenet.node.simulator.whackysim;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -56,6 +62,199 @@ import freenet.node.rt.SlidingBucketsKeyspaceEstimatorFactory;
 public class Main {
 
 
+    public static class ReadFromDiskException extends Exception {
+        ReadFromDiskException(String s) {
+            super(s);
+        }
+
+    }
+    final static int SERIAL_MAGIC = 0xb55a9d0f;
+
+    static long lastWroteToDisk = -1;
+    static long timeToWriteToDisk = -1;
+    static final int MIN_INTERVAL = 10*60*1000; // 10 mins
+    static final int WRITE_TIME_MULTIPLIER = 20;
+    
+    static void maybeWriteToDisk() {
+        long now = System.currentTimeMillis();
+        long compareTo = lastWroteToDisk + WRITE_TIME_MULTIPLIER * timeToWriteToDisk;
+        if(now >= compareTo) {
+            try {
+                writeToDisk();
+            } catch (IOException e) {
+                System.err.println("Could not write to disk: "+e);
+            }
+            long endTime = System.currentTimeMillis();
+            timeToWriteToDisk = endTime - now;
+            System.err.println("Written to disk, took "+timeToWriteToDisk+"");
+            lastWroteToDisk = endTime;
+        }
+    }
+    
+    static String getFilenameBase() {
+        StringBuffer sb = new StringBuffer();
+        sb.append(NUMBER_OF_NODES);
+        sb.append("nodes-");
+        sb.append(INITIAL_NODES);
+        sb.append("initial-");
+        sb.append(CONNECTIONS);
+        sb.append("conns-");
+        sb.append(INSERT_HTL);
+        sb.append("inserthtl-");
+        sb.append(FETCH_HTL);
+        sb.append("fetchhtl-");
+        if(DO_QUEUE_GROWTH)
+            sb.append("queuegrowth-");
+        if(DO_SILLY_GROWTH)
+            sb.append("sillygrowth-");
+        if(DO_HOBX_GROWTH)
+            sb.append("hobxgrowth-");
+        if(DO_RANDOMIZED_HOBX_GROWTH)
+            sb.append("randomhobxgrowth-");
+        if(DO_BAD_LINKS)
+            sb.append("badlinks-");
+        if(GREEDY_ROUTING_INCREASING_ONLY)
+            sb.append("greedyroutinginconly-");
+        if(DO_VARIABLE_HTL)
+            sb.append("variablehtl-");
+        sb.append(TARGET_PSUCCESS);
+        sb.append("targetpsuccess-");
+        if(DO_LOG_REQUESTS_PER_CYCLE)
+            sb.append("logreqspercycle-");
+        if(DO_LOGSQUARED_REQUESTS_PER_CYCLE)
+            sb.append("logsquaredreqspercycle-");
+        if(DO_LOGCUBED_REQUESTS_PER_CYCLE)
+            sb.append("logcubedreqspercycle-");
+        if(DO_DUMP)
+            sb.append("dumping-");
+        if(READ_ORKUT_DATA)
+            sb.append("orkut-");
+        sb.append(BASE_CYCLE_LENGTH);
+        sb.append("basecyclelength-");
+        Node.getFilenameBase(sb);
+        return sb.toString();
+    }
+    
+    static void writeToDisk() throws IOException {
+        File f = new File("snapshot.tmp");
+        FileOutputStream fos = new FileOutputStream(f);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeInt(SERIAL_MAGIC);
+        oos.writeInt(1);
+        oos.writeInt(NUMBER_OF_NODES);
+        oos.writeInt(INITIAL_NODES);
+        oos.writeInt(CONNECTIONS);
+        oos.writeInt(INSERT_HTL);
+        oos.writeInt(FETCH_HTL);
+        oos.writeBoolean(DO_QUEUE_GROWTH);
+        oos.writeBoolean(DO_SILLY_GROWTH);
+        oos.writeBoolean(DO_BAD_LINKS);
+        oos.writeBoolean(GREEDY_ROUTING_INCREASING_ONLY);
+        oos.writeBoolean(DO_VARIABLE_HTL);
+        oos.writeDouble(TARGET_PSUCCESS);
+        oos.writeBoolean(DO_LOG_REQUESTS_PER_CYCLE);
+        oos.writeBoolean(DO_LOGSQUARED_REQUESTS_PER_CYCLE);
+        oos.writeBoolean(DO_LOGCUBED_REQUESTS_PER_CYCLE);
+        oos.writeBoolean(DO_LINEAR_REQUESTS_PER_CYCLE);
+        oos.writeBoolean(DO_DUMP);
+        oos.writeInt(BASE_CYCLE_LENGTH);
+        oos.writeObject(nodes);
+        oos.writeObject(r);
+        oos.writeObject(kc);
+        oos.writeDouble(lastRequestSuccessRatio);
+        oos.writeLong(startTime);
+        oos.writeObject(activeNodes);
+        oos.writeObject(borderNodes);
+        oos.writeObject(borderQueue);
+        oos.writeInt(cycleCounter);
+        oos.writeInt(lastActivated);
+        oos.writeLong(cycleNumber);
+        oos.writeInt(currentCycles);
+        oos.writeInt(x);
+        Node.writeStaticToDisk(oos);
+        oos.close();
+        f.renameTo(new File("snapshot-"+getFilenameBase()));
+    }
+
+    private static void readFromDisk() throws ReadFromDiskException, IOException, ClassNotFoundException {
+        File f = new File("snapshot-"+getFilenameBase());
+        FileInputStream fos = new FileInputStream(f);
+        BufferedInputStream bis = new BufferedInputStream(fos);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        // Ugh, is there a clever way to do this?
+        int magic = ois.readInt();
+        if(magic != SERIAL_MAGIC) throw new ReadFromDiskException("bad magic "+magic+" should be "+SERIAL_MAGIC);
+        int version = ois.readInt();
+        if(version != 1) throw new ReadFromDiskException("bad version "+version+" should be "+1);
+        int number_of_nodes = ois.readInt();
+        if(number_of_nodes != NUMBER_OF_NODES)
+            throw new ReadFromDiskException("bad #nodes: "+number_of_nodes+" should be "+NUMBER_OF_NODES);
+        int initial_nodes = ois.readInt();
+        if(initial_nodes != INITIAL_NODES)
+            throw new ReadFromDiskException("bad initial #nodes: "+initial_nodes+" should be "+INITIAL_NODES);
+        int conns = ois.readInt();
+        if(conns != CONNECTIONS)
+            throw new ReadFromDiskException("bad connections: "+conns+" should be "+CONNECTIONS);
+        int insertHtl = ois.readInt();
+        if(insertHtl != INSERT_HTL)
+            throw new ReadFromDiskException("bad insert htl: "+insertHtl+" should be "+INSERT_HTL);
+        int fetchHtl = ois.readInt();
+        if(fetchHtl != FETCH_HTL)
+            throw new ReadFromDiskException("bad fetch htl: "+fetchHtl+" should be "+FETCH_HTL);
+        boolean queueGrowth = ois.readBoolean();
+        if(queueGrowth != DO_QUEUE_GROWTH)
+            throw new ReadFromDiskException("bad queue growth: "+queueGrowth+" should be "+DO_QUEUE_GROWTH);
+        boolean sillyGrowth = ois.readBoolean();
+        if(sillyGrowth != DO_SILLY_GROWTH)
+            throw new ReadFromDiskException("bad silly growth: "+sillyGrowth+" should be "+DO_SILLY_GROWTH);
+        boolean badLinks = ois.readBoolean();
+        if(badLinks != DO_BAD_LINKS)
+            throw new ReadFromDiskException("bad bad-links: "+badLinks+" should be "+DO_BAD_LINKS);
+        boolean greedyRoutingIncOnly = ois.readBoolean();
+        if(greedyRoutingIncOnly != GREEDY_ROUTING_INCREASING_ONLY)
+            throw new ReadFromDiskException("bad greedy_routing_increasing_only: "+greedyRoutingIncOnly+" should be "+GREEDY_ROUTING_INCREASING_ONLY);
+        boolean variableHtl = ois.readBoolean();
+        if(variableHtl != DO_VARIABLE_HTL)
+            throw new ReadFromDiskException("bad variable htl: "+variableHtl+" should be "+DO_VARIABLE_HTL);
+        double targetPSuccess = ois.readDouble();
+        if(targetPSuccess != TARGET_PSUCCESS)
+            throw new ReadFromDiskException("bad target psuccess: "+targetPSuccess+", should be "+TARGET_PSUCCESS);
+        boolean logReqsPerCycle = ois.readBoolean();
+        if(logReqsPerCycle != DO_LOG_REQUESTS_PER_CYCLE)
+            throw new ReadFromDiskException("bad log requests per cycle: "+logReqsPerCycle+" should be "+DO_LOG_REQUESTS_PER_CYCLE);
+        boolean logSquaredReqsPerCycle = ois.readBoolean();
+        if(logSquaredReqsPerCycle != DO_LOGSQUARED_REQUESTS_PER_CYCLE)
+            throw new ReadFromDiskException("bad log squared reqs per cycle: "+logSquaredReqsPerCycle+" should be "+DO_LOGSQUARED_REQUESTS_PER_CYCLE);
+        boolean logCubedReqsPerCycle = ois.readBoolean();
+        if(logCubedReqsPerCycle != DO_LOGCUBED_REQUESTS_PER_CYCLE)
+            throw new ReadFromDiskException("bad log cubed reqs per cycle: "+logCubedReqsPerCycle+" should be "+DO_LOGCUBED_REQUESTS_PER_CYCLE);
+        boolean linearReqsPerCycle = ois.readBoolean();
+        if(linearReqsPerCycle != DO_LINEAR_REQUESTS_PER_CYCLE)
+            throw new ReadFromDiskException("bad linear reqs per cycle: "+linearReqsPerCycle+" should be "+DO_LINEAR_REQUESTS_PER_CYCLE);
+        boolean dump = ois.readBoolean();
+        if(dump != DO_DUMP)
+            throw new ReadFromDiskException("bad do-dump: "+dump+" should be "+DO_DUMP);
+        int baseCycleLength = ois.readInt();
+        if(baseCycleLength != BASE_CYCLE_LENGTH)
+            throw new ReadFromDiskException("bad base cycle length: "+baseCycleLength+" should be "+BASE_CYCLE_LENGTH);
+        nodes = (Node[]) ois.readObject();
+        r = (Random) ois.readObject();
+        kc = (KeyCollector) ois.readObject();
+        lastRequestSuccessRatio = ois.readDouble();
+        startTime = ois.readLong();
+        activeNodes = (Vector) ois.readObject();
+        borderNodes = (HashSet) ois.readObject();
+        borderQueue = (LinkedList) ois.readObject();
+        cycleCounter = ois.readInt();
+        lastActivated = ois.readInt();
+        cycleNumber = ois.readLong();
+        currentCycles = ois.readInt();
+        x = ois.readInt();
+        Node.readFromDisk(ois);
+        ois.close();
+    }
+
     static class PSuccessEntry implements Comparable {
         double psuccess;
         Node node;
@@ -81,7 +280,7 @@ public class Main {
     }
     
     // This is the maximum
-    public final static int NUMBER_OF_NODES = 10000;
+    public final static int NUMBER_OF_NODES = 2196;
     // Initial size of mesh
     public final static int INITIAL_NODES = 200;
     public final static int CONNECTIONS = 10;
@@ -90,7 +289,9 @@ public class Main {
     public static RunningAverageFactory rafb;
     public static RunningAverageFactory raf;
     static final boolean DO_QUEUE_GROWTH = false;
-    static final boolean DO_SILLY_GROWTH = true;
+    static final boolean DO_SILLY_GROWTH = false;
+    static final boolean DO_HOBX_GROWTH = false;
+    static final boolean DO_RANDOMIZED_HOBX_GROWTH = true;
     static final boolean DO_BAD_LINKS = false;
     static final boolean GREEDY_ROUTING_INCREASING_ONLY = false;
     static final boolean DO_VARIABLE_HTL = false;
@@ -100,7 +301,8 @@ public class Main {
     static final boolean DO_LOGCUBED_REQUESTS_PER_CYCLE = false;
     static final boolean DO_LINEAR_REQUESTS_PER_CYCLE = true;
     static final boolean DO_DUMP = false;
-    static final int BASE_CYCLE_LENGTH = 40000; // number of requests in the first cycle
+    static final boolean READ_ORKUT_DATA = true;
+    static final int BASE_CYCLE_LENGTH = 2500; // number of requests in the first cycle
     private static Node[] nodes;
     private static Random r = new Random();
     private static KeyCollector kc = new KeyCollector(INITIAL_NODES*Node.MAX_DATASTORE_SIZE/10, r);
@@ -113,7 +315,9 @@ public class Main {
     static int cycleCounter;
     
     /** Run the simulation */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ReadFromDiskException, IOException, ClassNotFoundException {
+        
+        System.err.println("Config: "+getFilenameBase());
         
         DateFormat df;
         df = new SimpleDateFormat();
@@ -138,53 +342,83 @@ public class Main {
         // Create a RandSource
         //RandomSource rand = new Yarrow((new File("/dev/urandom").exists() ? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",true);
         //r = new Random(/*rand.nextLong()*/);
-        
-        nodes = new Node[NUMBER_OF_NODES];
-        
-        // Create network of a LOT of nodes, all inactive
-        
-        for(int i=0;i<NUMBER_OF_NODES;i++) {
-            // Create a node
-            Node n = new Node(i, kef, r);
-            nodes[i] = n;
-        }
 
-        //calculateGreedyRoutingAverageDistribution();
+        String filename = "snapshot-"+getFilenameBase();
+        System.err.println("Looking for "+filename);
+        File saveFile = new File(filename);
+        if(saveFile.exists()) {
+            System.err.println("Reading from disk");
+            // Read from disk
+            readFromDisk();
+            System.err.println("Read from disk");
+        } else {
         
-        setUpExplicitOneOverDStructureHobxRandom(false);
+            nodes = new Node[NUMBER_OF_NODES];
+            
+            // Create network of a LOT of nodes, all inactive
+            
+            for(int i=0;i<NUMBER_OF_NODES;i++) {
+                // Create a node
+                Node n = new Node(i, kef, r);
+                nodes[i] = n;
+            }
+            
+            if(READ_ORKUT_DATA) {
+                // Read orkut data from oskar's dump
+                FileInputStream fis = new FileInputStream("orkut_data.grf");
+                InputStreamReader isr = new InputStreamReader(fis);
+                BufferedReader br = new BufferedReader(isr);
+                String line;
+                while((line = br.readLine()) != null) {
+                    String[] split = line.split("\t");
+                    if(!split[0].equals("E")) {
+                        System.err.println("Not E");
+                        return;
+                    }
+                    int leftNode = Integer.parseInt(split[1]);
+                    int rightNode = Integer.parseInt(split[2]);
+                    nodes[leftNode].connect(nodes[rightNode], false);
+                }
+            } else {
+            
+                //calculateGreedyRoutingAverageDistribution();
+                
+                setUpExplicitOneOverDStructureHobxRandom(false);
         
-        runGreedyRouting(false, null);
+                runGreedyRouting(false, null);
+                
+                System.out.println("Set up structure, activating initial nodes...");
+            }
+            
+            // Activate a few nodes to start with
+            activateInitialNodes();
+            
+            dumpActiveStatus();
         
-        System.out.println("Set up structure, activating initial nodes...");
-//        
-//        
-        // Activate a few nodes to start with
-        activateInitialNodes();
+            System.out.println("Verifying source network...");
         
-        dumpActiveStatus();
+            System.out.println("Running some requests...");
         
-        System.out.println("Verifying source network...");
-        
-        System.out.println("Running some requests...");
-        
-        int i = 0;
-        int j = 0;
-        runNGR();
-        while(i < 20 && j < 1000) {
-            if(lastRequestSuccessRatio < TARGET_PSUCCESS) i = 0;
-            else i++;
-            j++;
-            System.out.println("Consecutive >"+TARGET_PSUCCESS+": "+i);
+            int i = 0;
+            int j = 0;
+            runNGR();
+            while(i < 20 && j < 1000) {
+                if(lastRequestSuccessRatio < TARGET_PSUCCESS) i = 0;
+                else i++;
+                j++;	
+                System.out.println("Consecutive >"+TARGET_PSUCCESS+": "+i);
 ////        for(int i=0;i<20;i++) {
 ////        //for(int i=0;i<10;i++)
-            runNGR();
+                runNGR();
+            }
         }
-//        
+//      
         System.out.println("Growing the network...");
 //        
         while(activeNodes.size() < nodes.length) {
             // Add a node
             activateOneNode();
+            maybeWriteToDisk();
             
             //runGreedyRouting(true);
             
@@ -193,10 +427,11 @@ public class Main {
         System.err.println("ADDED ALL NODES.");
         while(true) {
             runNGR();
+            maybeWriteToDisk();
         }
     }
 
-	/**
+    /**
      * 
      */
     private static void calculateGreedyRoutingAverageDistribution() {
@@ -273,6 +508,39 @@ public class Main {
      * Activate a single node.
      */
     private static void activateOneNode() {
+        if(DO_HOBX_GROWTH) {
+            // Add the node with the most connections to active nodes
+            int maxConns = 0;
+            double decider = 0;
+            Node best = null;
+            for(int i=0;i<nodes.length;i++) {
+                Node n = nodes[i];
+                if(n.active) continue;
+                int conns = n.countConnectionsToActiveNodes();
+                double myDecider = r.nextDouble();
+                if(conns > maxConns || 
+                        (conns == maxConns && myDecider > decider)) {
+                    decider = myDecider;
+                    maxConns = conns;
+                    best = n;
+                }
+            }
+            best.activate();
+            return;
+        }
+        if(DO_RANDOMIZED_HOBX_GROWTH) {
+            Vector v = new Vector();
+            for(int i=0;i<nodes.length;i++) {
+                Node n = nodes[i];
+                if(n.active) continue;
+                int conns = n.countConnectionsToActiveNodes();
+                for(int j=0;j<conns;j++)
+                    v.add(n);
+            }
+            Node n = (Node) (v.get(r.nextInt(v.size())));
+            n.activate();
+            return;
+        }
         if(!DO_SILLY_GROWTH) {
         if(Main.DO_QUEUE_GROWTH) {
             while(true) {
@@ -303,6 +571,10 @@ public class Main {
 
     static int lastActivated = 0;
     
+    static long grandTotalHops = 0;
+    
+    static long totalCyclingTime = 0;
+    
     /**
      * Activate INITIAL_NODES random nodes. They must be contiguous.
      */
@@ -328,6 +600,7 @@ public class Main {
      * @param nodes The nodes.
      */
     private static void runNGR() {
+        long startCycleTime = System.currentTimeMillis();
         cycleCounter++;
         // Do a bazillion requests.
         System.err.println("Nodes active: "+activeNodes.size());
@@ -358,6 +631,7 @@ public class Main {
         long totalInserts = 0;
         long successfulInserts = 0;
         long totalFirstTimeFetchHops = 0;
+        long totalHops = 0; // includes unsuccessful hops
         int miniCycles = 0;
         
 //        for(int x=0;x<currentCycles;x++) {
@@ -373,7 +647,7 @@ public class Main {
 //            totalFirstTimeFetchHops = 0;
         // Run one mini-cycle
         // Fixed length mini-cycles - if they are O(n), then we get O(n^2) overall...
-           
+
         int requestsPerCycle;
         final int baseCycleLength = BASE_CYCLE_LENGTH;
         final double baseLog = Math.log(INITIAL_NODES);
@@ -424,14 +698,26 @@ public class Main {
             totalFetches++;
             if(fetchHops >= 0) {
                 totalFetchHops += fetchHops;
+                totalHops += fetchHops;
+                grandTotalHops += fetchHops;
                 successfulFetches++;
                 if(firstTime) {
                     successfulFirstTimeFetches++;
                     totalFirstTimeFetchHops += fetchHops;
                 }
+            } else {
+                totalHops += -fetchHops-1;
+                grandTotalHops += -fetchHops-1;
             }
             //}
         }
+        long endCycleTime = System.currentTimeMillis();
+        long cycleTime = endCycleTime - startCycleTime;
+        double speed = 1000.0 * ((double)totalHops) / (double)cycleTime;
+        totalCyclingTime += cycleTime;
+        double avgSpeed = 1000.0 * ((double)grandTotalHops)/((double)totalCyclingTime);
+        System.out.println("Speed: "+speed+" hops/second, avg: "+avgSpeed+" hops/second");
+        System.out.println("Total hops: "+grandTotalHops);
 //        lastRequestSuccessRatio = ((double)successfulFetches)/((double)totalFetches);
 //        double lastFirstTimeSuccessRatio = ((double)successfulFirstTimeFetches)/((double)firstTimeFetches);
 //        
@@ -442,39 +728,44 @@ public class Main {
 //        sra.report(lastWorstRatio);
 //        }
         // Now verify the keys exist
-        int vc = kc.countValidKeys();
-        System.out.println("Keys: "+vc);
-        int nulls = 0;
-        int validKeys = 0;
-        long totalCounts = 0;
-        int maxCounts = 0;
-        int minCounts = Integer.MAX_VALUE;
-        int keysFetchable = 0;
-        int duplicationMin = Integer.MAX_VALUE;
-        int duplicationMax = 0;
-        long duplicationTotal = 0;
-        for(int i=0;i<vc;i++) {
-            KeyWithCounter kwc = kc.get(i);
-            if(kwc == null) {
-                nulls++;
-                continue;
+        if(cycleNumber % 16 == 0) {
+            long startKeyStuff = System.currentTimeMillis();
+            int vc = kc.countValidKeys();
+            System.out.println("Keys: "+vc);
+            int nulls = 0;
+            int validKeys = 0;
+            long totalCounts = 0;
+            int maxCounts = 0;
+            int minCounts = Integer.MAX_VALUE;
+            int keysFetchable = 0;
+            int duplicationMin = Integer.MAX_VALUE;
+            int duplicationMax = 0;
+            long duplicationTotal = 0;
+            for(int i=0;i<vc;i++) {
+                KeyWithCounter kwc = kc.get(i);
+                if(kwc == null) {
+                    nulls++;
+                    continue;
+                }
+                validKeys++;
+                int count = kwc.getCount();
+                totalCounts+= count;
+                if(maxCounts < count) maxCounts = count;
+                if(minCounts > count) minCounts = count;
+                Key k = kwc.getKeyDontIncCounter();
+                // We have a valid key
+                int countInStores = findInStores(k);
+                if(countInStores > duplicationMax) duplicationMax = countInStores;
+                if(countInStores < duplicationMin) duplicationMin = countInStores;
+                if(countInStores > 0) keysFetchable++;
+                duplicationTotal+=countInStores;
             }
-            validKeys++;
-            int count = kwc.getCount();
-            totalCounts+= count;
-            if(maxCounts < count) maxCounts = count;
-            if(minCounts > count) minCounts = count;
-            Key k = kwc.getKeyDontIncCounter();
-            // We have a valid key
-            int countInStores = findInStores(k);
-            if(countInStores > duplicationMax) duplicationMax = countInStores;
-            if(countInStores < duplicationMin) duplicationMin = countInStores;
-            if(countInStores > 0) keysFetchable++;
-            duplicationTotal+=countInStores;
+            long endKeyStuff = System.currentTimeMillis();
+            System.out.println("Inter-cycle time: "+(endKeyStuff-startKeyStuff)+"ms");
+            System.out.println("Nulls: "+nulls+", Valid: "+validKeys+", average access count: "+((double)totalCounts)/validKeys+
+                    ", max access count: "+maxCounts+", min access count: "+minCounts+", fetchable: "+keysFetchable+", duplication max: "+
+                    duplicationMax+", duplication min: "+duplicationMin+", duplication mean: "+((double)duplicationTotal)/validKeys);
         }
-        System.out.println("Nulls: "+nulls+", Valid: "+validKeys+", average access count: "+((double)totalCounts)/validKeys+
-                ", max access count: "+maxCounts+", min access count: "+minCounts+", fetchable: "+keysFetchable+", duplication max: "+
-                duplicationMax+", duplication min: "+duplicationMin+", duplication mean: "+((double)duplicationTotal)/validKeys);
         lastRequestSuccessRatio = ((double)successfulFetches)/((double)totalFetches);
         System.err.println("Cycle "+cycleNumber+": Average path length: "+((double)totalFetchHops)/((double)successfulFetches)+", Success probability: "+lastRequestSuccessRatio+
                 ", inserts: "+(((double)successfulInserts)/((double)totalInserts))+", first-time success ratio: "+((double)successfulFirstTimeFetches)/((double)firstTimeFetches)+
@@ -489,7 +780,8 @@ public class Main {
             if(currentCycles > 3)
                 currentCycles--;
         }
-        dumpLoadDistribution();
+        if(cycleNumber % 16 == 0)
+        	dumpLoadDistribution();
         cycleNumber++;
     }
 
@@ -497,6 +789,7 @@ public class Main {
      * Dump all nodes
      */
     private static void dumpAll() throws IOException {
+        long startDumpTime = System.currentTimeMillis();
         String filename = getDumpFilename();
         File dumpTo = new File(filename);
         System.err.println("Dumping to "+dumpTo.getPath());
@@ -508,11 +801,20 @@ public class Main {
             ((Node)activeNodes.get(i)).dump(pw, filename);
         }
         bos.close();
-        System.err.println("Dumped to "+dumpTo.getPath());
+        long endTime = System.currentTimeMillis();
+        lastDumpTimeCost = (endTime-startDumpTime);
+        lastDumped = endTime;
+        System.err.println("Dumped to "+dumpTo.getPath()+" in "+lastDumpTimeCost+"ms");
     }
 
+    static long lastDumpTimeCost = -1;
+    static long lastDumped = -1;
+    
     private static String getDumpFilename() {
-    	return "dump-"+startTime+"-"+activeNodes.size();
+        new File("dumps").mkdir();
+        String base = getFilenameBase();
+        new File("dumps/"+base+"/").mkdir();
+    	return "dumps/"+base+"/dump-"+startTime+"-"+activeNodes.size()+"-"+cycleNumber;
     }
 
     /**
@@ -520,13 +822,11 @@ public class Main {
      */
     private static boolean shouldDump() {
         if(!DO_DUMP) return false;
-        int x = cycleCounter - 20;
-        if(x % 250 == 0) return true;
-        if(x == 201) return true;
-        if(x == 250) return true;
-        if(x == 300) return true;
-        if(x == 400) return true;
-        return false;
+        if(cycleNumber < 20) return false;
+        long time = System.currentTimeMillis();
+        if((time - lastDumped) < (Main.lastDumpTimeCost * 20))
+            return false;
+        return true;
     }
 
     private static int findInStores(Key k) {
@@ -547,6 +847,7 @@ public class Main {
 
     static int x = 0;
     static long[] fullLoad = new long[NUMBER_OF_NODES];
+    static long[] fullCumulativeLoad = new long[NUMBER_OF_NODES];
     static PSuccessEntry[] fullPSuccess = new PSuccessEntry[NUMBER_OF_NODES];
     private static void dumpLoadDistribution() {
         long totalSinceLastTime = 0;
@@ -554,19 +855,33 @@ public class Main {
         long min = Long.MAX_VALUE;
         int maxStore = 0;
         int minStore = Integer.MAX_VALUE;
+        long maxTotalHits = 0;
+        long minTotalHits = Long.MAX_VALUE;
+        long grandTotalHits = 0;
         double maxPSuccess = 0;
         double minPSuccess = Double.MAX_VALUE;
         long totalStore = 0;
         for(int i=0;i<activeNodes.size();i++) {
             Node n = (Node)activeNodes.get(i);
-            long sinceLastTime = n.totalHits - n.lastCycleHits;
+            long totalHits = n.totalHits;
+            if(totalHits > maxTotalHits)
+                maxTotalHits = totalHits;
+            if(totalHits < minTotalHits)
+                minTotalHits = totalHits;
+            fullCumulativeLoad[i] = totalHits;
+            grandTotalHits += totalHits;
+            long sinceLastTime = totalHits - n.hitsUpToLastCycle;
             long successesSinceLastTime = n.totalSuccesses - n.lastCycleSuccesses;
+            n.hitsLoad = sinceLastTime;
+            n.successesLoad = successesSinceLastTime;
+            n.avgHits.report(sinceLastTime);
+            n.avgSuccesses.report(successesSinceLastTime);
             double psuccess = ((double) successesSinceLastTime) / ((double) sinceLastTime);
             if(psuccess > maxPSuccess) maxPSuccess = psuccess;
             if(psuccess < minPSuccess) minPSuccess = psuccess;
             fullLoad[i] = sinceLastTime;
             fullPSuccess[i] = new PSuccessEntry(psuccess, n);
-            n.lastCycleHits = n.totalHits;
+            n.hitsUpToLastCycle = n.totalHits;
             n.lastCycleSuccesses = n.totalSuccesses;
             totalSinceLastTime += sinceLastTime;
             if(max < sinceLastTime) max = sinceLastTime;
@@ -577,6 +892,7 @@ public class Main {
             if(store < minStore) minStore = store;
         }
         System.out.println("Load: max: "+max+", min: "+min+", avg: "+(totalSinceLastTime/activeNodes.size()));
+        System.out.println("Cumulative load: max: "+maxTotalHits+", min: "+minTotalHits+", avg: "+grandTotalHits/activeNodes.size());
         System.out.println("Stores: max: "+maxStore+", min: "+minStore+", avg: "+((double)totalStore)/activeNodes.size());
         System.out.println("PSuccess: max: "+max+", min: "+min+", avg: "+(totalSinceLastTime/activeNodes.size()));
         x++;
@@ -588,12 +904,29 @@ public class Main {
                 System.out.print(' ');
             }
             System.out.println();
+            java.util.Arrays.sort(fullCumulativeLoad, 0, activeNodes.size());
+            System.out.print("Full total hits: ");
+            for(int i=0;i<activeNodes.size();i++) {
+                System.out.print(fullCumulativeLoad[i]);
+                System.out.print(' ');
+            }
+            System.out.println();
             java.util.Arrays.sort(fullPSuccess, 0, activeNodes.size());
             System.out.print("Full psuccess: ");
             for(int i=0;i<activeNodes.size();i++) {
                 System.out.print(fullPSuccess[i]);
                 System.out.print(' ');
             }
+            StringBuffer sb = new StringBuffer("Load dist over links: ");
+            // Dump load dist over links
+            for(int i=0;i<activeNodes.size();i++) {
+                sb.append(i);
+                sb.append(": ");
+                sb.append(((Node)activeNodes.get(i)).linkDistribution());
+                sb.append("\n");
+            }
+            sb.append("\n");
+            System.out.println(sb.toString());
         }
     }
 

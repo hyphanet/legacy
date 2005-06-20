@@ -54,25 +54,31 @@ public class FOAFProcessor {
      */
     private static void removeConnectedSet() {
         Actor a = randomActor();
+        System.out.println("Starting at "+a);
         HashSet connectedSet = new HashSet();
         LinkedList toCheck = new LinkedList();
         toCheck.add(a);
         connectedSet.add(a);
         while(!toCheck.isEmpty()) {
             Actor checking = (Actor) (toCheck.removeFirst());
+            System.out.println("Checking "+checking);
             Iterator i = checking.links.iterator();
             while(i.hasNext()) {
                 Actor connected = (Actor) (i.next());
+                System.out.println("Connected: "+connected);
                 if(!connected.links.contains(checking)) continue;
+                System.out.println("Bidi connected: "+connected);
                 if(!connectedSet.contains(connected)) {
                     connectedSet.add(connected);
                     toCheck.add(connected);
+                    System.out.println("Added "+connected+" now connectedSet: "+connectedSet.size()+", toCheck: "+toCheck.size());
                 }
             }
         }
         for(Iterator i=connectedSet.iterator();i.hasNext();) {
             Actor toDelete = (Actor) i.next();
             actors.remove(toDelete);
+            System.err.println("Deleted "+toDelete+", set now "+actors.size());
         }
         System.err.println("Connected set size "+connectedSet.size()+", remaining: "+actors.size());
     }
@@ -93,13 +99,25 @@ public class FOAFProcessor {
                 line = line.substring(0, line.length()-1);
             String[] separated = line.split(" ");
             if(separated[1].equals("<http://xmlns.com/foaf/0.1/knows>")) {
-                String actor1 = separated[0];
-                String actor2 = separated[2];
+                String actor1 = zapQuotes(separated[0]);
+                String actor2 = zapQuotes(separated[2]);
                 Actor a1 = makeActor(actor1);
                 Actor a2 = makeActor(actor2);
                 a1.connect(a2);
+                System.out.println("Connecting "+a1+" to "+a2);
             }
         }
+    }
+
+    /**
+     * @param string
+     * @return
+     */
+    private static String zapQuotes(String string) {
+        if(string.length() > 2 && string.charAt(0) == '"' &&
+                string.charAt(string.length()-1) == '"')
+            return string.substring(1, string.length()-2);
+        return string;
     }
 
     private static void doStats() {

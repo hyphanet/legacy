@@ -1,8 +1,9 @@
 package freenet.support;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 
-public interface Unit {
+public interface Unit extends Serializable {
     public double toRaw(double value);
     public double ofRaw(double rawValue);
     public boolean withinRange(double value);
@@ -67,7 +68,7 @@ public interface Unit {
     }
 
     
-    public interface Stringable {
+    public interface Stringable extends Serializable {
         public String toString(double value);
     }
     
