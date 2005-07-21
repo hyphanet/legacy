@@ -38,6 +38,7 @@ public abstract class RandomSource extends Random implements Checkpointed {
      */
     public abstract int acceptEntropy(EntropySource source, long data, int entropyGuess);
     public abstract int acceptTimerEntropy(EntropySource timer);
+    public abstract int acceptTimerEntropy(EntropySource timer, double bias);
 
     /**
      * If entropy estimation is supported, this method will block

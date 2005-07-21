@@ -49,6 +49,11 @@ public class RandomSourcePool extends RandomSource implements Checkpointed {
 		return pool[nextPtr].acceptTimerEntropy(timer);
 	}
 
+	public int acceptTimerEntropy(EntropySource timer, double bias) {
+		nextPtr = (nextPtr + 1) % pool.length;
+		return pool[nextPtr].acceptTimerEntropy(timer, bias);
+	}
+
 	public void close() {
 		for (int i = 0; i < pool.length; i++) {
 			pool[i].close();

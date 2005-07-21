@@ -139,6 +139,7 @@ public class RandStream extends RandomSource {
 
     public int acceptEntropy(EntropySource source, long data, int entropyBits) { return entropyBits; }
     public int acceptTimerEntropy(EntropySource timer) { return 32; }
+    public int acceptTimerEntropy(EntropySource timer, double bias) { return 32; }
 
     public void close() {
 	try {

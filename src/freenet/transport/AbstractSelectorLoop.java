@@ -592,7 +592,7 @@ public abstract class AbstractSelectorLoop implements SelectorLoop {
 				if (!(timeTaken < 2 || (x>0 && timeTaken >= x-1))) {
 				    // Some of these are caused by local events.
 				    // FIXME: We may want to use a different entropy estimate for local packets?
-				    pool.acceptTimerEntropy(entropySource);
+				    pool.acceptTimerEntropy(entropySource, 0.5);
 				}
 			}
 		} catch (ClosedChannelException e) {
