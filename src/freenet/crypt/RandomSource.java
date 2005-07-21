@@ -2,6 +2,8 @@ package freenet.crypt;
 
 import java.util.Random;
 
+import freenet.support.Checkpointed;
+
 /*
   This code is part of the Java Adaptive Network Client by Ian Clarke. 
   It is distributed under the GNU Public Licence (GPL) version 2.  See
@@ -13,7 +15,7 @@ import java.util.Random;
  *
  * @author Scott G. Miller <scgmille@indiana.edu>
  */
-public abstract class RandomSource extends Random {
+public abstract class RandomSource extends Random implements Checkpointed {
 
     /**
      * Returns a 32 bit random floating point number.  With this method,

@@ -1059,6 +1059,9 @@ public class Main {
 
         startNode(addr); // run Core
 
+        // Schedule checkpoint for RNG
+        new Checkpoint(Core.getRandSource()).schedule(node);
+        
         // Handle watchme
         if (params.getBoolean("watchme")) {
             new Checkpoint(Node.watchme).schedule(node);

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import freenet.NIOListener;
+import freenet.crypt.RandomSourcePool;
 import freenet.diagnostics.ExternalContinuous;
 import freenet.support.Logger;
 
@@ -25,9 +26,9 @@ public final class ListenSelectorLoop extends AbstractSelectorLoop
 
    // private HashMap readySockets;
     
-    public ListenSelectorLoop(Logger logger, ExternalContinuous callback) 
+    public ListenSelectorLoop(Logger logger, ExternalContinuous callback, RandomSourcePool pool) 
     	throws IOException{
-        super(logger, callback);
+        super(logger, callback, pool);
         //readySockets=new HashMap(MAX_NEW_CONNECTIONS);
     }
 

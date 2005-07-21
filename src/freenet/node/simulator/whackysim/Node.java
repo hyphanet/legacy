@@ -97,7 +97,8 @@ public class Node implements Serializable {
     static final double RANDOM_REINSERT_PROBABILITY = 0.005;
     static final int REQUEST_FAKE_PCACHING_NODES = 2;
     static final int INSERT_FAKE_PCACHING_NODES = 2;
-    static final boolean DO_CACHE_ADD_BY_ESTIMATE = false;
+    static boolean DO_SIMPLE_PCACHE = false;
+    static boolean DO_CACHE_ADD_BY_ESTIMATE = false;
     static final int PCACHE_BY_ESTIMATE_RANK_MAX = 100;
     private final SuccessFailureStats timeCounter;
     
@@ -141,6 +142,10 @@ public class Node implements Serializable {
             sb.append("proberequests-");
         if(DO_PREFIX)
             sb.append("prefix-");
+        if(DO_CACHE_ADD_BY_ESTIMATE)
+            sb.append("cachebyestimate-");
+        if(DO_SIMPLE_PCACHE)
+            sb.append("simplepcaching-");
         if(DO_LOAD_COST) {
             sb.append("loadcost-");
             if(DO_LOAD_COST_TOTAL_HITS)
@@ -432,9 +437,12 @@ public class Node implements Serializable {
             if(datastore.size() < MAX_DATASTORE_SIZE)
                 datastore.push(key);
             else {
-                if(r.nextDouble() >= ((double)(rank+1)) / storeEstimateRank.currentMaxRank())
+                if(r.nextDouble() >= ((double)(rank+1)) / (3*storeEstimateRank.currentMaxRank()))
                     datastore.push(key);
             }
+        } else if(DO_SIMPLE_PCACHE) {
+            if(r.nextDouble() >= (1.0/3.0))
+                datastore.push(key);
         } else
             datastore.push(key);
         // Always strict LRU for _removals_

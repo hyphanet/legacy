@@ -531,7 +531,7 @@ public class Node extends Core implements ConnectionThrottler{
 		config.addOption(
 			"mainport.params.servlet.2.bookmarks.0.description",
 			1,
-			"Oldest living Freenet portal",
+			"Oldest living Freenet index site (no categories, but has activelinks)",
 			6103);
 
 //		config.addOption(
@@ -622,77 +622,142 @@ public class Node extends Core implements ConnectionThrottler{
 		    "mainport.params.servlet.2.bookmarks.2.key",
 		    1,
 		    "SSK@JiqlnfX6MK4nHDl6ZjOrSaMnDB8PAgM,CUnDuNQdRTeTXiDMRM93dQ/OFIFY//",
-		    6150);
+		    6140);
 		config.addOption(
 		    "mainport.params.servlet.2.bookmarks.2.title",
 		    1,
 		    "Oskar Finds It For You",
-		    6151);
+		    6141);
 		config.addOption(
 		    "mainport.params.servlet.2.bookmarks.2.activelinkFile",
 		    1,
 		    "activelink.png",
-		    6152);
+		    6142);
 		config.addOption(
 		    "mainport.params.servlet.2.bookmarks.2.description",
+			1,
+		    "Another index freesite (one page per category)",
+		    6143);
+		
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.key",
 		    1,
-		    "Another index freesite",
+		    "SSK@y~-NCd~il6RMxOe9jjf~VR7mSYwPAgM,ds52dBUTmr8fSHePn1Sn4g/OneMore//",
+		    6150);
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.title",
+		    1,
+		    "One More Time",
+		    6151);
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.activelinkFile",
+		    1,
+		    "activelink.gif",
+		    6152);
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.description",
+		    1,
+		    "Yet another index freesite (one page per category)",
 		    6153);
 
-//		config.addOption(
-//			"mainport.params.servlet.3.uri",
-//			1,
-//			"/servlet/images/",
-//			4130);
-//		config.addOption("mainport.params.servlet.3.method", 1, "GET", 4131);
-//		config.addOption(
-//			"mainport.params.servlet.3.class",
-//			1,
-//			"freenet.client.http.ImageServlet",
-//			4132);
-//		config.addOption(
-//			"mainport.params.servlet.3.name",
-//			1,
-//			"Server Images",
-//			4133);
-//
-//		config.addOption(
-//			"mainport.params.servlet.4.uri",
-//			1,
-//			"/servlet/Insert",
-//			4140);
-//		config.addOption("mainport.params.servlet.4.method", 1, "BOTH", 4141);
-//		config.addOption(
-//			"mainport.params.servlet.4.class",
-//			1,
-//			"freenet.client.http.InsertServlet",
-//			4142);
-//		config.addOption(
-//			"mainport.params.servlet.4.name",
-//			1,
-//			"Insert Proxy Status",
-//			4143);
-//		config.addOption(
-//			"mainport.params.servlet.4.params.insertHtl",
-//			1,
-//			20,
-//			4144);
-//		config.addOption(
-//			"mainport.params.servlet.4.params.sfInsertThreads",
-//			1,
-//			30,
-//			4145);
-//		config.addOption(
-//			"mainport.params.servlet.4.params.sfInsertRetries",
-//			1,
-//			3,
-//			4146);
-//		config.addOption(
-//			"mainport.params.servlet.4.params.sfRefreshIntervalSecs",
-//			1,
-//			15,
-//			4147);
-//
+		config.addOption(
+		        "mainport.params.servlet.2.bookmarks.4.key",
+			    1,
+			    "SSK@sPolFAwS69lG2Le~TTRzNEVarcEPAgM/DFI//",
+			    6160);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.4.title",
+			    1,
+			    "Dolphin's Freenet Index",
+			    6161);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.4.activelinkFile",
+			    1,
+			    "activelink.png",
+			    6162);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.4.description",
+			    1,
+			    "Another categorized Freenet index (one big page)",
+			    6163);
+
+		config.addOption(
+		        "mainport.params.servlet.2.bookmarks.5.key",
+			    1,
+			    "SSK@rVxBgVi4oLfrFEWPdPas1XZSYooPAgM,QZvYaKsdFJxfCjq~FiC5XA/CICFI//",
+			    6160);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.5.title",
+			    1,
+			    "CIC's Freesite Index",
+			    6161);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.5.activelinkFile",
+			    1,
+			    "activelink.png",
+			    6162);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.5.description",
+			    1,
+			    "Yet another categorized single page Freenet index",
+			    6163);
+
+		
+		
+		config.addOption(
+			"mainport.params.servlet.3.uri",
+			1,
+			"/servlet/images/",
+			4130);
+		config.addOption("mainport.params.servlet.3.method", 1, "GET", 4131);
+		config.addOption(
+			"mainport.params.servlet.3.class",
+			1,
+			"freenet.client.http.ImageServlet",
+			4132);
+		config.addOption(
+			"mainport.params.servlet.3.name",
+			1,
+			"Server Images",
+			4133);
+
+		config.addOption(
+			"mainport.params.servlet.4.uri",
+			1,
+			"/servlet/Insert",
+			4140);
+		config.addOption("mainport.params.servlet.4.method", 1, "BOTH", 4141);
+		config.addOption(
+			"mainport.params.servlet.4.class",
+			1,
+			"freenet.client.http.InsertServlet",
+			4142);
+		config.addOption(
+			"mainport.params.servlet.4.name",
+			1,
+			"Insert Proxy Status",
+			4143);
+		config.addOption(
+			"mainport.params.servlet.4.params.insertHtl",
+			1,
+			20,
+			4144);
+		config.addOption(
+			"mainport.params.servlet.4.params.sfInsertThreads",
+			1,
+			30,
+			4145);
+		config.addOption(
+			"mainport.params.servlet.4.params.sfInsertRetries",
+			1,
+			3,
+			4146);
+		config.addOption(
+			"mainport.params.servlet.4.params.sfRefreshIntervalSecs",
+			1,
+			15,
+			4147);
+
 		config.addOption("mainport.params.servlet.6.uri", 1, "/", 4190);
 		config.addOption("mainport.params.servlet.6.method", 1, "POST", 4191);
 		config.addOption(
@@ -2577,68 +2642,68 @@ public class Node extends Core implements ConnectionThrottler{
 			"mainport.params.servlet.2.bookmarks.2.description",
 			"The description of the third bookmark on the web proxy");
 
-		config.setExpert("mainport.params.servlet.2.bookmarks.3.key", true);
-		config.argDesc(
-			"mainport.params.servlet.2.bookmarks.3.key",
-			"freenet key");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.3.key",
-			"The fourth bookmark for the web proxy");
-		config.setExpert("mainport.params.servlet.2.bookmarks.3.title", true);
-		config.argDesc("mainport.params.servlet.2.bookmarks.3.title", "string");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.3.title",
-			"The title for the fourth bookmark for the web proxy");
-		config.setExpert(
-			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-			true);
-		config.argDesc(
-			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-			"string");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-			"The name of the activelink image within the key for the fourth bookmark");
-		config.setExpert(
-			"mainport.params.servlet.2.bookmarks.3.description",
-			true);
-		config.argDesc(
-			"mainport.params.servlet.2.bookmarks.3.description",
-			"string");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.3.description",
-			"The description of the fourth bookmark on the web proxy");
-
-		config.setExpert("mainport.params.servlet.2.bookmarks.4.key", true);
-		config.argDesc(
-			"mainport.params.servlet.2.bookmarks.4.key",
-			"freenet key");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.4.key",
-			"The fifth bookmark for the web proxy");
-		config.setExpert("mainport.params.servlet.2.bookmarks.4.title", true);
-		config.argDesc("mainport.params.servlet.2.bookmarks.4.title", "string");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.4.title",
-			"The title for the fifth bookmark for the web proxy");
-		config.setExpert(
-			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-			true);
-		config.argDesc(
-			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-			"string");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-			"The name of the activelink image within the key for the fifth bookmark");
-		config.setExpert(
-			"mainport.params.servlet.2.bookmarks.4.description",
-			true);
-		config.argDesc(
-			"mainport.params.servlet.2.bookmarks.4.description",
-			"string");
-		config.shortDesc(
-			"mainport.params.servlet.2.bookmarks.4.description",
-			"The description of the fifth bookmark on the web proxy");
-
+//		config.setExpert("mainport.params.servlet.2.bookmarks.3.key", true);
+//		config.argDesc(
+//			"mainport.params.servlet.2.bookmarks.3.key",
+//			"freenet key");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.3.key",
+//			"The fourth bookmark for the web proxy");
+//		config.setExpert("mainport.params.servlet.2.bookmarks.3.title", true);
+//		config.argDesc("mainport.params.servlet.2.bookmarks.3.title", "string");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.3.title",
+//			"The title for the fourth bookmark for the web proxy");
+//		config.setExpert(
+//			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
+//			true);
+//		config.argDesc(
+//			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
+//			"string");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
+//			"The name of the activelink image within the key for the fourth bookmark");
+//		config.setExpert(
+//			"mainport.params.servlet.2.bookmarks.3.description",
+//			true);
+//		config.argDesc(
+//			"mainport.params.servlet.2.bookmarks.3.description",
+//			"string");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.3.description",
+//			"The description of the fourth bookmark on the web proxy");
+//
+//		config.setExpert("mainport.params.servlet.2.bookmarks.4.key", true);
+//		config.argDesc(
+//			"mainport.params.servlet.2.bookmarks.4.key",
+//			"freenet key");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.4.key",
+//			"The fifth bookmark for the web proxy");
+//		config.setExpert("mainport.params.servlet.2.bookmarks.4.title", true);
+//		config.argDesc("mainport.params.servlet.2.bookmarks.4.title", "string");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.4.title",
+//			"The title for the fifth bookmark for the web proxy");
+//		config.setExpert(
+//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//			true);
+//		config.argDesc(
+//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//			"string");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//			"The name of the activelink image within the key for the fifth bookmark");
+//		config.setExpert(
+//			"mainport.params.servlet.2.bookmarks.4.description",
+//			true);
+//		config.argDesc(
+//			"mainport.params.servlet.2.bookmarks.4.description",
+//			"string");
+//		config.shortDesc(
+//			"mainport.params.servlet.2.bookmarks.4.description",
+//			"The description of the fifth bookmark on the web proxy");
+//
 		// mainport.params.servlet.3.uri
 		config.setExpert("mainport.params.servlet.3.uri", true);
 		config.argDesc("mainport.params.servlet.3.uri", "path");

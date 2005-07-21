@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -108,9 +109,9 @@ public class Main {
         if(DO_SILLY_GROWTH)
             sb.append("sillygrowth-");
         if(DO_HOBX_GROWTH)
-            sb.append("hobxgrowth-");
+            sb.append("pure_hobx_growth-");
         if(DO_RANDOMIZED_HOBX_GROWTH)
-            sb.append("randomhobxgrowth-");
+            sb.append("random_hobx_growth-");
         if(DO_BAD_LINKS)
             sb.append("badlinks-");
         if(GREEDY_ROUTING_INCREASING_ONLY)
@@ -280,7 +281,7 @@ public class Main {
     }
     
     // This is the maximum
-    public final static int NUMBER_OF_NODES = 2196;
+    public static int NUMBER_OF_NODES = 1000;
     // Initial size of mesh
     public final static int INITIAL_NODES = 200;
     public final static int CONNECTIONS = 10;
@@ -290,25 +291,70 @@ public class Main {
     public static RunningAverageFactory raf;
     static final boolean DO_QUEUE_GROWTH = false;
     static final boolean DO_SILLY_GROWTH = false;
-    static final boolean DO_HOBX_GROWTH = false;
-    static final boolean DO_RANDOMIZED_HOBX_GROWTH = true;
+    static final boolean DO_HOBX_GROWTH = true;
+    static final boolean DO_RANDOMIZED_HOBX_GROWTH = false;
     static final boolean DO_BAD_LINKS = false;
     static final boolean GREEDY_ROUTING_INCREASING_ONLY = false;
     static final boolean DO_VARIABLE_HTL = false;
-    static final double TARGET_PSUCCESS = 0.80;
-    static final boolean DO_LOG_REQUESTS_PER_CYCLE = false;
-    static final boolean DO_LOGSQUARED_REQUESTS_PER_CYCLE = false;
-    static final boolean DO_LOGCUBED_REQUESTS_PER_CYCLE = false;
-    static final boolean DO_LINEAR_REQUESTS_PER_CYCLE = true;
+    static final double TARGET_PSUCCESS = 0.5;
+    static boolean DO_LOG_REQUESTS_PER_CYCLE = false;
+    static boolean DO_LOGSQUARED_REQUESTS_PER_CYCLE = false;
+    static boolean DO_LOGCUBED_REQUESTS_PER_CYCLE = false;
+    static boolean DO_LINEAR_REQUESTS_PER_CYCLE = true;
     static final boolean DO_DUMP = false;
-    static final boolean READ_ORKUT_DATA = true;
-    static final int BASE_CYCLE_LENGTH = 2500; // number of requests in the first cycle
+    static final boolean READ_ORKUT_DATA = false;
+    static int BASE_CYCLE_LENGTH = 20000; // number of requests in the first cycle
     private static Node[] nodes;
     private static Random r = new Random();
     private static KeyCollector kc = new KeyCollector(INITIAL_NODES*Node.MAX_DATASTORE_SIZE/10, r);
     private static double lastRequestSuccessRatio = 0;
     private static long startTime = System.currentTimeMillis();
-    
+
+    /**
+     * Read command line arguments, change any parameters specified.
+     * Exit if find one not understood.
+     */
+    private static void parseParameters(String[] args) {
+        for(int i=0;i<args.length;i++) {
+            // Tokenize
+            int x = args[i].indexOf('=');
+            String before = args[i].substring(0, x);
+            before = before.toLowerCase();
+            String after = args[i].substring(x+1);
+            System.err.println("Setting "+before+" to "+after);
+            if(before.equals("nodes") || before.equals("start")) {
+                int a = Integer.parseInt(after);
+                if(before.equals("nodes"))
+                    NUMBER_OF_NODES = a;
+                else if(before.equals("start"))
+                    BASE_CYCLE_LENGTH = a;
+            } else if(before.equals("growth")) {
+                if(after.equalsIgnoreCase("linear"))
+                    DO_LINEAR_REQUESTS_PER_CYCLE = true;
+                else if(after.equalsIgnoreCase("log"))
+                    DO_LOG_REQUESTS_PER_CYCLE = true;
+                else if(after.equalsIgnoreCase("logsquared"))
+                    DO_LOGSQUARED_REQUESTS_PER_CYCLE = true;
+                else if(after.equalsIgnoreCase("logcubed"))
+                    DO_LOGCUBED_REQUESTS_PER_CYCLE = true;
+                else if(after.equalsIgnoreCase("flat")) {
+                    // Do nothing
+                } else 
+                    throw new IllegalArgumentException("Don't understand parameter: "+before+"="+after);
+            } else if(before.equals("pcaching")) {
+                if(after.equals("estimate"))
+                    Node.DO_CACHE_ADD_BY_ESTIMATE = true;
+                else if(after.equals("simple"))
+                    Node.DO_SIMPLE_PCACHE = true;
+                else if(after.equals("none")) {
+                    Node.DO_CACHE_ADD_BY_ESTIMATE = false;
+                    Node.DO_SIMPLE_PCACHE = false;
+                }
+            } else
+                throw new IllegalArgumentException("Don't understand parameter: "+before+"="+after+" - unknown param name");
+        }
+    }
+
     static Vector activeNodes = new Vector();
     static HashSet borderNodes = new HashSet();
     static LinkedList borderQueue = new LinkedList();
@@ -316,6 +362,8 @@ public class Main {
     
     /** Run the simulation */
     public static void main(String[] args) throws ReadFromDiskException, IOException, ClassNotFoundException {
+        
+        parseParameters(args);
         
         System.err.println("Config: "+getFilenameBase());
         
@@ -343,6 +391,8 @@ public class Main {
         //RandomSource rand = new Yarrow((new File("/dev/urandom").exists() ? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",true);
         //r = new Random(/*rand.nextLong()*/);
 
+        openLogFile();
+        
         String filename = "snapshot-"+getFilenameBase();
         System.err.println("Looking for "+filename);
         File saveFile = new File(filename);
@@ -402,7 +452,7 @@ public class Main {
             int i = 0;
             int j = 0;
             runNGR();
-            while(i < 20 && j < 1000) {
+            while(i < 100 && j < 10000) {
                 if(lastRequestSuccessRatio < TARGET_PSUCCESS) i = 0;
                 else i++;
                 j++;	
@@ -429,6 +479,16 @@ public class Main {
             runNGR();
             maybeWriteToDisk();
         }
+    }
+
+    private static void openLogFile() throws FileNotFoundException {
+        String filename = "log."+getFilenameBase();
+        FileOutputStream fos = new FileOutputStream(filename, true);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        PrintStream pw = new PrintStream(bos);
+        System.err.println("Logging to "+filename);
+        System.setOut(pw);
+        System.setErr(pw);
     }
 
     /**

@@ -108,7 +108,8 @@ public abstract class NodeMessage extends Message {
                 throw new InvalidMessageException("Read heisenbug UniqueID: "
                                 + Long.toHexString(id) + ". killed chain");
             }
-            Core.getRandSource().acceptEntropy(uniqueIdEntropy, id, 64);
+            // External, so reduce the entropy significantly
+            Core.getRandSource().acceptEntropy(uniqueIdEntropy, id, 6);
             fs.remove("UniqueID");
             return id;
         } catch (NumberFormatException e) {

@@ -83,7 +83,6 @@ public class MuxConnectionHandler
 	/** Total count of messages received */
 	int messagesReceived;
 	private final ConnectionDataTransferAccounter accounter;
-
 	private static final long MINIMUM_ACCEPTABLE_CONNECTION_LIFETIME = 20000;
 
 	long lastToString = -1;

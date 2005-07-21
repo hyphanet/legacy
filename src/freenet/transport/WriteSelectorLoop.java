@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.Vector;
 
+import freenet.crypt.RandomSourcePool;
 import freenet.diagnostics.ExternalContinuous;
 import freenet.diagnostics.ExternalCounting;
 import freenet.support.BlockingQueue;
@@ -78,10 +79,11 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 	public WriteSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback, 
 	        ExternalCounting logBytes, ExternalCounting logBytesVeryHigh,
 	        ExternalCounting logBytesHigh, ExternalCounting logBytesNormal, 
-	        ExternalCounting logBytesLow, boolean logOutputBytes, Bandwidth bw, int timerGranularity) 
+	        ExternalCounting logBytesLow, boolean logOutputBytes, Bandwidth bw, int timerGranularity,
+	        RandomSourcePool pool) 
 		throws IOException {
 		
-		super(logger, closePairLifetimeCallback, bw, timerGranularity);
+		super(logger, closePairLifetimeCallback, bw, timerGranularity, pool);
 		this.logOutputBytes = logOutputBytes;
 		this.logBytes = logBytes;
 		this.logBytesVeryHigh = logBytesVeryHigh;
@@ -104,10 +106,10 @@ public final class WriteSelectorLoop extends ThrottledSelectorLoop implements Th
 	public WriteSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback,
 	        ExternalCounting logBytes, ExternalCounting logBytesVeryHigh,
 	        ExternalCounting logBytesHigh, ExternalCounting logBytesNormal, 
-	        ExternalCounting logBytesLow, boolean logOutputBytes) 
+	        ExternalCounting logBytesLow, boolean logOutputBytes, RandomSourcePool pool) 
 		throws IOException {
 		
-		super(logger, closePairLifetimeCallback);
+		super(logger, closePairLifetimeCallback, pool);
 		this.logBytes = logBytes;
 		this.logOutputBytes = logOutputBytes;
 		this.logBytesVeryHigh = logBytesVeryHigh;

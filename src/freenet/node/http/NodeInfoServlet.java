@@ -139,7 +139,7 @@ public class NodeInfoServlet extends HttpServlet {
     // thread-unsafe
     public synchronized void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-      if (StupidBrowserCheck.didWarning(req, resp, Core.logger.shouldLog(Logger.DEBUG, this), Core.logger, this)) return;
+      if (StupidBrowserCheck.didWarning(req, resp, Core.logger, this)) return;
         String path = req.getPathInfo();
       Core.logger.log(this, "getPathInfo returned " + path, Logger.DEBUG);
 
