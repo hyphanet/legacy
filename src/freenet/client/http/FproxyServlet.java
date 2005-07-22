@@ -386,7 +386,7 @@ public class FproxyServlet extends HttpServlet {
                 Core.logger.log(this, "Added to runningRequests: "+frt+": "+s, Logger.DEBUG);
             if (handleCheckedJump(s, resp)) { return; }
 
-            if (StupidBrowserCheck.didWarning(req, resp, logDEBUG, logger, this)) return;
+            if (StupidBrowserCheck.didWarning(req, resp, logger, this)) return;
 
             // Query parameters
             String key = null;
@@ -644,6 +644,10 @@ public class FproxyServlet extends HttpServlet {
                 mimeType = "application/octet-stream";
             }
 
+            // Force download to disk
+            if(mimeType.startsWith("application/octet-stream"))
+                mimeType = "application/x-unknown";
+            
             // Now find the charset
             String charset = "";
             if (mimeType.startsWith("text/")) charset = "ISO-8859-1"; // the

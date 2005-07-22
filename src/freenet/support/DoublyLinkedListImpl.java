@@ -1,5 +1,6 @@
 package freenet.support;
 
+import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
@@ -10,7 +11,7 @@ import java.util.NoSuchElementException;
  * TODO: there are still some unimplemented methods
  *       -- it remains to be seen if they are needed at all
  */
-public class DoublyLinkedListImpl implements DoublyLinkedList {
+public class DoublyLinkedListImpl implements DoublyLinkedList, Serializable {
 
     protected int size;
     protected Item _headptr, _tailptr;
@@ -342,7 +343,7 @@ public class DoublyLinkedListImpl implements DoublyLinkedList {
             return new ReverseWalker(startAt, inclusive);
     }
 
-    protected class ForwardWalker implements Enumeration {
+    protected class ForwardWalker implements Enumeration, Serializable {
         protected DoublyLinkedList.Item next;
         protected ForwardWalker() {
             next = _headptr.getNext();
@@ -363,7 +364,7 @@ public class DoublyLinkedListImpl implements DoublyLinkedList {
         }
     }
 
-    protected class ReverseWalker implements Enumeration {
+    protected class ReverseWalker implements Enumeration, Serializable {
         protected DoublyLinkedList.Item next;
         protected ReverseWalker() {
             next = _tailptr.getPrev();
@@ -388,7 +389,7 @@ public class DoublyLinkedListImpl implements DoublyLinkedList {
 
     //=== list element ====================================================
 
-    public static class Item implements DoublyLinkedList.Item {
+    public static class Item implements DoublyLinkedList.Item, Serializable {
         private DoublyLinkedList.Item next, prev;
         public Object clone() {
             return new Item();

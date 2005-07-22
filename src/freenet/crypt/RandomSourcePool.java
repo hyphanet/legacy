@@ -1,6 +1,7 @@
 package freenet.crypt;
 
 import freenet.Core;
+import freenet.support.Checkpointed;
 import freenet.support.Logger;
 
 /**
@@ -10,7 +11,7 @@ import freenet.support.Logger;
  * 
  * @author Iakin
  */
-public class RandomSourcePool extends RandomSource {
+public class RandomSourcePool extends RandomSource implements Checkpointed {
 
 	private final RandomSource[] pool;
 	private volatile int nextPtr = 0;
@@ -54,4 +55,18 @@ public class RandomSourcePool extends RandomSource {
 			pool[i] = null;
 		}
 	}
+
+	public String getCheckpointName() {
+	    return "Random number generator checkpoint";
+    }
+	
+    public long nextCheckpoint() {
+        return System.currentTimeMillis() + 60*60*1000;
+    }
+    
+    public void checkpoint() {
+        for(int i=0;i<pool.length;i++) {
+            pool[i].checkpoint();
+        }
+    }
 }

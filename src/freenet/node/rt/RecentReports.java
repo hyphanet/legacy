@@ -3,6 +3,7 @@ package freenet.node.rt;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Enumeration;
 
@@ -14,7 +15,7 @@ import freenet.Key;
  * A class for keeping track of the recent reports that has come in to the
  * Estimator.
  */
-class RecentReports {
+class RecentReports implements Serializable {
 
 	//	I need to see these from subclass --zab
 	protected static int RECENT_LENGTH = 16;
@@ -133,11 +134,11 @@ class RecentReports {
 	Enumeration enumeration() {
 		return new RecentEnumeration();
 	}
-	class LowestHighestPair {
+	class LowestHighestPair implements Serializable {
 		double lowest = Integer.MAX_VALUE;
 		double highest = 0;
 	}
-	class KeyTimePair {
+	class KeyTimePair implements Serializable {
 		BigInteger key;
 		double time;
 		public KeyTimePair(BigInteger key, double time) {

@@ -531,7 +531,7 @@ public class Node extends Core implements ConnectionThrottler{
 		config.addOption(
 			"mainport.params.servlet.2.bookmarks.0.description",
 			1,
-			"Oldest living Freenet portal",
+			"Oldest living Freenet index site (no categories, but has activelinks)",
 			6103);
 
 //		config.addOption(
@@ -622,23 +622,88 @@ public class Node extends Core implements ConnectionThrottler{
 		    "mainport.params.servlet.2.bookmarks.2.key",
 			1,
 		    "SSK@JiqlnfX6MK4nHDl6ZjOrSaMnDB8PAgM,CUnDuNQdRTeTXiDMRM93dQ/OFIFY//",
-		    6150);
+		    6140);
 		config.addOption(
 		    "mainport.params.servlet.2.bookmarks.2.title",
 			1,
 		    "Oskar Finds It For You",
-		    6151);
+		    6141);
 		config.addOption(
 		    "mainport.params.servlet.2.bookmarks.2.activelinkFile",
 			1,
 			"activelink.png",
-		    6152);
+		    6142);
 		config.addOption(
 		    "mainport.params.servlet.2.bookmarks.2.description",
 			1,
-		    "Another index freesite",
+		    "Another index freesite (one page per category)",
+		    6143);
+		
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.key",
+		    1,
+		    "SSK@y~-NCd~il6RMxOe9jjf~VR7mSYwPAgM,ds52dBUTmr8fSHePn1Sn4g/OneMore//",
+		    6150);
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.title",
+		    1,
+		    "One More Time",
+		    6151);
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.activelinkFile",
+		    1,
+		    "activelink.gif",
+		    6152);
+		config.addOption(
+		    "mainport.params.servlet.2.bookmarks.3.description",
+		    1,
+		    "Yet another index freesite (one page per category)",
 		    6153);
 
+		config.addOption(
+		        "mainport.params.servlet.2.bookmarks.4.key",
+			    1,
+			    "SSK@sPolFAwS69lG2Le~TTRzNEVarcEPAgM/DFI//",
+			    6160);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.4.title",
+			    1,
+			    "Dolphin's Freenet Index",
+			    6161);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.4.activelinkFile",
+			    1,
+			    "activelink.png",
+			    6162);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.4.description",
+			    1,
+			    "Another categorized Freenet index (one big page)",
+			    6163);
+
+		config.addOption(
+		        "mainport.params.servlet.2.bookmarks.5.key",
+			    1,
+			    "SSK@rVxBgVi4oLfrFEWPdPas1XZSYooPAgM,QZvYaKsdFJxfCjq~FiC5XA/CICFI//",
+			    6160);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.5.title",
+			    1,
+			    "CIC's Freesite Index",
+			    6161);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.5.activelinkFile",
+			    1,
+			    "activelink.png",
+			    6162);
+			config.addOption(
+			    "mainport.params.servlet.2.bookmarks.5.description",
+			    1,
+			    "Yet another categorized single page Freenet index",
+			    6163);
+
+		
+		
 		config.addOption(
 			"mainport.params.servlet.3.uri",
 			1,

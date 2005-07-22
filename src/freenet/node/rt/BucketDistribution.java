@@ -1,5 +1,7 @@
 package freenet.node.rt;
 
+import java.io.PrintWriter;
+
 import freenet.Key;
 
 public class BucketDistribution {
@@ -41,4 +43,9 @@ public class BucketDistribution {
         }
     }
     
+    public void dump_graphable(PrintWriter pw) {
+        for(int i=0;i<vals.length;i++) {
+            pw.println(""+center[i].toDouble()+", "+vals[i]);
+        }
+    }
 }

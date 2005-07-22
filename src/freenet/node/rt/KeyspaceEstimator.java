@@ -1,5 +1,7 @@
 package freenet.node.rt;
 
+import java.io.Serializable;
+
 import javax.servlet.http.HttpServletResponse;
 
 import freenet.FieldSet;
@@ -20,7 +22,7 @@ import freenet.support.graph.GraphDataSet;
  * 
  * TRANSFER_RATE: bytes per millisecond
  */
-public interface KeyspaceEstimator extends DataObject {
+public interface KeyspaceEstimator extends DataObject, Serializable {
 
     /** Clone us */
     public Object clone();

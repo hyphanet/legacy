@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import freenet.crypt.RandomSourcePool;
 import freenet.diagnostics.ExternalContinuous;
 import freenet.diagnostics.ExternalCounting;
 import freenet.support.BooleanCallback;
@@ -87,10 +88,10 @@ public final class ReadSelectorLoop extends ThrottledSelectorLoop implements Thr
 	public ReadSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback,
 	        ExternalCounting logBytes, ExternalCounting readinessSelectionScrewed,
 	        ExternalCounting connectionResetByPeer, BooleanCallback loadCheck,
-	        boolean logInputBytes, Bandwidth bw, int timerGranularity)
+	        boolean logInputBytes, Bandwidth bw, int timerGranularity, RandomSourcePool pool)
 		throws IOException {
 
-		super(logger, closePairLifetimeCallback, bw, timerGranularity);
+		super(logger, closePairLifetimeCallback, bw, timerGranularity, pool);
 		this.logInputBytes = logInputBytes;
 		this.logBytes = logBytes;
 		this.readinessSelectionScrewed = readinessSelectionScrewed;
@@ -101,10 +102,10 @@ public final class ReadSelectorLoop extends ThrottledSelectorLoop implements Thr
 	public ReadSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback,
 	        ExternalCounting logBytes, ExternalCounting readinessSelectionScrewed,
 	        ExternalCounting connectionResetByPeer, BooleanCallback loadCheck,
-	        boolean logInputBytes) 
+	        boolean logInputBytes, RandomSourcePool pool) 
 		throws IOException {
 
-		super(logger, closePairLifetimeCallback);
+		super(logger, closePairLifetimeCallback, pool);
 		this.logBytes = logBytes;
 		this.logInputBytes = logInputBytes;
 		this.readinessSelectionScrewed = readinessSelectionScrewed;

@@ -146,7 +146,8 @@ public final class tcpConnection extends Connection {
 					        d.getExternalCountingVariable("connectionResetByPeer"),
 					        cbLoad,
 					        logInputBytes,
-					        ibw, Main.getTimerGranularity());
+					        ibw, Main.getTimerGranularity(),
+					        Core.getRandSource());
 				else
 					rsl = new ReadSelectorLoop(logger, 
 					        d.getExternalContinuousVariable("closePairLifetime"),
@@ -154,7 +155,8 @@ public final class tcpConnection extends Connection {
 					        d.getExternalCountingVariable("readinessSelectionScrewed"),
 					        d.getExternalCountingVariable("connectionResetByPeer"),
 					        cbLoad,
-					        logInputBytes);
+					        logInputBytes,
+					        Core.getRandSource());
 				tcpConnection.rsl = rsl;	        
 				Thread rslThread = new Thread(rsl, "Network reading thread");
 				rslThread.setDaemon(true);
@@ -172,7 +174,8 @@ public final class tcpConnection extends Connection {
 					        d.getExternalCountingVariable("outputBytesNormal"),
 					        d.getExternalCountingVariable("outputBytesLow"),
 					        logOutputBytes,
-					        obw, Main.getTimerGranularity());
+					        obw, Main.getTimerGranularity(),
+					        Core.getRandSource());
 				else
 					wsl = new WriteSelectorLoop(logger,
 					        d.getExternalContinuousVariable("closePairLifetime"),
@@ -181,7 +184,8 @@ public final class tcpConnection extends Connection {
 					        d.getExternalCountingVariable("outputBytesHigh"),
 					        d.getExternalCountingVariable("outputBytesNormal"),
 					        d.getExternalCountingVariable("outputBytesLow"),
-					        logOutputBytes);
+					        logOutputBytes,
+					        Core.getRandSource());
 				tcpConnection.wsl = wsl;
 				Thread wslThread = new Thread(wsl, "Network writing thread");
 				wslThread.setDaemon(true);

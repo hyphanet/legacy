@@ -198,7 +198,7 @@ public class Core {
     public static int maxPadding;
 
     /** The central PRNG */
-    private static RandomSource randSource;
+    private static RandomSourcePool randSource;
     
     /** The object that logs events */
     public static Logger logger = new VoidLogger(); //Start out with a dummy logger..
@@ -497,7 +497,7 @@ public class Core {
         try{
 
             interfaceLoop = new ListenSelectorLoop(logger, 
-                    diagnostics.getExternalContinuousVariable("closePairLifetime"));
+                    diagnostics.getExternalContinuousVariable("closePairLifetime"), randSource);
             interfaceLoopThread = new Thread (interfaceLoop," interface thread");
 
             logger.log(this, "Starting interfaces..", Logger.NORMAL); 
@@ -744,7 +744,7 @@ public class Core {
     /**
      * @return Returns the randSource.
      */
-    public static RandomSource getRandSource() {
+    public static RandomSourcePool getRandSource() {
         //Hmmm.. I dont think we need to synchornize on this because:
         //1. Does it really matter if we would
         //2. Do we multithread as early as the first call here..

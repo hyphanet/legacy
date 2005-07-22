@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
+import freenet.crypt.RandomSourcePool;
 import freenet.diagnostics.ExternalContinuous;
 import freenet.support.Logger;
 import freenet.support.io.Bandwidth;
@@ -64,16 +65,16 @@ public abstract class ThrottledSelectorLoop extends AbstractSelectorLoop {
 	protected int timerGranularity;
 
 	public ThrottledSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback, 
-	        Bandwidth bw, int timerGranularity)
+	        Bandwidth bw, int timerGranularity, RandomSourcePool pool)
 		throws IOException {
-	    super(logger, closePairLifetimeCallback);
+	    super(logger, closePairLifetimeCallback, pool);
 		this.bw = bw;
 		this.timerGranularity = timerGranularity;
 	}
 
-	public ThrottledSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback)
+	public ThrottledSelectorLoop(Logger logger, ExternalContinuous closePairLifetimeCallback, RandomSourcePool pool)
 		throws IOException {
-	    super(logger, closePairLifetimeCallback);
+	    super(logger, closePairLifetimeCallback, pool);
 		this.bw = null;
 	}
 

@@ -7,6 +7,9 @@ import java.io.IOException;
 
 import freenet.Address;
 import freenet.ListenException;
+import freenet.crypt.RandomSource;
+import freenet.crypt.RandomSourcePool;
+import freenet.crypt.Yarrow;
 import freenet.interfaces.ConnectionRunner;
 import freenet.interfaces.NIOInterface;
 import freenet.interfaces.PublicNIOInterface;
@@ -27,7 +30,8 @@ public class SelectorLoopTestHarness {
 		if (!initialized) {
 			NIOInterface i = new PublicNIOInterface(addr.listenPart(true), throttler, tf,runner , null, "test");
 			try {
-				interfaceLoop = new ListenSelectorLoop(new VoidLogger(),null);
+			    // FIXME: Yarrow init is a bit heavy! Make a dummy class...
+				interfaceLoop = new ListenSelectorLoop(new VoidLogger(),null, new RandomSourcePool(new RandomSource[] { new Yarrow() }));
 				interfaceLoopThread = new Thread(interfaceLoop, " interface thread");
 				i.register(interfaceLoop);
 				interfaceLoopThread.start();

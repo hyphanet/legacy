@@ -19,6 +19,8 @@ import java.util.Vector;
 
 import freenet.Connection;
 import freenet.SelectorLoop;
+import freenet.crypt.EntropySource;
+import freenet.crypt.RandomSourcePool;
 import freenet.diagnostics.ExternalContinuous;
 import freenet.support.Logger;
 
@@ -54,6 +56,10 @@ public abstract class AbstractSelectorLoop implements SelectorLoop{
 	private static CloseThread closeThread= null;
 	
 	protected static boolean logDebug = true;
+	
+	// With Yarrow more data is always better, just keep the entropy estimate down.
+	// Some of this will be observable by attackers, some not.
+	private final EntropySource entropySource;
 	
 	public static final int closeUniquenessLength() {
 		return closeQueue.closeUniquenessLength();
@@ -144,8 +150,12 @@ public abstract class AbstractSelectorLoop implements SelectorLoop{
 	//it will only be true in a subclass, but I want it here
 	private boolean cleanupNeeded;
 	
-	public AbstractSelectorLoop(Logger logger, ExternalContinuous closePairLifetime) 
+	private final RandomSourcePool pool;
+	
+	public AbstractSelectorLoop(Logger logger, ExternalContinuous closePairLifetime, RandomSourcePool pool) 
 		throws IOException {
+	    entropySource = new EntropySource();
+	    this.pool = pool;
 		synchronized(closeQueueLockObject){
 			if(closeQueue == null)
 				closeQueue = new CloseQueue(logger,closePairLifetime);
@@ -576,8 +586,14 @@ public abstract class AbstractSelectorLoop implements SelectorLoop{
 				long start = System.currentTimeMillis();
 				currentlyActive = sel.select(x);
 				long end = System.currentTimeMillis();
-				if ((end - start) < 2)
+				long timeTaken = end - start;
+				if (timeTaken < 2)
 					fastReturn = true;
+				if (!(timeTaken < 2 || (x>0 && timeTaken >= x-1))) {
+				    // Some of these are caused by local events.
+				    // FIXME: We way want to use a different entropy estimate for local packets?
+				    pool.acceptTimerEntropy(entropySource);
+				}
 			}
 		} catch(ClosedChannelException e) {
 			logger.log(this, "mySelect caught " + e, e, Logger.MINOR);

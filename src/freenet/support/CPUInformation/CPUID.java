@@ -33,10 +33,13 @@ public class CPUID {
      * it easier for other systems to reuse this class
      */
     private static final boolean _doLog = true;
-    private static final boolean isX86 = System.getProperty("os.arch").toLowerCase().matches("i?[x0-9]86(_64)?");
+    private static final String arch = System.getProperty("os.arch").toLowerCase();
+    private static final boolean isX86 = arch.matches("i?[x0-9]86(_64)?");
+    private static final boolean isAMD64 = arch.matches("amd64");
     
 	static
 	{
+		System.err.println("os.arch = "+System.getProperty("os.arch"));
 		loadNative();
 	}
 	
@@ -130,7 +133,7 @@ public class CPUID {
 	{
 		if(!_nativeOk)
 			throw new UnknownCPUException("Failed to read CPU information from the system. Please verify the existence of the jcpuid dll/so.");
-		if(!isX86)
+		if(!(isX86 || isAMD64))
 			throw new UnknownCPUException("Failed to read CPU information from the system. The CPUID instruction exists on x86 CPU's only");
 		if(getCPUVendorID().equals("AuthenticAMD"))
 			return new AMDInfoImpl();
@@ -159,27 +162,34 @@ public class CPUID {
 	{
 		public boolean IsK6Compatible()
 		{
+			if(isAMD64) return false;
 			return getCPUFamily() >= 5 && getCPUModel() >= 6;
 		}
 		public boolean IsK6_2_Compatible()
 		{
+			if(isAMD64) return false;
 			return getCPUFamily() >= 5 && getCPUModel() >= 8;
 		}
 		public boolean IsK6_3_Compatible()
 		{
+			if(isAMD64) return false;
 			return getCPUFamily() >= 5 && getCPUModel() >= 9;
 		}
 		public boolean IsAthlonCompatible()
 		{
+			if(isAMD64) return false;
 			return getCPUFamily() >= 6;
 		}
 		public boolean IsAthlon64Compatible()
 		{
+			if(isAMD64) return true;
 			return getCPUFamily() == 15 && getCPUExtendedFamily() == 0;
 		}
 
 		public String getCPUModelString() throws UnknownCPUException
 		{
+			if(isAMD64)
+				return "Athlon 64/FX/Opteron";
 			if(getCPUFamily() == 4){
 				switch(getCPUModel()){
 					case 3:
@@ -409,6 +419,10 @@ public class CPUID {
      */
     private static final void loadNative() {
     	try{
+	// FIXME: support cpuid libraries for non-x86.
+	// E.g. detect model number on amd64, powerpc, etc.
+	if(!isX86) return;
+	System.err.println("Loading native...");
         String wantedProp = System.getProperty("jcpuid.enable", "true");
         boolean wantNative = "true".equalsIgnoreCase(wantedProp);
         if (wantNative) {
@@ -468,8 +482,10 @@ public class CPUID {
      */
     private static final boolean loadFromResource() {
         String resourceName = getResourceName();
+        System.out.println("Attempting to load "+resourceName);
         if (resourceName == null) return false;
         URL resource = CPUID.class.getClassLoader().getResource(resourceName);
+        
         
         if (resource == null) {
             if (_doLog)
@@ -489,6 +505,7 @@ public class CPUID {
                 fos.write(buf, 0, read);
             }
             fos.close();
+	    System.out.println("Written to "+outFile.getAbsolutePath()+": "+outFile.length());
             System.load(outFile.getAbsolutePath());//System.load requires an absolute path to the lib
             return true;
         } catch (UnsatisfiedLinkError ule) {

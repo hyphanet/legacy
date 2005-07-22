@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import freenet.Core;
@@ -17,7 +18,7 @@ import freenet.support.Logger;
  * Keeps {key, htl, size} for each one.
  * Also can cache pDataNonexistant.
  */
-public class RecentRequestHistory {
+public class RecentRequestHistory implements Serializable {
 
     final int maxLength;
     int counter;

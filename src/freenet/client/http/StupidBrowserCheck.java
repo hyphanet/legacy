@@ -39,18 +39,28 @@ public class StupidBrowserCheck {
      * @param req
      * @return
      */
-    public static boolean didWarning(HttpServletRequest req, HttpServletResponse resp, boolean logDEBUG, Logger logger, Object me) throws IOException {
-        
+    public static boolean didWarning(HttpServletRequest req, HttpServletResponse resp, Logger logger, Object me) throws IOException {
+        boolean logDEBUG = logger.shouldLog(Logger.DEBUG, StupidBrowserCheck.class);
         // Check for stupid browsers that don't respect MIME types
         // and thus jeopardize anonymity by by allowing attacker to bypass
         // anonymity filter by inserting HTML as text/plain
         String sUserAgent = req.getHeader("User-Agent");
         if (sUserAgent != null) {
-            if (logDEBUG) logger.log(me, "Request from User-Agent: " + sUserAgent, Logger.DEBUG);
+            if (logDEBUG) logger.log(StupidBrowserCheck.class, "Request from User-Agent: " + sUserAgent, Logger.DEBUG);
             String sIPAddress = req.getRemoteAddr();
-            if (logDEBUG) logger.log(me, "Remote IP address: "+sIPAddress, Logger.DEBUG);
+            if (logDEBUG) logger.log(StupidBrowserCheck.class, "Remote IP address: "+sIPAddress, Logger.DEBUG);
             if (sIPAddress == null) return true; // already closed!
-            if (sUserAgent.indexOf("MSIE ") >= 0 || (sUserAgent.indexOf("Opera") >= 0 && !dontWarnOperaUsers)) {
+            boolean evilBrowser = false;
+            if(sUserAgent.indexOf("Opera 8") >= 0 || sUserAgent.indexOf("Opera 7.5") >= 0) {
+                // Opera 8+ is safe even though it pretends to be IE
+            } else if(sUserAgent.indexOf("MSIE ") >= 0) {
+                if(dontWarnOperaUsers && sUserAgent.indexOf("Opera ")>=0)
+                    return false;
+                // Not possible to make IE work safely without a lot of work
+                evilBrowser = true;
+            }
+            
+            if (evilBrowser) {
                 if(logger.shouldLog(Logger.MINOR, me)) logger.log(me, "Bad browser version... sending warning", Logger.MINOR);
                 if (!badBrowserWarningsSentTo.contains(sIPAddress)) {
                     try {

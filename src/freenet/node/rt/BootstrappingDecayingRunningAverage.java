@@ -38,7 +38,7 @@ public class BootstrappingDecayingRunningAverage implements
         	currentValue+", reports="+reports+", maxReports="+maxReports;
     }
     
-    BootstrappingDecayingRunningAverage(double defaultValue, double min,
+    public BootstrappingDecayingRunningAverage(double defaultValue, double min,
             double max, int maxReports) {
         this.min = min;
         this.max = max;

@@ -145,6 +145,17 @@ public class RandStream extends RandomSource {
 	    stream.close();
 	} catch (Exception e) {}
     }
+
+    public String getCheckpointName() {
+        return null;
+    }
+
+    public long nextCheckpoint() {
+        return -1;
+    }
+
+    public void checkpoint() {
+    }
 }
 
 
