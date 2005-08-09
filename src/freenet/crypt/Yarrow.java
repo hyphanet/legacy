@@ -58,7 +58,6 @@ public class Yarrow extends RandomSource {
 	private static final boolean DEBUG = false;
 	private static final int Pg = 10;
 	private final SecureRandom sr;
-	private boolean firstStartup = false;
 
 	private final File seedfile; //A file to which seed data should be dumped periodically
 
