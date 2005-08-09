@@ -48,6 +48,7 @@ public class LoggerHookChain extends LoggerHook {
      * Add a hook which will be called every time a message is logged
      */
     public void addHook(LoggerHook lh) {
+        if(lh == null) throw new NullPointerException();
         hooks.addElement(lh);
     }
 
