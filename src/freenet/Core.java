@@ -751,12 +751,13 @@ public class Core {
         if(randSource == null){
         	//Use a RandomSourcePool of 'ThrottledAsyncEntropyYarrow's instead of a single one
         	//in order to decrease the chance for lock contention on access to this very well-used resource
+            // /dev/[u]random will be used anyway, so don't use it as seed
             randSource = new RandomSourcePool(new RandomSource[]{
-				new ThrottledAsyncEntropyYarrow((new File("/dev/urandom").exists()? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",true,20),
-				new ThrottledAsyncEntropyYarrow((new File("/dev/urandom").exists()? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",false,20),
-				new ThrottledAsyncEntropyYarrow((new File("/dev/urandom").exists()? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",false,20),
-				new ThrottledAsyncEntropyYarrow((new File("/dev/urandom").exists()? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",false,20),
-				new ThrottledAsyncEntropyYarrow((new File("/dev/urandom").exists()? "/dev/urandom" : "prng.seed"), "SHA1", "Rijndael",false,20)
+				new ThrottledAsyncEntropyYarrow("prng.seed", "SHA1", "Rijndael",true,20),
+				new ThrottledAsyncEntropyYarrow("prng.seed", "SHA1", "Rijndael",false,20),
+				new ThrottledAsyncEntropyYarrow("prng.seed", "SHA1", "Rijndael",false,20),
+				new ThrottledAsyncEntropyYarrow("prng.seed", "SHA1", "Rijndael",false,20),
+				new ThrottledAsyncEntropyYarrow("prng.seed", "SHA1", "Rijndael",false,20)
             });
         }
         return randSource;

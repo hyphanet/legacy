@@ -73,7 +73,7 @@ public class Main {
 
     static long lastWroteToDisk = -1;
     static long timeToWriteToDisk = -1;
-    static final int MIN_INTERVAL = 10*60*1000; // 10 mins
+    static final int MIN_INTERVAL = 60*60*1000; // 1 hour
     static final int WRITE_TIME_MULTIPLIER = 20;
     
     static void maybeWriteToDisk() {
