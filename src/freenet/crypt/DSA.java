@@ -89,12 +89,26 @@ public class DSA {
     }
 
     public static void main(String[] args) throws Exception {
-	DSAGroup g=DSAGroup.readFromField(args[0]);
-        Yarrow y=new Yarrow();
-	DSAPrivateKey pk=new DSAPrivateKey(g, y);
-	DSAPublicKey pub=new DSAPublicKey(g, pk);
-	DSASignature sig=sign(g, pk, BigInteger.ZERO, y);
-	System.err.println(verify(pub, sig, BigInteger.ZERO));
+	//DSAGroup g=DSAGroup.readFromField(args[0]);
+        DSAGroup g = Global.DSAgroupA;
+        Random y = new Random();
+        BigInteger toSign = new BigInteger(256, y);
+        DSAPrivateKey pk=new DSAPrivateKey(g, y);
+        DSAPublicKey pub=new DSAPublicKey(g, pk);
+        DSASignature sig=sign(g, pk, toSign, y);
+        int len = (sig.getR().bitLength() + sig.getS().bitLength());
+        System.err.println("Length: "+len+" bits");
+        while(true) {
+        long startTime = System.currentTimeMillis();
+        for(int i=0;i<1000;i++) {
+            boolean success = verify(pub, sig, toSign);
+            if(!success) {
+                System.err.println("Failure: "+pk+" "+pub+" on "+g);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Speed: "+(endTime - startTime)/1000.0+" ms/signature");
+        }
     }
 }
 
