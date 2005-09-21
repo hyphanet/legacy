@@ -115,6 +115,8 @@ fi
 #fi
 # multiple reports that -server option seems to cause crashes
 
+MEMORY=160
+
 # sun specific options
 if [ "$JAVA_IMPL" = "java" ] ; then 
  echo Sun java detected.
@@ -153,13 +155,13 @@ fi
  else
   echo Sun Java 1.4.2 detected.
   if test ! `uname` == "Darwin"; then
-	JAVA_ARGS="-XX:MaxDirectMemorySize=128m $JAVA_ARGS"
+	JAVA_ARGS="-XX:MaxDirectMemorySize=${MEMORY}m $JAVA_ARGS"
   fi
  fi
 fi 
 
 echo -n "Starting Freenet now: "
-echo Command line: java -Xmx128m $JAVA_ARGS freenet.node.Main "$@"
-nice -n 10 -- java -Xmx128m $JAVA_ARGS freenet.node.Main "$@" &
+echo Command line: java -Xmx${MEMORY}m $JAVA_ARGS freenet.node.Main "$@"
+nice -n 10 -- java -Xmx${MEMORY}m $JAVA_ARGS freenet.node.Main "$@" &
 echo $! > freenet.pid
 echo "Done"
