@@ -1,0 +1,36 @@
+#!/bin/bash
+cd /var/log/freenet-experimental/simulator
+for x in "pcaching smoothing newbie" "pcaching newbie" "pcaching nonewbie" "nopcaching newbie" "fastestimators pcaching nonewbie" "fastestimators pcaching smoothing nonewbie" "fastestimators pcaching smoothing newbie" "fastestimators pcaching newbie" "fastestimators nopcaching newbie" "fastestimators pcaching smoothing nonewbie noannounce" "fastestimators pcaching smoothing nonewbie announce" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.2" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.1" "fastestimators pcaching nonewbie noannounce probeinexperience" "fastestimators pcaching nonewbie altannounce"  "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.025" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal sparseprobe" "fastestimators pcaching nonewbie altannounce probeinexperience randomizewhenequal sparseprobe"; do 
+# "pcaching random" "nopcaching random newbie"
+echo Results for $x
+SUBNAME=`echo "$x" | tr " " "-"`
+FILEROOT="simulator-$SUBNAME-"
+FILENAME=`ls $FILEROOT[0-9]* | tail -n1`
+echo Filename of logfile: $FILENAME
+echo Output filename: results-$SUBNAME
+# Now process it
+cat $FILENAME | ~/bin/process-simlog > results-$SUBNAME
+done
+rm /root/simulations.png
+# Now draw the actual graphs
+(echo "set terminal png size 1024,768";
+ echo "set output \"/root/simulations.png\"";
+ echo -n "plot ";
+ y=0;
+ first=true
+for x in "fastestimators pcaching nonewbie noannounce probeinexperience" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal sparseprobe" "fastestimators pcaching nonewbie altannounce" "fastestimators pcaching nonewbie altannounce probeinexperience randomizewhenequal sparseprobe"; do
+#for x in "fastestimators pcaching nonewbie" "pcaching nonewbie" "fastestimators pcaching smoothing nonewbie" "fastestimators pcaching smoothing nonewbie noannounce" "fastestimators pcaching smoothing nonewbie announce" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.2" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.1" "fastestimators pcaching nonewbie altannounce" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.025" "fastestimators pcaching nonewbie noannounce probeinexperience" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal sparseprobe" "fastestimators pcaching nonewbie altannounce probeinexperience randomizewhenequal sparseprobe"; do
+#for x in "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.2" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.1"; do
+#for x in "fastestimators pcaching nonewbie" "pcaching nonewbie" "fastestimators pcaching smoothing nonewbie"; do
+#for x in "pcaching smoothing newbie" "pcaching newbie" "nopcaching newbie" "fastestimators pcaching smoothing newbie" "fastestimators pcaching newbie" "fastestimators nopcaching newbie"; do 
+#for x in "pcaching smoothing newbie" "pcaching newbie" "nopcaching newbie" "fastestimators pcaching smoothing newbie" "fastestimators pcaching newbie" "fastestimators nopcaching newbie" "fastestimators pcaching nonewbie" "pcaching nonewbie" "fastestimators pcaching smoothing nonewbie" "fastestimators pcaching smoothing nonewbie noannounce" "fastestimators pcaching smoothing nonewbie announce" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.2" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.1" "pcaching random" "nopcaching random newbie" "fastestimators pcaching nonewbie altannounce" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.025" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal" "fastestimators pcaching nonewbie probeinexperience randomizewhenequal sparseprobe" "fastestimators pcaching nonewbie altannounce probeinexperience randomizewhenequal sparseprobe"; do 
+# "pcaching random" "nopcaching random newbie" "fastestimators pcaching nonewbie noannounce probeinexperience"
+  if [[ ! -n "$first" ]] ; then echo -n ", " ; fi
+  first=
+  SUBNAME=`echo "$x" | tr " " "-"`
+  echo -n "\"results-$SUBNAME\""
+  y=$((y+1))
+  echo -n " with lines lt $y title \"$x\""
+done
+echo
+) | gnuplot

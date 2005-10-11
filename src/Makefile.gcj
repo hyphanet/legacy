@@ -1,0 +1,888 @@
+#
+# Makefile to make a binary fred with gcj
+# gcj pre-3.4 or later *is* required
+# Author: gthyni
+
+GCJ=gcj
+#SERVLETJAR=../lib/freenet-ext.jar
+SERVLETJAR=servlet.jar
+CP=.:$(SERVLETJAR)
+GCJOPT=-O
+GCJFLAGS=-g --encoding=UTF-8 -Wno-deprecated $(GCJOPT)
+
+GCJ_WITH_FLAGS = $(GCJ) $(GCJFLAGS)
+GCJCOMPILE = $(GCJ_WITH_FLAGS) -fclasspath=$(CP) $(JC1FLAGS) -MD -MT $@ -MF $(@:.o=.d) -c
+
+# this is for testing ClassPath servlet code
+XSERVLETSRC=\
+javax/servlet/GenericServlet.java \
+javax/servlet/Servlet.java \
+javax/servlet/ServletConfig.java \
+javax/servlet/ServletContext.java \
+javax/servlet/ServletException.java \
+javax/servlet/ServletInputStream.java \
+javax/servlet/ServletOutputStream.java \
+javax/servlet/ServletRequest.java \
+javax/servlet/ServletResponse.java \
+javax/servlet/SingleThreadModel.java \
+javax/servlet/UnavailableException.java \
+javax/servlet/http/Cookie.java \
+javax/servlet/http/HttpServlet.java \
+javax/servlet/http/HttpServletRequest.java \
+javax/servlet/http/HttpServletResponse.java \
+javax/servlet/http/HttpSession.java \
+javax/servlet/http/HttpSessionContext.java
+
+
+NODESRC=\
+freenet/node/Main.java \
+freenet/AddressBase.java \
+freenet/Address.java \
+freenet/AuthenticationFailedException.java \
+freenet/Authentity.java \
+freenet/BadAddressException.java \
+freenet/CommunicationException.java \
+freenet/ConnectFailedException.java \
+freenet/ConnectionHandler.java \
+freenet/Connection.java \
+freenet/ContactCounter.java \
+freenet/CoreException.java \
+freenet/Core.java \
+freenet/FieldSet.java \
+freenet/Identity.java \
+freenet/interfaces/ConnectionRunner.java \
+freenet/interfaces/FreenetConnectionRunner.java \
+freenet/interfaces/InterfaceException.java \
+freenet/interfaces/Interface.java \
+freenet/interfaces/LocalInterface.java \
+freenet/interfaces/PublicInterface.java \
+freenet/interfaces/RejectedConnectionException.java \
+freenet/interfaces/ServiceException.java \
+freenet/interfaces/Service.java \
+freenet/interfaces/ServiceLoader.java \
+freenet/InvalidMessageException.java \
+freenet/Listener.java \
+freenet/ListenException.java \
+freenet/ListeningAddress.java \
+freenet/NegotiationFailedException.java \
+freenet/node/AggregatedState.java \
+freenet/node/AggregatingState.java \
+freenet/client/AutoBackoffNodeRequester.java \
+freenet/client/BackgroundHealer.java \
+freenet/client/BackgroundInserter.java \
+freenet/node/BadReferenceException.java \
+freenet/node/BadStateException.java \
+freenet/node/ConfigUpdateListener.java \
+freenet/node/EventMessageObject.java \
+freenet/node/FailureTable.java \
+freenet/node/IPAddressDetector.java \
+freenet/node/LoadStats.java \
+freenet/node/NodeConfigUpdater.java \
+freenet/node/NodeConsole.java \
+freenet/node/Node.java \
+freenet/node/NodeMessageObject.java \
+freenet/node/NodeReference.java \
+freenet/node/WatchMe.java \
+freenet/NullIdentity.java \
+freenet/SendFailedException.java \
+freenet/Storables.java \
+freenet/Ticker.java \
+freenet/Version.java \
+$(CRYPTSRC) $(PROTOSRC) $(FSSRC) $(RTSRC) $(DSSRC) \
+$(SUPPORTSRC) $(CLIENTSRC) $(SERVLETSRC)  $(CFGSRC) $(DIAGSRC) $(NIOSRC)
+
+NIOSRC=\
+freenet/interfaces/BaseLocalNIOInterface.java \
+freenet/interfaces/LocalHTTPInterface.java \
+freenet/interfaces/LocalNIOInterface.java \
+freenet/interfaces/NIOInterface.java \
+freenet/interfaces/PublicNIOInterface.java \
+freenet/support/io/EOFingReadInputStream.java \
+freenet/support/io/NIOInputStream.java \
+freenet/support/io/NIOOutputStream.java \
+freenet/support/io/SocketExceptionOutputStream.java \
+freenet/transport/AbstractSelectorLoop.java \
+freenet/transport/ListenSelectorLoop.java \
+freenet/transport/NIOCallback.java \
+freenet/transport/NIOReader.java \
+freenet/transport/NIOWriter.java \
+freenet/transport/ReadSelectorLoop.java \
+freenet/transport/tcpNIOListener.java \
+freenet/transport/ThrottledSelectorLoop.java \
+freenet/transport/WriteSelectorLoop.java  \
+freenet/NIOListener.java \
+freenet/SelectorLoop.java
+
+
+DSSRC=\
+freenet/node/ds/DataStore.java \
+freenet/node/ds/DSConsole.java \
+freenet/node/ds/FSDataStoreElement.java \
+freenet/node/ds/FSDataStore.java \
+freenet/node/ds/KeyCollisionException.java \
+freenet/node/ds/KeyInputStream.java \
+freenet/node/ds/KeyOutputStream.java
+
+DIAGSRC=\
+freenet/diagnostics/AutoPoll.java \
+freenet/diagnostics/Binomial.java \
+freenet/diagnostics/Continuous.java \
+freenet/diagnostics/CountingProcess.java \
+freenet/diagnostics/CountingEvent.java \
+freenet/diagnostics/DiagnosticsCategory.java \
+freenet/diagnostics/DiagnosticsCheckpoint.java \
+freenet/diagnostics/DiagnosticsException.java \
+freenet/diagnostics/DiagnosticsFormat.java \
+freenet/diagnostics/Diagnostics.java \
+freenet/diagnostics/EventList.java \
+freenet/diagnostics/FieldSetFormat.java \
+freenet/diagnostics/FileEventList.java \
+freenet/diagnostics/HtmlDiagnosticsFormat.java \
+freenet/diagnostics/HtmlIndexFormat.java \
+freenet/diagnostics/LinkedEventList.java \
+freenet/diagnostics/RandomVar.java \
+freenet/diagnostics/RowDiagnosticsFormat.java \
+freenet/diagnostics/StandardDiagnostics.java \
+freenet/diagnostics/StdDiagnosticsCategory.java \
+freenet/diagnostics/VarEvent.java \
+freenet/diagnostics/VoidDiagnostics.java \
+freenet/diagnostics/BinomialVarEvent.java \
+freenet/diagnostics/ContinuousVarEvent.java \
+freenet/diagnostics/GraphRange.java \
+freenet/diagnostics/GraphDiagnosticsFormat.java \
+freenet/diagnostics/GraphHtmlDiagnosticsFormat.java \
+freenet/diagnostics/GraphRangeDiagnosticsFormat.java
+
+CFGSRC=\
+freenet/config/Config.java \
+freenet/config/NormalOption.java \
+freenet/config/Option.java \
+freenet/config/Params.java \
+freenet/config/PropertySet.java \
+freenet/config/RandomPortOption.java \
+freenet/config/Setup.java
+
+RTSRC=\
+freenet/node/rt/CPAlgoRoutingTable.java \
+freenet/node/rt/DataObjectRoutingMemory.java \
+freenet/node/rt/DataObjectRoutingStore.java \
+freenet/node/rt/FilterRoutingTable.java \
+freenet/node/rt/Reference.java \
+freenet/node/rt/ReferenceSet.java \
+freenet/node/rt/ReferenceTuple.java \
+freenet/node/rt/Routing.java \
+freenet/node/rt/RoutingMemory.java \
+freenet/node/rt/RoutingStore.java \
+freenet/node/rt/RoutingTable.java \
+freenet/node/rt/RTDiagSnapshot.java \
+freenet/node/rt/SimpleRTDiagSnapshot.java \
+freenet/node/rt/TreeRouting.java \
+freenet/node/rt/TreeRoutingTable.java
+
+CLIENTSRC=\
+freenet/client/AbstractClientKey.java \
+freenet/client/AutoRequester.java \
+freenet/client/Base64.java \
+freenet/client/BlockInserter.java \
+freenet/client/ClientCHK.java \
+freenet/client/ClientEvent.java \
+freenet/client/ClientEventListener.java \
+freenet/client/ClientEventProducer.java \
+freenet/client/ClientFactory.java \
+freenet/client/Client.java \
+freenet/client/ClientKey.java \
+freenet/client/ClientKSK.java \
+freenet/client/ClientMessageObject.java \
+freenet/client/ClientSSK.java \
+freenet/client/ClientSVK.java \
+freenet/client/ComputeCHKProcess.java \
+freenet/client/ComputeCHKRequest.java \
+freenet/client/ComputeSHA1Request.java \
+freenet/client/ComputeSVKPairProcess.java \
+freenet/client/ComputeSVKPairRequest.java \
+freenet/client/ControlRequestProcess.java \
+freenet/client/DecodeSegmentRequest.java \
+freenet/client/Document.java \
+freenet/client/EncodeSegmentRequest.java \
+freenet/client/EventInputStream.java \
+freenet/client/ExtendedGetRequest.java \
+freenet/client/events/BlockEvent.java \
+freenet/client/events/BlockEventWithReason.java \
+freenet/client/events/BlockFinishedEvent.java \
+freenet/client/events/BlockPendingEvent.java \
+freenet/client/events/BlockQueuedEvent.java \
+freenet/client/events/BlockRequeuedEvent.java \
+freenet/client/events/BlockRestartedEvent.java \
+freenet/client/events/BlockStartedEvent.java \
+freenet/client/events/BlockTransferringEvent.java \
+freenet/client/events/BlockStartedTransferringEvent.java \
+freenet/client/events/CollisionEvent.java \
+freenet/client/events/DataNotFoundEvent.java \
+freenet/client/events/DocumentNotValidEvent.java \
+freenet/client/events/ErrorEvent.java \
+freenet/client/events/ExceptionEvent.java \
+freenet/client/events/GeneratedKeyPairEvent.java \
+freenet/client/events/GeneratedURIEvent.java \
+freenet/client/events/InvertedPrivateKeyEvent.java \
+freenet/client/events/NoReplyEvent.java \
+freenet/client/events/PendingEvent.java \
+freenet/client/events/RestartedEvent.java \
+freenet/client/events/RedirectFollowedEvent.java \
+freenet/client/events/RouteNotFoundEvent.java \
+freenet/client/events/SegmentCompleteEvent.java \
+freenet/client/events/SegmentDecodingEvent.java \
+freenet/client/events/SegmentEncodedEvent.java \
+freenet/client/events/SegmentEncodingEvent.java \
+freenet/client/events/SegmentHealingStartedEvent.java \
+freenet/client/events/SegmentInsertFinishedEvent.java \
+freenet/client/events/SegmentInsertStartedEvent.java \
+freenet/client/events/SegmentRequestFinishedEvent.java \
+freenet/client/events/SegmentRequestStartedEvent.java \
+freenet/client/events/SplitFileEvent.java \
+freenet/client/events/SplitFileStartedEvent.java \
+freenet/client/events/StateReachedEvent.java \
+freenet/client/events/StreamEvent.java \
+freenet/client/events/TransferCompletedEvent.java \
+freenet/client/events/TransferEvent.java \
+freenet/client/events/TransferStartedEvent.java \
+freenet/client/events/VerifyingChecksumEvent.java \
+freenet/client/FCPClient.java \
+freenet/client/FECDecoder.java \
+freenet/client/FECEncoder.java \
+freenet/client/FECFactory.java \
+freenet/client/FECTools.java \
+freenet/client/FreenetURI.java \
+freenet/client/GetRequest.java \
+freenet/client/GetRequestProcess.java \
+freenet/client/HandshakeRequest.java \
+freenet/client/IllegalBase64Exception.java \
+freenet/client/InsertSizeException.java \
+freenet/client/InsertURI.java \
+freenet/client/InternalClient.java \
+freenet/client/InvertPrivateKeyRequest.java \
+freenet/client/KeyNotInManifestException.java \
+freenet/client/listeners/ClientCollisionListener.java \
+freenet/client/listeners/CollectingEventListener.java \
+freenet/client/listeners/DoneListener.java \
+freenet/client/MakeMetadataRequest.java \
+freenet/client/metadata/DateRedirect.java \
+freenet/client/metadata/DocumentCommand.java \
+freenet/client/metadata/ExtInfo.java \
+freenet/client/metadata/InfoPart.java \
+freenet/client/metadata/InvalidPartException.java \
+freenet/client/metadata/Metadata.java \
+freenet/client/metadata/MetadataPart.java \
+freenet/client/metadata/MetadataSettings.java \
+freenet/client/metadata/MimeTypeUtils.java \
+freenet/client/metadata/Redirect.java \
+freenet/client/metadata/SplitFile.java \
+freenet/client/metadata/StreamPart.java \
+freenet/client/metadata/TrailingFieldPart.java \
+freenet/client/metadata/UnsupportedPartException.java \
+freenet/client/metadata/VersionCommand.java \
+freenet/client/PutRequest.java \
+freenet/client/PutRequestProcess.java \
+freenet/client/PutSiteProcess.java \
+freenet/client/Request.java \
+freenet/client/RequestProcess.java \
+freenet/client/SegmentFileRequest.java \
+freenet/client/SegmentOutputStream.java \
+freenet/client/SegmentSplitFileRequest.java \
+freenet/client/SimpleEventProducer.java \
+freenet/client/SingleRequestProcess.java \
+freenet/client/SplitFileDownloader.java \
+freenet/client/SplitFileGetRequest.java \
+freenet/client/SplitFileInsertProcess.java \
+freenet/client/SplitFilePutRequest.java \
+freenet/client/SplitFileRequestProcess.java \
+freenet/client/SplitFileStatus.java \
+freenet/client/UnsupportedRequestException.java \
+freenet/client/VirtualClient.java \
+freenet/client/WrongStateException.java
+
+SERVLETSRC=\
+freenet/interfaces/servlet/HttpServletContainer.java \
+freenet/interfaces/servlet/MultipleHttpServletContainer.java \
+freenet/interfaces/servlet/ServletContainer.java \
+freenet/interfaces/servlet/ServletPool.java \
+freenet/interfaces/servlet/SimpleServletPool.java \
+freenet/interfaces/servlet/SingleHttpServletContainer.java \
+freenet/node/http/BookmarkManagerServlet.java \
+freenet/node/http/Infolet.java \
+freenet/node/http/infolets/DefaultInfolet.java \
+freenet/node/http/infolets/DistributionServletInfolet.java \
+freenet/node/http/infolets/DownloadsInfolet.java \
+freenet/node/http/infolets/FailureTableInfolet.java \
+freenet/node/http/infolets/GeneralInfolet.java \
+freenet/node/http/infolets/LoadStatsInfolet.java \
+freenet/node/http/infolets/LoggerInfolet.java \
+freenet/node/http/infolets/ManualInfolet.java \
+freenet/node/http/MultipleFileInfolet.java \
+freenet/node/http/infolets/NodeStatusInfolet.java \
+freenet/node/http/infolets/OpenConnections.java \
+freenet/node/http/infolets/RTInfolet.java \
+freenet/node/http/infolets/TickerContents.java \
+freenet/node/http/infolets/EnvironmentInfolet.java \
+freenet/node/http/NodeInfoServlet.java \
+freenet/node/http/SimpleAdvanced_ModeUtils.java \
+freenet/support/servlet/BadRequestException.java \
+freenet/support/servlet/HtmlTemplate.java \
+freenet/support/servlet/http/HttpServletRequestImpl.java \
+freenet/support/servlet/http/HttpServletResponseImpl.java \
+freenet/support/servlet/http/HttpSessionContextImpl.java \
+freenet/support/servlet/http/HttpSessionImpl.java \
+freenet/support/servlet/http/HttpSupport.java \
+freenet/support/servlet/http/SessionHolderImpl.java \
+freenet/support/servlet/http/SessionHolder.java \
+freenet/support/servlet/ServletConfigImpl.java \
+freenet/support/servlet/ServletContextImpl.java \
+freenet/support/servlet/ServletInputStreamImpl.java \
+freenet/support/servlet/ServletOutputStreamImpl.java \
+freenet/support/servlet/ServletRequestImpl.java \
+freenet/support/servlet/ServletResponseImpl.java \
+freenet/support/servlet/TemplateElement.java \
+freenet/client/http/BaseContext.java \
+freenet/client/http/SFRContext.java \
+freenet/client/http/ConnectionPoller.java \
+freenet/client/http/ContextManager.java \
+freenet/client/http/filter/ContentFilterFactory.java \
+freenet/client/http/filter/ContentFilter.java \
+freenet/client/http/filter/CSSTokenizerFilter.java\
+freenet/client/http/filter/FilterAnalysis.java \
+freenet/client/http/filter/FilterException.java \
+freenet/client/http/filter/Parser.java \
+freenet/client/http/filter/SaferFilter.java \
+freenet/client/http/ServletWithContext.java \
+freenet/client/http/FproxyServlet.java \
+freenet/client/http/ImageServlet.java \
+freenet/client/http/Infolet.java \
+freenet/client/http/InsertContext.java \
+freenet/client/http/NodeStatusServlet.java \
+freenet/client/http/ParamParse.java \
+freenet/client/http/Reapable.java \
+freenet/client/http/Reaper.java \
+freenet/client/http/RedirectServlet.java \
+freenet/client/http/SplitFileRequestContext.java \
+freenet/client/http/SplitFileRequestServlet.java \
+freenet/client/http/InsertServlet_.java
+
+CRYPTSRC=\
+freenet/DSAAuthentity.java \
+freenet/DSAIdentity.java \
+freenet/crypt/BlockCipher.java \
+freenet/crypt/CipherInputStream.java \
+freenet/crypt/CipherOutputStream.java \
+freenet/crypt/ciphers/Rijndael_Algorithm.java \
+freenet/crypt/ciphers/Rijndael.java \
+freenet/crypt/ciphers/Rijndael_Properties.java \
+freenet/crypt/ciphers/Twofish_Algorithm.java \
+freenet/crypt/ciphers/Twofish.java \
+freenet/crypt/ciphers/Twofish_Properties.java \
+freenet/crypt/CryptoElement.java \
+freenet/crypt/CryptoKey.java \
+freenet/crypt/DecipherOutputStream.java \
+freenet/crypt/DecryptionFailedException.java \
+freenet/crypt/DHGroup.java \
+freenet/crypt/DiffieHellman.java \
+freenet/crypt/DigestFactory.java \
+freenet/crypt/Digest.java \
+freenet/crypt/DLES.java \
+freenet/crypt/DSAGroup.java \
+freenet/crypt/DSA.java \
+freenet/crypt/DSAPrivateKey.java \
+freenet/crypt/DSAPublicKey.java \
+freenet/crypt/DSASignature.java \
+freenet/crypt/EncipherInputStream.java \
+freenet/crypt/EntropySource.java \
+freenet/crypt/Global.java \
+freenet/crypt/HMAC.java \
+freenet/crypt/PCFBMode.java \
+freenet/crypt/ProgressiveHashInputStream.java \
+freenet/crypt/ProgressiveHashOutputStream.java \
+freenet/crypt/RandFile.java \
+freenet/crypt/RandomSource.java \
+freenet/crypt/RandStream.java \
+freenet/crypt/SHA1Factory.java \
+freenet/crypt/SHA1.java \
+freenet/crypt/JavaSHA1.java \
+freenet/crypt/SHA256.java \
+freenet/crypt/UnsupportedCipherException.java \
+freenet/crypt/Util.java \
+freenet/crypt/Yarrow.java \
+freenet/KeyException.java \
+freenet/Key.java \
+freenet/keys/CHK.java \
+freenet/keys/SVK.java
+
+PROTOSRC=\
+freenet/message/Accepted.java \
+freenet/message/AnnouncementComplete.java \
+freenet/message/AnnouncementExecute.java \
+freenet/message/AnnouncementFailed.java \
+freenet/message/AnnouncementReply.java \
+freenet/message/client/AdminMessage.java \
+freenet/message/client/BlocksDecoded.java \
+freenet/message/client/BlocksEncoded.java \
+freenet/message/client/ClientGet.java \
+freenet/message/client/ClientHello.java \
+freenet/message/client/ClientInfo.java \
+freenet/message/client/ClientMessage.java \
+freenet/message/client/ClientPut.java \
+freenet/message/client/ClientRequest.java \
+freenet/message/client/DataChunk.java \
+freenet/message/client/DataFound.java \
+freenet/message/client/DataNotFound.java \
+freenet/message/client/DiagnosticsReply.java \
+freenet/message/client/FEC/BlockMap.java \
+freenet/message/client/FEC/FECDecodeSegment.java \
+freenet/message/client/FEC/FECEncodeSegment.java \
+freenet/message/client/FEC/FECMakeMetadata.java \
+freenet/message/client/FEC/FECSegmentFile.java \
+freenet/message/client/FEC/FECSegmentSplitFile.java \
+freenet/message/client/FEC/SegmentHeader.java \
+freenet/message/client/Failed.java \
+freenet/message/client/FormatError.java \
+freenet/message/client/GenerateCHK.java \
+freenet/message/client/GenerateSHA1.java \
+freenet/message/client/GenerateSVKPair.java \
+freenet/message/client/GetDiagnostics.java \
+freenet/message/client/Illegal.java \
+freenet/message/client/InvertPrivateKey.java \
+freenet/message/client/KeyCollision.java \
+freenet/message/client/MadeMetadata.java \
+freenet/message/client/MetadataHint.java \
+freenet/message/client/NodeHello.java \
+freenet/message/client/NodeInfo.java \
+freenet/message/client/Pending.java \
+freenet/message/client/Restarted.java \
+freenet/message/client/RouteNotFound.java \
+freenet/message/client/Success.java \
+freenet/message/client/URIError.java \
+freenet/message/DataInsert.java \
+freenet/message/DataNotFound.java \
+freenet/message/DataReply.java \
+freenet/message/DataRequest.java \
+freenet/message/DataSend.java \
+freenet/MessageHandler.java \
+freenet/message/HTLMessage.java \
+freenet/message/InsertReply.java \
+freenet/message/InsertRequest.java \
+freenet/Message.java \
+freenet/message/NodeAnnouncement.java \
+freenet/message/NodeMessage.java \
+freenet/MessageObject.java \
+freenet/message/QueryAborted.java \
+freenet/message/QueryRejected.java \
+freenet/message/QueryRestarted.java \
+freenet/message/Request.java \
+freenet/message/StoreData.java \
+freenet/message/TrailingFieldMessage.java \
+freenet/message/VoidMessage.java \
+freenet/OpenConnectionManager.java \
+freenet/Peer.java \
+freenet/presentation/ClientProtocol.java \
+freenet/presentation/FCPRawMessage.java \
+freenet/presentation/FNPRawMessage.java \
+freenet/presentation/FreenetProtocol.java \
+freenet/PresentationHandler.java \
+freenet/Presentation.java \
+freenet/RawMessage.java \
+freenet/session/FnpLink.java \
+freenet/session/FnpLinkManager.java \
+freenet/session/FnpLinkToken.java \
+freenet/SessionHandler.java \
+freenet/session/LinkConstants.java \
+freenet/session/Link.java \
+freenet/session/LinkManager.java \
+freenet/session/LinkToken.java \
+freenet/session/PlainLink.java \
+freenet/session/PlainLinkManager.java \
+freenet/TransportHandler.java \
+freenet/Transport.java \
+freenet/transport/tcpAddress.java \
+freenet/transport/tcpConnection.java \
+freenet/transport/TCP.java \
+freenet/transport/tcpListener.java \
+freenet/transport/tcpListeningAddress.java \
+freenet/transport/tcpServerSocketFactory.java \
+freenet/transport/tcpSocketFactory.java \
+freenet/transport/tcpTransport.java \
+freenet/transport/VoidAddress.java \
+freenet/transport/VoidListeningAddress.java \
+freenet/transport/VoidTransport.java \
+freenet/node/StandardMessageHandler.java \
+freenet/node/StateChain.java \
+freenet/node/StateException.java \
+freenet/node/State.java \
+freenet/node/states/announcement/AnnouncementDone.java \
+freenet/node/states/announcement/AnnouncementState.java \
+freenet/node/states/announcement/CompletePending.java \
+freenet/node/states/announcement/ExecuteHandler.java \
+freenet/node/states/announcement/ExecutePending.java \
+freenet/node/states/announcement/LastNode.java \
+freenet/node/states/announcement/NewAnnouncement.java \
+freenet/node/states/announcement/NoComplete.java \
+freenet/node/states/announcement/NoExecute.java \
+freenet/node/states/announcement/NoReply.java \
+freenet/node/states/announcement/ReplyPending.java \
+freenet/node/states/announcing/AnnouncementRequestToken.java \
+freenet/node/states/announcing/Announcing.java \
+freenet/node/states/announcing/AnnouncingState.java \
+freenet/node/states/announcing/CompleteAnnouncement.java \
+freenet/node/states/announcing/Completed.java \
+freenet/node/states/announcing/ExecuteAnnouncement.java \
+freenet/node/states/announcing/NewInitialRequest.java \
+freenet/node/states/announcing/SendAnnouncement.java \
+freenet/node/states/data/DataReceived.java \
+freenet/node/states/data/DataSent.java \
+freenet/node/states/data/DataStateInitiator.java \
+freenet/node/states/data/DataState.java \
+freenet/node/states/data/DataStateReply.java \
+freenet/node/states/data/EatData.java \
+freenet/node/states/data/ReceiveData.java \
+freenet/node/states/data/SendData.java \
+freenet/node/states/FCP/ClientGetToken.java \
+freenet/node/states/FCP/ClientPutToken.java \
+freenet/node/states/FCP/FCPFeedbackToken.java \
+freenet/node/states/FCP/NewClientGet.java \
+freenet/node/states/FCP/NewClientPut.java \
+freenet/node/states/FCP/NewClientRequest.java \
+freenet/node/states/FCP/NewFECDecodeSegment.java \
+freenet/node/states/FCP/NewFECEncodeSegment.java \
+freenet/node/states/FCP/NewFECMakeMetadata.java \
+freenet/node/states/FCP/NewFECSegmentFile.java \
+freenet/node/states/FCP/NewFECSegmentSplitFile.java \
+freenet/node/states/FCP/NewGenerateCHK.java \
+freenet/node/states/FCP/NewGenerateSHA1.java \
+freenet/node/states/FCP/NewGenerateSVKPair.java \
+freenet/node/states/FCP/NewHello.java \
+freenet/node/states/FCP/NewIllegal.java \
+freenet/node/states/FCP/NewInfo.java \
+freenet/node/states/FCP/NewInvertPrivateKey.java \
+freenet/node/states/FCP/ReturnDiagnostics.java \
+freenet/node/states/FNP/FNPFeedbackToken.java \
+freenet/node/states/FNP/NewDataRequest.java \
+freenet/node/states/FNP/NewInsertRequest.java \
+freenet/node/states/FNP/NewRequest.java \
+freenet/node/states/FNP/NewVoid.java \
+freenet/node/states/maintenance/Checkpoint.java \
+freenet/node/states/request/AwaitingInsert.java \
+freenet/node/states/request/AwaitingStoreData.java \
+freenet/node/states/request/DataPending.java \
+freenet/node/states/request/EndOfRouteException.java \
+freenet/node/states/request/FeedbackToken.java \
+freenet/node/states/request/InsertPending.java \
+freenet/node/states/request/NoInsert.java \
+freenet/node/states/request/NoStoreData.java \
+freenet/node/states/request/Pending.java \
+freenet/node/states/request/ReceivingInsert.java \
+freenet/node/states/request/ReceivingReply.java \
+freenet/node/states/request/RequestAbortException.java \
+freenet/node/states/request/RequestDone.java \
+freenet/node/states/request/RequestInitiator.java \
+freenet/node/states/request/RequestObject.java \
+freenet/node/states/request/RequestState.java \
+freenet/node/states/request/SendingReply.java \
+freenet/node/states/request/TransferInsert.java \
+freenet/node/states/request/TransferInsertPending.java \
+freenet/node/states/request/TransferReply.java \
+freenet/node/StateTransition.java
+
+FSSRC=\
+freenet/fs/acct/AccountingException.java \
+freenet/fs/acct/AccountingInitializer.java \
+freenet/fs/acct/AccountingIOException.java \
+freenet/fs/acct/AccountingProcess.java \
+freenet/fs/acct/AccountingStruct.java \
+freenet/fs/acct/AccountingTable.java \
+freenet/fs/acct/AnnotationBlock.java \
+freenet/fs/acct/BlockElement.java \
+freenet/fs/acct/BlockEntry.java \
+freenet/fs/acct/BlockList.java \
+freenet/fs/acct/BlockTransaction.java \
+freenet/fs/acct/ControlBlock.java \
+freenet/fs/acct/Fragment.java \
+freenet/fs/acct/SharedAccountingInitializer.java \
+freenet/fs/acct/SharedAccountingProcess.java \
+freenet/fs/acct/SingleAccountingProcess.java \
+freenet/fs/acct/SynchronizationBlock.java \
+freenet/fs/acct/sys/AccountingTreeBlock.java \
+freenet/fs/acct/sys/AccountingTree.java \
+freenet/fs/acct/sys/AccountingTreeMarshal.java \
+freenet/fs/acct/sys/AccountingTreeNode.java \
+freenet/fs/acct/sys/SerialTree.java \
+freenet/fs/dir/BufferException.java \
+freenet/fs/dir/Buffer.java \
+freenet/fs/dir/CircularBuffer.java \
+freenet/fs/dir/DirectoryException.java \
+freenet/fs/dir/DirectoryIDFilePattern.java \
+freenet/fs/dir/Directory.java \
+freenet/fs/dir/FileNumber.java \
+freenet/fs/dir/FilePattern.java \
+freenet/fs/dir/FragmentManager.java \
+freenet/fs/dir/FragmentMap.java \
+freenet/fs/dir/FragmentPositionMap.java \
+freenet/fs/dir/FragmentRecord.java \
+freenet/fs/dir/FragmentSizeMap.java \
+freenet/fs/dir/FSBucketFactory.java \
+freenet/fs/dir/FSConsole.java \
+freenet/fs/dir/FSDataObjectStore.java \
+freenet/fs/dir/FSDirectoryConst.java \
+freenet/fs/dir/FSDirectory.java \
+freenet/fs/dir/FSDirectoryRoot.java \
+freenet/fs/dir/KeyMap.java \
+freenet/fs/dir/LossyDirectory.java \
+freenet/fs/dir/LRUMap.java \
+freenet/fs/dir/NativeFSDirectory.java \
+freenet/fs/dir/NativeStream.java \
+freenet/fs/dir/PrefixFilePattern.java \
+freenet/fs/dir/RangeFilePattern.java \
+freenet/fs/dir/SharedDirectory.java \
+freenet/fs/dir/Ticket.java \
+freenet/fs/dir/TicketLock.java \
+freenet/fs/dir/TicketManager.java \
+freenet/fs/dir/TicketMap.java \
+freenet/fs/EncryptedFileSystem.java \
+freenet/fs/FileSystem.java \
+freenet/fs/LockedInputStream.java \
+freenet/fs/LockedOutputStream.java \
+freenet/fs/LockException.java \
+freenet/fs/LockGrantor.java \
+freenet/fs/Lock.java \
+freenet/fs/LockSignal.java \
+freenet/fs/LockSlide.java \
+freenet/fs/LockTicket.java \
+freenet/fs/RAFStorage.java \
+freenet/fs/ReadLock.java \
+freenet/fs/Storage.java \
+freenet/fs/WriteLock.java
+
+SUPPORTSRC=\
+freenet/support/AbstractBinaryTree.java \
+freenet/support/ArrayBucket.java \
+freenet/support/ArrayBucketSink.java \
+freenet/support/BinaryTree.java \
+freenet/support/BlockingQueue.java \
+freenet/support/BoyerMoore.java \
+freenet/support/BucketFactory.java \
+freenet/support/Bucket.java \
+freenet/support/BucketSequence.java \
+freenet/support/BucketSink.java \
+freenet/support/BucketTools.java \
+freenet/support/BufferLoggerHook.java \
+freenet/support/Cacheable.java \
+freenet/support/Cache.java \
+freenet/support/Checkpointed.java \
+freenet/support/Comparable.java \
+freenet/support/Comparator.java \
+freenet/support/DataObject.java \
+freenet/support/DataObjectPending.java \
+freenet/support/DataObjectStore.java \
+freenet/support/DataObjectUnloadedException.java \
+freenet/support/DoublyLinkedListImpl.java \
+freenet/support/DoublyLinkedList.java \
+freenet/support/EmptyEnumeration.java \
+freenet/support/EnumerationWalk.java \
+freenet/support/Fields.java \
+freenet/support/FileBucketFactory.java \
+freenet/support/FileBucket.java \
+freenet/support/FileLoggerHook.java \
+freenet/support/Heap.java \
+freenet/support/HTMLDecoder.java \
+freenet/support/HTMLEncoder.java \
+freenet/support/io/Bandwidth.java \
+freenet/support/io/BucketInputStream.java \
+freenet/support/io/CancelledIOException.java \
+freenet/support/io/CBStripOutputStream.java \
+freenet/support/io/CommentedBufferedReader.java \
+freenet/support/io/CommentedReadInputStream.java \
+freenet/support/io/CommentedScanningReadInputStream.java \
+freenet/support/io/CopyingOutputStream.java \
+freenet/support/io/CountedInputStream.java \
+freenet/support/io/DataChunkOutputStream.java \
+freenet/support/io/FilterDataChunkOutputStream.java \
+freenet/support/io/DataNotValidIOException.java \
+freenet/support/io/DiagnosticsOutputStream.java \
+freenet/support/io/DiscontinueInputStream.java \
+freenet/support/io/FreeBucketInputStream.java \
+freenet/support/io/NullInputStream.java \
+freenet/support/io/NullOutputStream.java \
+freenet/support/io/ParseIOException.java \
+freenet/support/io/ReadInputStream.java \
+freenet/support/io/SafeBufferedInputStream.java \
+freenet/support/io/ThrottledInputStream.java \
+freenet/support/io/ThrottledOutputStream.java \
+freenet/support/io/UnbufferedReader.java \
+freenet/support/io/VerifyingInputStream.java \
+freenet/support/io/WriteOutputStream.java \
+freenet/support/io/ZeroInputStream.java \
+freenet/support/IrreversibleException.java \
+freenet/support/Irreversible.java \
+freenet/support/IteratorEnumeration.java \
+freenet/support/KeyHistogram.java \
+freenet/support/KeyList.java \
+freenet/support/KeySizeHistogram.java \
+freenet/support/LimitCounter.java \
+freenet/support/LimitedEnumeration.java \
+freenet/support/Loader.java \
+freenet/support/LoggerHook.java \
+freenet/support/Logger.java \
+freenet/support/LRUCache.java \
+freenet/support/LRUQueue.java \
+freenet/support/Measurable.java \
+freenet/support/Metric.java \
+freenet/support/MetricWalk.java \
+freenet/support/mime/HTTPheader.java \
+freenet/support/mime/MIME_binary.java \
+freenet/support/mime/MIMEcoder.java \
+freenet/support/mime/MIMEFormatException.java \
+freenet/support/mime/MIMEheader.java \
+freenet/support/mime/MIME.java \
+freenet/support/mime/MIME_mail.java \
+freenet/support/mime/MIME_multipart.java \
+freenet/support/MultiValueTable.java \
+freenet/support/NullBucket.java \
+freenet/support/NullCache.java \
+freenet/support/ObjectComparator.java \
+freenet/support/ObjectMetric.java \
+freenet/support/OnExitCleanUp.java \
+freenet/support/OrderedVector.java \
+freenet/support/PromiscuousItemException.java \
+freenet/support/PropertyStore.java \
+freenet/support/RandomAccessFileBucket.java \
+freenet/support/RedBlackTree.java \
+freenet/support/ReversibleSortedMap.java \
+freenet/support/Schedulable.java \
+freenet/support/Selector.java \
+freenet/support/SimpleDataObjectStore.java \
+freenet/support/SimpleStringMap.java \
+freenet/support/Skiplist.java \
+freenet/support/SkiplistWithHashMap.java \
+freenet/support/sort/ArraySorter.java \
+freenet/support/sort/HeapSorter.java \
+freenet/support/sort/QuickSorter.java \
+freenet/support/sort/Sortable.java \
+freenet/support/sort/SortAlgorithm.java \
+freenet/support/sort/VectorSorter.java \
+freenet/support/SpyInputStream.java \
+freenet/support/SpyOutputStream.java \
+freenet/support/StringMap.java \
+freenet/support/TempBucketFactory.java \
+freenet/support/TempBucketHook.java \
+freenet/support/TempFileBucket.java \
+freenet/support/TickerToken.java \
+freenet/support/UnlimitedCache.java \
+freenet/support/URLDecoder.java \
+freenet/support/URLEncodedFormatException.java \
+freenet/support/URLEncoder.java \
+freenet/support/Walkable.java \
+freenet/support/WalkEnumeration.java \
+freenet/support/Walk.java \
+freenet/support/VirginItemException.java \
+freenet/thread/PooledThread.java \
+freenet/thread/QThreadFactory.java \
+freenet/thread/FastThreadFactory.java \
+freenet/thread/ThreadFactory.java \
+freenet/support/graph/BitmapEncoder.java \
+freenet/support/graph/XBitmapEncoder.java \
+freenet/support/graph/DibEncoder.java \
+freenet/support/graph/Bitmap.java \
+freenet/support/graph/Color.java \
+freenet/support/graph/Rectangle.java \
+freenet/support/graph/Surface.java \
+freenet/node/http/DistributionServlet.java \
+freenet/support/ComparableInteger.java \
+freenet/support/StripedBucketArray.java
+
+
+NODEOBJS= $(NODESRC:.java=.o) \
+	freenet/ConnectionHandlerComparator.o \
+	freenet/client/RequestManager.o \
+	freenet/client/SplitFileInsertManager.o \
+	freenet/client/SplitFileRequestManager.o 
+
+NODECLASSES= $(NODESRC:.java=.class)
+
+NODE=frednode
+
+all: node
+
+node: $(NODE)
+
+build:
+	mkdir -p build
+
+quick:
+	$(GCJ) $(GCJFLAGS) -fclasspath=. --main=freenet.node.Main -o $(NODE) $(NODESRC)
+
+$(NODE): $(SERVLETJAR) $(NODEOBJS) \
+        freenet/client/RequestManager$$EventConnector.o freenet/client/RequestManager$$RequestInfo.o freenet/client/RequestManager$$RetryableInfo.o
+	@echo Linking: frednode
+	@ $(GCJ) $(GCJFLAGS) --main=freenet.node.Main \
+	-o $@ \
+	$(NODEOBJS) \
+	'freenet/client/RequestManager$$EventConnector.o' 'freenet/client/RequestManager$$RequestInfo.o' 'freenet/client/RequestManager$$RetryableInfo.o' \
+	$(SERVLETJAR)
+
+
+jar: freenet.jar
+
+freenet.jar: $(NODECLASSES)
+	@echo Making $@
+	jar cf $@ `find freenet -name '*.class' -print`
+
+%.o: %.java
+	@echo Compiling: $<
+	@$(GCJCOMPILE) -o $@ $<
+
+%.class: %.java
+	@echo Byte compiling: $<
+	@$(GCJ) $(CP) -C $<
+
+servlet.jar:
+	jar tf ../lib/freenet-ext.jar  | grep javax | grep -v jsp | xargs jar xvf ../lib/freenet-ext.jar
+	jar cvf servlet.jar javax
+
+newtags:
+	rm -f TAGS
+	make -f Makefile.gcj tags
+
+tags: TAGS
+
+
+TAGS:
+	etags `find freenet -name '*.java'`
+
+clean:
+	find freenet -name '*.o' -print | xargs rm -f
+	find freenet -name '*.lo' -print | xargs rm -f
+	find freenet -name '*.so' -print | xargs rm -f
+	find freenet -name '*.a' -print | xargs rm -f
+	find freenet -name '*.d' -print | xargs rm -f
+	find freenet -name '*.class' -print | xargs rm -f
+	rm -f $(NODE) TAGS
+	rm -fr build
+
+freenet/client/RequestManager.o: freenet/client/RequestManager.java
+	@echo 'Compiling (2 stage):' $<
+	$(GCJ_WITH_FLAGS) -fclasspath=$(CP)  -C $<
+	$(GCJCOMPILE) -o $@ freenet/client/RequestManager.class
+
+freenet/client/RequestManager$$EventConnector.o: freenet/client/RequestManager.class
+	$(GCJCOMPILE) -o 'freenet/client/RequestManager$$EventConnector.o' 'freenet/client/RequestManager$$EventConnector.class'
+
+freenet/client/RequestManager$$RequestInfo.o: freenet/client/RequestManager.class
+	$(GCJCOMPILE) -o 'freenet/client/RequestManager$$RequestInfo.o' 'freenet/client/RequestManager$$RequestInfo.class'
+
+freenet/client/RequestManager$$RetryableInfo.o: freenet/client/RequestManager.class
+	$(GCJCOMPILE) -o 'freenet/client/RequestManager$$RetryableInfo.o' 'freenet/client/RequestManager$$RetryableInfo.class'
+
+freenet/ConnectionHandlerComparator.o: freenet/ConnectionHandlerComparator.java
+	@echo 'Compiling (2 stage):' $<
+	$(GCJ_WITH_FLAGS) -fclasspath=$(CP)  -C $<
+	$(GCJCOMPILE) -o $@ freenet/ConnectionHandlerComparator.class
+ 
+ 
+
+NODEDEPS=$(NODESRC:.java=.d)
+#-include $(NODEDEPS)

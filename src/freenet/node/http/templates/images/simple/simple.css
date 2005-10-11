@@ -1,0 +1,210 @@
+/* let's get the basics out of the way */
+a {
+  text-decoration: none;
+}
+img {
+  border: 0;
+}
+body {
+	color: black;
+	background: #FFFFFF;
+}
+
+/* titlebar */
+.header {
+	width: 100%;
+	text-align: center;
+}
+
+.title {
+	font-weight: bold; color: #777777;
+	text-align: center;
+	display: block;
+}
+.header > .title {
+	font-size: 200%;
+	display: block;
+	vertical-align: center;
+  	margin-left: auto;
+  	margin-right: auto;
+  	min-height:52px;
+}
+
+.logo {
+	text-align: left;
+	float: left;
+	display: block;
+}
+.toprightlink {
+  	text-align: right;
+	position:absolute;
+	top: 0.5em;
+	right: 0.5em;
+	width: auto;
+	height: auto;
+	min-height: 52px;
+}
+
+/* log priorities and warning / okay messages */
+.warning, .logerror {
+	color: red;
+}
+.okay {
+	color: green;
+}
+.lognormal, .normal {
+	color: black;
+}
+.logminor {
+	color: #060606;
+}
+.unimportant, .logdebug {
+	color: blue;
+}
+
+.logentry {
+	font-size: small;
+	padding-top: 2mm;
+	vertical-align: top;
+}
+
+
+/* menubar */
+.main > .menu {
+  	text-align: left;
+  	float: left;
+  	margin: 1em;
+  	margin-left: 0em;
+  	margin-right: 2em;
+  	margin-bottom: 1em;
+  	margin-top: 0em;
+  	max-width: 10em;
+  	clear: left;
+}
+.menu ol, .menu ul {
+    	list-style:none;
+    	margin:0;
+    	padding:0;
+}
+.menu h3 {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+.menu li {
+	display: block;
+}
+.menu li:hover {
+	background: #EEE;
+}
+.menu li a {
+	display: inline;
+}
+
+.main > .body {
+	margin-top: 1em;
+	margin-left: 11em;
+}
+
+/* run-of-the-mill boxes. these are _everywhere_ */
+.box {
+	border: 1px solid black;
+	padding: 0.1em;
+	background: #FAFAFA;
+}
+.box > .title {
+	border-bottom:1px solid black;
+	background: #ECECEC;
+}
+
+div {
+	margin: 0; 
+	padding: 0;
+}
+
+/* OpenConnectionManager */
+.ocmOverview {
+	width: 100%;
+}
+.ocmSortingLink {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+.ocmOverviewLeftHeader {
+	width: 100%;
+}
+.ocmOverviewRightHeader {
+}
+/* OCM, Peers mode */
+.ocmPeerTitle {
+	width: 100%;
+}
+.ocmPeerAddress {
+	text-align: left;
+}
+.ocmPeerRoutingTitle {
+	text-align: right;
+}
+/* OCM, Peers mode, Message type histogram, visible on level 1 */
+.ocmPeerMessageType {
+	text-align: left;
+	font-size: 70%;
+}
+.ocmPeerMessageSentReceived {
+	text-align: right;
+	font-size: 70%;
+}
+/* Routing table graph */
+.ocmPeerRT {
+	text-align:right;
+}
+/* Messages list */
+.ocmPeerMessages {
+	vertical-align: top;
+}
+
+/* colors for OpenConnectionManager */
+.inbound {
+	color: blue;
+}
+.inboundbackground {
+	background: blue;
+}
+.outbound {
+	color: purple;
+}
+.outboundbackground {
+	background: purple;
+}
+
+
+/* a simple horizontal bar. define it's background color and width to use it */
+div.horizontalBar {
+	position:relative;
+	height: 2px;
+	padding: 0;
+	margin: 0;
+}
+
+/* diagnostics */
+.diagnostics {
+	margin-left: 2em;
+}
+
+*/ Node Reference Status */
+.graph {
+	text-align: center;
+}
+table.reftable {
+	font-size: 75%;
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+table.reftable td, table.reftable th {
+	border: 1px solid black;
+	padding: 0.1em;
+}
+.nodeStats {
+}
+.histogramDetailLink {
+	font-size: 75%;
+}

@@ -1,0 +1,1 @@
+<img src="##DISTKEY##/servlet/images/aqua/##COLOR##bar_left.png" height="16" alt=""><img src="##DISTKEY##/servlet/images/aqua/##COLOR##bar_middle.png" height="16" width="##WIDTH##" alt="##ALT##"><img src="##DISTKEY##/servlet/images/aqua/##COLOR##bar_right.png" height="16" alt="">

@@ -1,0 +1,113 @@
+/* the basics */
+a { text-decoration: none; }
+body, td { font-family: tahoma, arial, helvetica, sans-serif; }
+.title { font-weight: bold; color: #777777; }
+
+/* log priorities and warning / okay messages */
+.warning, .logerror {
+	color: red;
+}
+.okay {
+	color: green;
+}
+.lognormal, .normal {
+	color: black;
+}
+.logminor {
+	color: #060606;
+}
+.unimportant, .logdebug {
+	color: blue;
+}
+
+.logentry {
+	font-size: small;
+	padding-top: 2mm;
+	vertical-align: top;
+}
+
+/* menu */
+.menu ol, .menu ul {
+    	margin:0;
+	padding-left:1em;
+}
+.menu h3 {
+	margin-top: 0;
+	margin-bottom: 0;
+	font-size: 1em;
+}
+
+/* OpenConnectionManager */
+.ocmOverview {
+	width: 100%;
+}
+.ocmSortingLink {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+.ocmOverviewLeftHeader {
+	width: 100%;
+}
+.ocmOverviewRightHeader {
+}
+/* OCM, Peers mode */
+.ocmPeerData td, .ocmPeerData th {
+	font-size: 70%;
+}
+.ocmPeerData th {
+	text-align: left;
+}
+/* OCM, Peers mode, Message type histogram, visible on level 1 */
+.ocmPeerMessageType {
+	text-align: left;
+	font-size: 70%;
+}
+.ocmPeerMessageSentReceived {
+	text-align: right;
+	font-size: 70%;
+}
+/* Routing table graph */
+.ocmPeerRT {
+	text-align:right;
+}
+/* Messages list */
+.ocmPeerMessages {
+	vertical-align: top;
+}
+
+/* colors for OpenConnectionManager */
+.inbound {
+	color: #252597;
+}
+.inboundbackground {
+	background: #252597;
+}
+.outbound {
+	color: #7810D0;
+}
+.outboundbackground {
+	background: #7810D0;
+}
+
+/* diagnostics */
+.diagnostics {
+	margin-left: 2em;
+}
+
+*/ Node Reference Status */
+.graph {
+	text-align: center;
+}
+table.reftable {
+	font-size: 75%;
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+table.reftable td, table.reftable th {
+	border: 1px solid black;
+}
+.nodeStats {
+}
+.histogramDetailLink {
+	font-size: 75%;
+}

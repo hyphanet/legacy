@@ -1,0 +1,211 @@
+package freenet.client;
+
+import freenet.message.client.FEC.SegmentHeader;
+import freenet.client.*;
+import freenet.client.events.*;
+
+/**
+ * A listener that collects information about the progress
+ * of SplitFile downloads.
+ * <p>
+ * @author giannij
+ */
+public class SplitFileDownloadStatus implements ClientEventListener {
+
+    protected SegmentHeader header;
+    protected int queued;
+    protected int running;
+    protected int downloaded;
+    protected int failed;
+    protected int retried;
+    protected int rnfs;
+    protected int dnfs;
+    protected int statusCode = STARTING;
+    protected long touched =  System.currentTimeMillis();
+
+    // Exit status values.
+    public final static int STARTING = 1;
+    public final static int FETCHING_BLOCKS = 2;
+    public final static int DECODING = 3;
+    public final static int SUCCEEDED = 4;
+    public final static int FAILED = 5;
+    public final static int CANCELED = 6;
+
+    protected void reset() {
+        header = null;
+        queued = 0;
+        running = 0;
+        downloaded = 0;
+        failed = 0;
+        retried = 0;
+        rnfs = 0;
+        dnfs = 0;
+        touched = System.currentTimeMillis();
+    }
+
+    /**
+     * The current segment.
+     **/
+    public final synchronized SegmentHeader segment() { return header; }
+
+    /**
+     * The number of data and check blocks that are
+     * queued up to be run.
+     **/
+    public final synchronized int blocksQueued() { return queued; }
+
+    /**
+     * The number of requests that are currently being executed.
+     **/
+    public final synchronized int blocksRunning() { return running; }
+
+
+    /**
+     * The number of blocks that have been successfully fetched.
+     **/
+    public final synchronized int blocksDownloaded() { return downloaded; }
+
+
+    /**
+     * The number of blocks that have failed.  Blocks are only 
+     * counted as failed after all allowed retries have failed.
+     **/
+    public final synchronized int blocksFailed() { return failed; }
+
+
+    /**
+     * The total number of blocks that were queued to be retried 
+     * after failing to download.
+     **/
+    public final synchronized int blocksRetried() { return retried; }
+
+    /**
+     * The number of request attemps that have failed 
+     * with RouteNotFound errors.
+     * <p>
+     * Note that because of retrying this can be
+     * incremented more than once for each request queued.
+     **/
+    public final synchronized int rnfs() { return rnfs; }
+
+    /**
+     * The number of request attemps that have failed 
+     * with DataNotFound errors.
+     * <p>
+     * Note that because of retrying this can be
+     * incremented more than once for each request queued.
+     **/
+    public final synchronized int dnfs() { return dnfs; }
+
+    /**
+     * The time the that the last low level status update
+     * event was retrieved. 
+     */
+    public final synchronized long touched() { return touched; }
+
+    /**
+     * A code indicating the status of the request.
+     */
+    public final synchronized int statusCode() { return statusCode; }
+    
+
+    private final static String[] names = { "STARTING","FETCHING_BLOCKS",
+                                            "DECODING", "SUCCEEDED",
+                                            "FAILED", "CANCELED" };
+    
+
+    public final static String statusString(int statusCode) {
+        if (statusCode < 1 || statusCode > names.length) {
+            return "UNKNOWN";
+        }
+
+        return names[statusCode - 1];
+    }
+
+    public synchronized void receive(ClientEvent ce) {
+        //System.err.println("SFDS: " + ce.getDescription());
+        if (!(ce instanceof SplitFileEvent)) {
+            return;
+        }
+        
+        touched = System.currentTimeMillis();
+        
+        switch (ce.getCode()) {
+        case SegmentRequestStartedEvent.code:
+            reset();
+            header = ((SegmentRequestStartedEvent)ce).getHeader();
+            statusCode = FETCHING_BLOCKS;
+            break;
+        case SegmentRequestFinishedEvent.code: {
+            SegmentRequestFinishedEvent rf = (SegmentRequestFinishedEvent)ce;
+            if ((header.getSegments() == header.getSegmentNum() + 1) ||
+                (rf.getExitCode() != SplitFileEvent.SUCCEEDED)) {
+                switch(rf.getExitCode()) {
+                    case SplitFileEvent.SUCCEEDED:
+                        statusCode = SUCCEEDED; break;
+                    case SplitFileEvent.FAILED:
+                        statusCode = FAILED; break;
+                    case SplitFileEvent.CANCELED:
+                        statusCode = CANCELED; break;
+                }
+            }
+            break;
+        }
+        case BlockQueuedEvent.code:
+            queued++;
+            break;
+        case BlockRequeuedEvent.code: {
+            retried++;
+            queued++;
+            running--;
+            BlockRequeuedEvent re = (BlockRequeuedEvent)ce;
+            if (re.reason() != null) {
+                if (re.reason() instanceof RouteNotFoundEvent) {
+                    rnfs++;
+                }
+                else if (re.reason() instanceof DataNotFoundEvent) {
+                    dnfs++;
+                }
+            }
+            break;
+        }
+        
+        case BlockStartedEvent.code:
+            running++;
+            queued--;
+            break;
+        case BlockFinishedEvent.code: {            
+            BlockFinishedEvent fe = (BlockFinishedEvent)ce;
+            running--;
+
+            if (fe.reason() != null) {
+                if (fe.reason() instanceof RouteNotFoundEvent) {
+                    rnfs++;
+                }
+                else if (fe.reason() instanceof DataNotFoundEvent) {
+                    dnfs++;
+                }
+            }
+
+            if (fe.exitCode() == SplitFileEvent.SUCCEEDED) {
+                downloaded++;
+            }
+            else if (fe.exitCode() == SplitFileEvent.FAILED) {
+                failed++;
+            }
+            // Don't count canceled blocks
+            break;
+
+        }
+        case SegmentDecodingEvent.code:
+            statusCode = DECODING;
+            break;
+        }
+        notifyAll();
+    }
+}
+
+
+
+
+

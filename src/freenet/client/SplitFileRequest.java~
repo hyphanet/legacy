@@ -1,0 +1,67 @@
+package freenet.client;
+
+import freenet.client.metadata.SplitFile;
+
+import freenet.support.Bucket;
+import freenet.support.BucketFactory;
+import java.net.MalformedURLException;
+
+/** Represents a request to retrieve a
+ * and decode a FEC encoded SplitFile.
+ *
+ * @author giannij
+ */
+public class SplitFileRequest extends Request {
+    SplitFile sf; 
+    int defaultHtl; 
+    int defaultRetryIncrement;
+    int defaultRetries;
+    int maxThreads;
+    ClientFactory cf;
+    BucketFactory bf;
+    Bucket destBucket;
+
+    // Switch that turns on extra debugging 
+    // code to check for corrupt SplitFile
+    // downloads.
+    boolean doParanoidChecks = false;
+
+    // NOTE: Client implementations must set this.
+    SplitFileRequestManager manager;
+
+    // Full CTOR
+    public SplitFileRequest(SplitFile sf, 
+                            int defaultHtl, 
+                            int defaultRetryIncrement,
+                            int defaultRetries,
+                            int maxThreads,
+                            ClientFactory cf,
+                            BucketFactory bf,
+                            Bucket destBucket) {
+
+        if (sf.getFECAlgorithm() == null) {
+            // They don't work so we shouldn't
+            // encourage people to use them.
+            throw new 
+                IllegalArgumentException("SplitFiles without FEC are not supported.");
+        }
+
+        this.sf = sf;
+        this.defaultHtl = defaultHtl;
+        this.defaultRetryIncrement = defaultRetryIncrement;
+        this.defaultRetries = defaultRetries;
+        this.maxThreads = maxThreads;
+        this.cf = cf;
+        this.bf = bf;
+        this.destBucket = destBucket;
+    }
+
+    public final void enableParanoidChecks(boolean value) { doParanoidChecks = value; }
+
+}
+
+
+
+
+
+

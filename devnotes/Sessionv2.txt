@@ -1,0 +1,74 @@
+Notes on Session protocol version 2.0
+
+Purpose:
+0. Maintain the current level of security.
+1. Reduce asymmetric crypto - we do not need it on restarts.
+2. Allow extra fields such as the detected IP address the connection is from, and whether we have had any successful connections to it, to be sent on the session level just after crypto. Consider whether we want this to be feasible in-line i.e. amidst other data (would require some changes to eg ConnectionHandler...)
+3. Create a usable protocol for packet oriented connections
+4. Ideally eliminate control bytes that could be used to quickly identify FNP traffic.
+Email to devl by amphibian
+==============================================================================
+To: Scott Miller <scgmille@freenetproject.org>, oskar@freenetproject.org
+Cc: devl@freenetproject.org
+From: Toad <toad@amphibian.dyndns.org>
+Subject: [freenet-dev] Session protocol version 2.0
+X-BeenThere: devl@freenetproject.org
+X-Mailman-Version: 2.0.13
+Reply-To: devl@freenetproject.org
+List-Help: <mailto:devl-request@freenetproject.org?subject=help>
+List-Post: <mailto:devl@freenetproject.org>
+List-Subscribe: <http://hawk.freenetproject.org:8080/cgi-bin/mailman/listinfo/devl>,
+        <mailto:devl-request@freenetproject.org?subject=subscribe>
+List-Id: Discussion of development issues <devl.freenetproject.org>
+List-Unsubscribe: <http://hawk.freenetproject.org:8080/cgi-bin/mailman/listinfo/devl>,
+        <mailto:devl-request@freenetproject.org?subject=unsubscribe>
+List-Archive: <http://hawk.freenetproject.org:8080/pipermail/devl/>
+
+Due to recent technical difficulties, I have lost the session protocol
+version 2 that we thrashed out. I have a few ideas but I do not have the
+full design discussion and the protocol spec. I have this message from
+the devl archives, which was originally addressed to Scott:
+
+------------------------------------------------------------------------
+
+Oskar is of the opinion that we can replace the current session restart
+code, which does some PK operations, with something like this:
+
+Alice:
+        Token =3D H(bob's PK XOR my PK + session key)
+        Send Token + H(bob's PK + token)
+
+Bob:
+        If gets it all right, accept it and send IV
+        If gets H(bob's PK + token) right (he sent token, we know our
+         own PK), we know he knows our key, so send a hangup byte (and
+         go to inbound neg with no known session)
+        If gets it all wrong, close the connection
+
+Do you concur? We will need to implement a new session version anyway 
+for various reasons in the not too distant future, so now is a good time
+to do this. Are there any security issues you can see that are present
+in this version and not in the original?
+
+-------------------------------------------------------------------------
+
+We need to discuss this, if you have a log of that conversation it
+would be useful, and we did revise it a bit since then - I think we
+changed or got rid of the pubkeys... Also there is a trivial detail,
+which is that we need to allow some binary fields just after negotiation
+so we can send for example the detected IP address of the node on the
+other end - that is fairly trivial though, just do
+<option number byte><length of option><option content>
+....
+<0 => end>
+
+I am keeping this on devl so I have some sort of record of it.
+_______________________________________________  
+devl mailing list
+devl@freenetproject.org
+http://hawk.freenetproject.org:8080/cgi-bin/mailman/listinfo/devl
+==============================================================================
+Note: amphibian has a hardcopy of an IRC conversation after that with Scott,
+we thrashed out a sessionv2 design for both connections and packets.
+==============================================================================
+Add more notes here.

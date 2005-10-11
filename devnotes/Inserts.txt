@@ -1,0 +1,153 @@
+Notes on future changes to node behaviour w.r.t. inserts
+--------------------------------------------------------
+Address inserts properly in NGRouting. The sequence is:
+<toad_> we send InsertRequests
+<toad_> we get back an InsertRepluy
+<toad_> then we send DataInsert
+<toad_> and wait for an Accepted
+<toad_> THEN we start sending
+<toad_> the request chain is we send DataRequest, they send Accepted, they
+          send DataReply
+
+
+
+<sanity> toad_: might be safer not to report insert times, since they aren't
+          really the same thing as requests and could skew results
+<toad_> sanity: well... maybe
+<toad_> but what if the node only has inserts?
+<sanity> toad_: well...
+<toad_> if for some reason it gets lots of them?
+<sanity> toad_: ultimately we need a more enlightened way to estimate and
+          report inserts
+<toad_> they'll be skewed by two things... 1) asymmetrical transfer rates, and
+          2) the extra message involved
+<emu10k1> where can i wget the latest build with NGR ?
+<toad_> yeah but generally we need to route inserts to the node with the best
+          request performance
+<toad_> emu10k1: http://freenetproject.org/snapshots/freenet-exp-latest.jar
+<toad_> rename to freenet.jar
+<emu10k1> thank you
+<toad_> sanity: well, sometimes we will have a lot of inserts and few requests
+          (but only on transients)
+<toad_> the attack is for the node to be good at requests but swallow inserts
+<toad_> i have no idea how to fix that
+<sanity> the time required for inserts should be proportional to tDnf
+<toad_> short of making the insert a full cycle thing, inserting to one node
+          then pulling it out another one
+<toad_> at the FNP level
+<toad_> that'd be cool
+<sanity> ultimately we could have a completely separate set of RTEs and
+          estimators to deal with inserts
+<toad_> but a significant change
+<toad_> yes, we could, but then what?
+<toad_> inserts at the start would be crap
+<toad_> and would remain so for a considerable period
+<sanity> well, inserts at the start would be routed on the basis of tDnnf
+<sanity> tDnf even
+<toad_> well
+<toad_> lets see
+<toad_> <toad_> we send InsertRequests
+<toad_> <toad_> we get back an InsertRepluy
+<toad_> <toad_> then we send DataInsert
+<toad_> <toad_> and wait for an Accepted
+<toad_> <toad_> THEN we start sending
+<toad_> <toad_> the request chain is we send DataRequest, they send Accepted,
+          they
+<toad_>           send DataReply
+<toad_> so
+<sanity> ok, so tDnf can estimate the time between InsertRequests and
+          InsertReply
+<toad_> the first phase, from us sending an IReq to us getting an IReply, will
+          be roughly tDNF
+<toad_> yeah
+<sanity> the time between InsertReply and DataInsert will probably be
+          proportional to tDnf too
+<sanity> sorry, i mean the time between sending DataInsert and getting
+          Accepted
+<toad_> yeah, hopefully
+<sanity> and the time to send the data will be proportional to tTransferRate
+<toad_> the transfer rate will be completely different from any current
+          estimator, because most links are asymmetrical
+<sanity> yes, we track a multiplier - so tInsertTransferRate = M *
+          tRequestTransferRate
+<toad_> you think it would be constant per node?
+<sanity> well - how complicated do you want it to be
+<toad_> anyway how would we track a multiplier?
+<toad_> well
+<sanity> i mean, i am just trying to find something good enough to prevent
+          abuse
+<toad_> we could keep a separate transfer rate multiplier
+<sanity> if we are looking for perfection you can start your PhD thesis today
+          :-)
+<toad_> but our current schemes cannot guard against abuse on inserts anyway
+<toad_> inserts are down to trust, sadly
+<sanity> exactly
+<toad_> unless we change FNP so that we don't accept the insert is executed
+          until we can fetch the data from an unrelated node
+<sanity> my point is that if it weren't for the possibility for abuse we
+          wouldn't have to worry about any of this
+<sanity> so whatever solution we come up with only needs to be good enough to
+          prevent abuse
+<sanity> it doesn't have to be perfect
+<toad_> well, the common attack would be to quickly but not too quickly
+          swallow an insert without caching or forwarding it
+<sanity> basically we need to remove any incentive for an attack to impose
+          artificial delays on inserts
+<toad_> requests are self-regulating
+<sanity> yes, but if we do this inserts can be self-regulating too
+<sanity> it just isn't necessary to go overboard
+<toad_> ah point, if inserts are ignored, then there would be an incentive to
+          serve them slowly
+<sanity> exactly
+<toad_> no, inserts can't be self regulating with the current FNP
+<sanity> well, we can punish a node when it does something abusive
+<toad_> requests can be because we get something concrete out of it
+<toad_> which can't be faked
+<sanity> oh, well - yes, that is true
+<toad_> inserts CAN be faked
+* toad_ has concerns about hacked leech nodes that do this becoming popular
+<sanity> we *could* address that by automatically requesting something we just
+          inserted from somewhere else and tracking the probability with which
+          it can't be found
+<toad_> indeed
+<toad_> which is already done by insert utilities
+<toad_> but it's pretty slow given the current state of the network
+<sanity> yeah, that sounds more like a client thing than something the node
+          should do - but in this case the node would have to do it
+<toad_> there is also the question of how stubborn we want to be, and if we
+          regard it as a failure of the insert if we can't find it
+<toad_> the problem with that is if we retry we might run into the node's
+          alter ego
+<sanity> the cost of not finding it is the cost of inserting it again
+<toad_> but at least we know it served it once
+<toad_> actually
+<sanity> actually, the cost of not finding it is the cost of inserting it,
+          requesting it, and inserting it again i suppose
+<toad_> with premix routing, the alter-ego node can't tell it was us
+<toad_> the cost of not finding it is the cost of a full insert
+<toad_> like with requests
+<toad_> we can keep a global estimator, like with inserts
+<sanity> well, it is also the cost of the request to discover that it hadn't
+          been inserted
+<sanity> i just kind feel that this shouldn't be top of the NGR TODO list
+          right now
+<sanity> ...given that this threat has existed in Freenet from day one
+<toad_> well, it's something to look at for the medium term. it's something
+          that MUST be solved prior to 1.0 :)
+<sanity> absolutely
+<toad_> and has not really been discussed while I've been on the list (years!)
+<sanity> definitely put it in the TODO
+<sanity> i don't recall it ever really being discussed, but we have only
+          really started to nail these things down with NGR
+<toad_> it probably wouldn't be an actual FNP change
+<toad_> but it would affect low level node behaviour
+<sanity> i see no reason that FNP would need to chagbe
+<sanity> change eve
+<sanity> n
+<toad_> well, the point is it can't be done entirely client level
+<sanity> agreed
+* toad_ would post to the ML, but there seems to be a dearth of intelligent
+          life there whenever I have something important to discuss lately
+
+Also, inserts are slowed down by the incoming data!!
+Maybe we should not log a transfer for the inserts at all?

@@ -1,0 +1,2 @@
+#!/bin/bash
+sed -n "s/^Success ratio on last 10K reqs: \([0-9\.]*\) .*/\1/p" | (y=0; while read x; do y=$((y+2500)); echo $y $x; done)

@@ -1,0 +1,192 @@
+Notes on reforming the HTL system
+===============================================================================
+Prolog: this will be less necessary once we implement premix routing.
+- amphibian.
+===============================================================================
+From: kjellrs@stud.ntnu.no
+To: devl@freenetproject.org
+Subject: [freenet-dev] Architecture - HTL system
+===============================================================================
+Presumably this post belongs in the tech section, but I didn't see much except SPAM in the archives. Didn't see
++anything like it in the devl archives either, so here goes.
+
+This is about HTL 25 and identification of the nodes inserting and requesting informations. To achieve maximum
++reach, most programs will increase the HTL on both gets and inserts to 25 if needed. The problem with this is
++that this also means the node using that is also the originating node, since the default HTL max limit is 25,
++and so any neighbouring node could monitor them. I wonder whether this problem could be solved by not making
++HTLs absolute, but rather probabilistic. This means that a server will decrease HTL with 1 with a probability
++p%, or pass it on with same HTL with probability (1-p%). In fact, I'd consider it a good thing for the entire
++HTL system as it makes nothing certain about the number of hops to or from anything, making trafic analysis
++difficult. However, to keep it from being too varying, it should be less and less likely the lower the HTL.
++I've played around a bit with the numbers in Excel with @RISK and came up with a TTL (time to live) formula
++that g
+ ives results like this:
+
+New      Old    (5%th-95%th percentile)
+TTL  5 = HTL  5 (HTL05-05)
+TTL 10 = HTL 10 (HTL10-11)
+TTL 15 = HTL 16 (HTL15-18)
+TTL 20 = HTL 25 (HTL21-29)
+
+Chance that a TTL20 insert/get is the original inserter/requester: 47%
+Chance that a TTL19 insert/get is next to inserter: 22%
+
+Tranlation: Finding the original inserter will be a really big bitch.
+
+Pseudocode: IF(OldTTL^3/15000 < RAND()) THEN NewTTL = OldTTL ELSE NewTTL = OldTTL-1, where RAND() is a random
++number between 0 and 1.
+
+Potentially, the transition could be fairly easy, if the new nodes simply reduce HTL > 20 to TTL 20 and pass it
++on. while old nodes use the same as HTL. In a worst case scenario, you lose 5 hops HTL 25 -> TTL 20 -> HTL
++again (or gain 5, if you get both HTL 25->20 + TTL hops).
+
+My java knowledge is less than stunning, but I think the idea is sound and the numbers good. Let me know what
++you other people think, and if you are interested. I could try to implement it myself, but I'd probably
++introdouce a dozen Heisenbugs in the process, so suggest that at your own risk :)
+
+Kjella
+===============================================================================
+>  ives results like this:
+
+Actually, it needs to have an increasing probability for really low HTLs
+to avoid node probing. We currently have a 30% or so chance of not
+decrementing the HTL at 1, which rapidly tails off and is insignificant
+when you get to the starter HTLs you are talking about.
+
+Also, the HTL of queries is randomized a bit before they are started in
+the current codebase - a request at HTL 25 may end up as HTL 22.
+>
+> New      Old    (5%th-95%th percentile)
+...
+> Tranlation: Finding the original inserter will be a really big bitch.
+
+The problem is that sometimes people download large bunches of files
+at once, e.g. splitfiles or large freesites, so the attacker will be
+able to do statistical attacks. The solution is something called premix
+routing, where we use something resembling mixmaster so that the first
+two hops are random, the first hop knows the originator of the request
+but not the key, and the second knows the key but not the originator.
+
+>
+> Pseudocode: IF(OldTTL^3/15000 < RAND()) THEN NewTTL = OldTTL ELSE NewTTL = OldTTL-1, where RAND() is a random
++number between 0 and 1.
+
+Hrmm.
+>
+> Potentially, the transition could be fairly easy, if the new nodes simply reduce HTL > 20 to TTL 20 and pass 
++it on. while old nodes use the same as HTL. In a worst case scenario, you lose 5 hops HTL 25 -> TTL 20 -> HTL 
++again (or gain 5, if you get both HTL 25->20 + TTL hops).
+>
+> My java knowledge is less than stunning, but I think the idea is sound and the numbers good. Let me know what
++you other people think, and if you are interested. I could try to implement it myself, but I'd probably
++introdouce a dozen Heisenbugs in the process, so suggest that at your own risk :)
+
+Hrmm.
+>
+> Kjella
+[ - amphibian ]
+===============================================================================
+From: Kjell Rune Skaaraas <skaaraas@yahoo.no>
+To: devl@freenetproject.org
+Subject: [freenet-dev] Architecture - HTL system
+
+Hi!
+
+First things first, I didn't want to sign up my Uni
+email for mailing lists (it gets enough crap as it is)
+but I'm the same as kjellrs(at)stud.ntnu.no
+
+>Actually, it needs to have an increasing probability
+>for really low HTLs to avoid node probing. We
+>currently have a 30% or so chance of not decrementing
+
+>the HTL at 1, which rapidly tails off and is
+>insignificant when you get to the starter HTLs you
+>are talking about.
+
+The node probing problems sounds like the exact
+opposite of the insertion problem. However, I couldn't
+figure out where in the code this was, and it would
+give me the correct numbers (variance in start +
+variance in end = total variance?). I did find the
+standard reduction by (at least, didn't get the 'at
+least' part) 1 in
+freenet/node/states/request/Pending.java, but not the
+formula you're referring to. I guess I'll keep
+digging.
+
+>Also, the HTL of queries is randomized a bit before
+>they are started in the current codebase - a request
+>at HTL 25 may end up as HTL 22.
+
+If I understand this correctly, that would be the
+perturbHTL in Node.java. It would appear to be at most
+?2, but the biggest problem is still that a maxHTL of
+25 is a smoking gun, since no other node would send
+out a maxHTL of 25. In fact, it could turn requests at
+23 and 24 into maxHTL 25, turning them into smoking
+guns. A little mix and match of this idea and mine
+could prove useful though and could improve on my
+solution, but I still need to find that low-end HTL
+code.
+
+>The problem is that sometimes people download large
+>bunches of files at once, e.g. splitfiles or large
+>freesites, so the attacker will be able to do
+>statistical attacks. The solution is something called
+
+>premix routing, where we use something resembling
+>mixmaster so that the first two hops are random, the
+>first hop knows the originator of the request but not
+
+>the key, and the second knows the key but not the
+>originator.
+
+I looked into it and I have one problem in
+understanding premix routing. In order to encrypt it
+with the public key of the second node, you must have
+some way of knowing this key. However, you can not go
+through the first node, obviously, as that one can
+simply claim to give you this key, while in reality
+faking it and decrypt both first and second part
+itself. Going through any other node means that you
+are completely dependent on the existance of a route
+between those two specific hosts, which is close to
+impossible on Freenet. I suppose that works for
+Mixmaster and TCP/IP, but I don't see it working very
+well over the Freenet protocol.
+
+Kjella
+==============================================================================
+From: Kjell Rune Skaaraas <skaaraas@yahoo.no>
+To: devl@freenetproject.org
+Subject: [freenet-dev] HTL system - java code...
+
+Here's working code of a better and more anonymous HTL
+system, at least for small sample sizes (I'd say <
+5mb). If anyone is trying to share an ISO through
+Freenet, I don't think it's possible to protect their 
+anonymity no matter what.
+
+Since I haven't got anything but anon CVS access yet,
+and I'm sure you all love attachments on mailing
+lists,  I put the two changed files up on
+http://stud.ntnu.no/~kjellrs/freenet.html as well as
+some graphs indicating what exactly these changes will
+do. I could post you the simulation files, but they'd
+be useless without the commercial simulation package
+(got Students Edition with a book).
+
+As for the Java code, well it compiles. I'm trying to
+do some debugging but can't seem to get it started. Is
+there anything more I should do than to replace the
+old jar with the one I built? Getting ERROR): Failed
+to load service: mainport, and I'm pretty damn sure I
+haven't been messing with any services...
+
+Kjella
+==============================================================================
+Kjella is wrong. We can protect big splitfile downloads IMHO, as long as
+we implement a pre-routing mixnet stage. - amphibian
+==============================================================================
+Add more notes here

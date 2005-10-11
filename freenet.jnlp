@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JNLP File for Freenet -->
+<jnlp
+  spec="1.0+"
+	codebase="http://freenetproject.org/snapshots/"
+	href="freenet.jnlp">
+	<information>
+		<title>Fred</title>title>
+		<homepage href="http://freenetproject.org/"/>
+		<description>Freenet Java Reference Implementation</description>
+		<description kind="short">
+			An application designed to ensure true freedom of 
+			communication on the Internet
+		</description>
+		<offline-allowed/>
+		</information>
+		<security>
+			<all-permissions/>
+		</security>
+</jnlp>

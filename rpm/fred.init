@@ -1,0 +1,19 @@
+#!/bin/sh
+
+. /etc/init.d/functions
+
+start() {
+    action "Starting Fred:" true
+}
+
+stop() {
+    action "Stopping Fred:" true
+}
+
+case "$1" in
+    start) start ;;
+    stop) stop ;;
+    restart) stop; start ;;
+    *) echo "Usage: $0 {start|stop|restart}"; exit 1
+esac
+

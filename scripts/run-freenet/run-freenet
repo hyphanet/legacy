@@ -1,0 +1,315 @@
+#! /bin/bash
+
+## Copyright (C) 2003 Francesco Potort?
+## Made on July 2003 by Francesco Potort? <pot@gnu.org>
+## Current version is 1.45 (2004/07/21 12:15:27)
+## available at <ftp://fly.cnuce.cnr.it/pub/software/unix/run-freenet>
+## This program is released under the GNU GPL, whichever version,
+## which is available at http://www.gnu.org/licenses/gpl.txt
+##
+## TODO:
+## - read store location, port number and log file name from freenet.conf
+## - autotuning of OLDFILESAGE (how?)
+
+################################################################
+## Parameters
+#
+# All the following variables are read from the environment
+# and set only when they are not present in the environment
+#
+: ${CLIENTHOST:=localhost}	# the server web interface host
+: ${CLIENTPORT:=8888}		# the server web interface port
+: ${STORE:=store}		# the store directory
+: ${LOGFILE:=freenet.log}	# the freenet server log file
+: ${LOGLEN:=2000000}		# length LOGIFLE is truncated at restart
+: ${PIDFILE:=freenet.pid}	# the freenet server pid file
+: ${SLEEPBETWEENTESTS:=77}	# seconds to sleep beteen tests
+: ${TUNESLEEP:=55.6}		# seconds to sleep beteen tests when --tune
+test "$ARGS" || unset ARGS	# arguments to start-freenet.sh
+
+: ${MINRUNMINUTES:=6}		# grace time after server start
+: ${OLDFILESAGE:=11}		# age in minutes of old files
+: ${MAXRUNHOURS:=666}		# max server running time in hours
+: ${MINGCCOUNT:=10}		# min green connections lately
+: ${GCCOUNTS:=30}		# no. of readings of green connections
+## End of parameters
+################################################################
+## Initialisation
+#
+export LC_ALL=C                 # standard messages from programs
+progname=$(basename "$0")       # this program's name
+runpidfile=run-freenet.pid	# pid file name
+
+force=                          # flag: force a server restart
+stop=				# flag: kill other instances and the server
+restart=			# flag: kill other instances, then go on
+tune=                           # flag: print tuning messages
+
+function usage {
+    cat <<EOF
+usage: $progname [options] [-- <arguments for start-freenet.sh>]
+
+$progname is used to control a freenet server and restart it
+automatically when necessary.  It exits if detects another copy of
+itself running, but see the --restart option.
+
+$progname checks whether a freenet server is already running,
+and starts a new one if it is not.  It then periodically checks
+that the freenet server responds to connections from $CLIENTHOST
+to the port $CLIENTPORT, that one of $STORE or the *_[ab] files has been
+modified in the last OLDFILESAGE minutes (default $OLDFILESAGE), that the
+server has not run for more than MAXRUNHOURS hours (default $MAXRUNHOURS),
+that the Java memory heap is not exhausted and that at least
+MINGCCOUNT (default $MINGCCOUNT) connections have been green in the routing
+table lately (default $((SLEEPBETWEENTESTS*GCCOUNTS/60)) minutes).
+If one of these checks fails, $progname runs the shell command line
+contained in BEFORERESTART and then restarts the freenet server.
+
+A typical invocation on a Linux box would be:
+BEFORERESTART='./update.sh' $progname
+
+List of options:
+  --force | -f
+	force a freenet server restart
+  --stop
+	kill one other instance of $progname and the freenet server
+  --restart | -r
+	kill one other instance of $progname, if any, then proceed
+  --tune | -t
+	print some messages useful for tuning OLDFILESAGE
+  --quiet | -q
+	never print any messages
+  --help | -?
+	print this help and exit
+
+The environment variables CLIENTHOST, CLIENTPORT, STORE, LOGFILE and
+PIDFILE can be used to set the server web interface host and port, the
+store directory, the freenet server log file name and pid file name,
+respectively.
+
+Time of day in messages is in UTC, in a format similar to that used in
+the $LOGFILE file.
+
+EOF
+}
+
+# Read arguments
+while [ "$1" ]; do
+    case "$1" in
+	--force|-f)   force=true ;;
+	--restart|-r) restart=true ;;
+	--stop)       stop=true ;;
+	--tune|-t)    tune=true ;;
+	--quiet|-q)   exec >/dev/null 2>&1 ;;
+	--) shift; ARGS=("$@") ;;   #  rest of arguments are for freenet
+	*) usage; exit 0 ;;
+    esac
+    shift
+done
+
+################################################################
+# Service functions
+function byebye { rm --force $runpidfile; exit 0; }
+function fnettime { date --utc +'%d-%b-%y %r'; }
+function oldfiles { test -z "$(find $STORE *_[ab] -maxdepth 0 -mmin -$1)"; }
+function otherpid { test -r $runpidfile && test "$(find $runpidfile -maxdepth 0 -mmin -$1)"; }
+function executable_in_path { type -t "$1" >/dev/null; }
+
+# usage: gccountinit
+#	 gccounttest
+# Functions for managing the ring of the last GCCOUNTS green connections
+# counts: gccountinit inits the ring, gccounttest fails if all the
+# counts in the ring are lower than MINGCCOUNT.
+function gccountinit { gc=$MINGCCOUNT; gcindex=1; }
+function gccounttest { 
+    local c
+    gc[gcindex++]=$greencontacts	# push the last count onto the ring
+    ((gcindex %= GCCOUNTS))		# advance the ring index
+    for c in ${gc[@]}; do		# check all the counts in the ring
+	((c >= MINGCCOUNT)) && return	# return if a good one found
+    done
+    false				# no good one found
+}
+
+# usage: runhours
+# prints the number of hours the freenet server has run
+function runhours {
+    local h
+    for (( h=1; h<9999; h++ )); do
+	if [ "$(find $PIDFILE -maxdepth 0 -mmin -$((60*h)))" ]; then 
+	    break
+	fi
+    done
+    echo $((h-1))
+}
+
+
+# usage: connectfail
+# fails if a connection can be established to the freenet server;
+# as a side effect sets the unusedmem variable to a string containing
+# the amount of unused Java heap memory, and the greencontacts variable
+# to the number of good contacts in the routing table
+if executable_in_path wget; then
+    function connectfail {
+	local urlum=http://$CLIENTHOST:$CLIENTPORT/servlet/nodeinfo/internal/env
+	local urlgc=http://$CLIENTHOST:$CLIENTPORT/servlet/nodestatus/nodestatus.html
+	unusedmem=$(wget --quiet --tries=1 --output-document=- $urlum |
+	    sed -n '/Unused.*memory/s/.*>\([N1-9][^<>]*\)<.*/\1/p')
+	if [ ${PIPESTATUS[0]} != 0 -o -z "$unusedmem" ]; then return; fi
+	greencontacts=$(wget --quiet --tries=1 --output-document=- $urlgc |
+	    egrep --count --ignore-case 'color="green"> |okay')
+	test ${PIPESTATUS[0]} != 0 || ((greencontacts==0))
+    }
+else
+    unusedmem="N/A"
+    greencontacts="N/A"
+    if executable_in_path nc; then
+	echo "$progname: wget not found, running with reduced functionality." >&2
+	function connectfail { ! nc -z -w 20 $CLIENTHOST $CLIENTPORT 2>/dev/null; }
+    else
+	echo "$progname: neither wget nor nc found, running with reduced functionality." >&2
+	function connectfail { false; }
+    fi
+fi
+
+
+# usage: heartbeat
+# touches the runpidfile and sleeps
+function heartbeat {
+    if ! echo $$ >$runpidfile; then
+	echo "$progname: cannot write to $runpidfile, exiting." >&2
+	exit 10
+    elif sleep $SLEEPBETWEENTESTS; then
+	: ok
+    else
+	retval=$?
+	echo "$(fnettime): sleep exited with code $retval, ignoring." >&2
+    fi
+}
+
+
+# usage: gracetime
+# waits at least for $MINRUNMINUTES after server start
+function gracetime {
+    while [ "$(find $PIDFILE -maxdepth 0 -mmin -$MINRUNMINUTES)" ]; do
+	heartbeat
+    done
+}
+
+
+# usage: truncatehead <len> <file>
+# truncates a file to the given len, deleting its head
+function truncatehead {
+    local seek=$1
+    local file="$2"
+    local len=0
+
+    if [ -s "$file" ]; then
+	len=$(ls -l "$file" | awk '{print $5}')
+    fi
+    if [ $len -gt $seek ]; then
+	tail -c $seek "$file" | dd of="$file" 2>&1
+    fi | egrep -v 'bytes transferred in| records [io][nu]' >&2
+}
+
+# usage: restartserver
+# stops any running freenet server, starts a new one with args in ARGS,
+# then sleeps
+function restartserver {
+    local s
+    echo -n "  $(fnettime) restarting freenet server in 9 seconds "
+    for ((s=0; s<9; s++)); do sleep 1; echo -n .; done
+    ./stop-freenet.sh 2>/dev/null
+    truncatehead $LOGLEN $LOGFILE
+    test "$BEFORERESTART" && bash -c "$BEFORERESTART"
+    set -o monitor
+    ./start-freenet.sh "${ARGS[@]}" &
+    set +o monitor
+    #echo -n \`./start-freenet.sh "${ARGS[@]}"\' 
+    echo " done (pid $!)."
+    heartbeat; gracetime
+    gccountinit
+}
+
+# End of initialisation
+################################################################
+# Initial checks
+
+if [ ! -x start-freenet.sh -o ! -x stop-freenet.sh ]; then
+    echo $progname: must be run in the freenet directory
+    exit 1
+fi
+
+if [ -s $runpidfile ]; then		# another copy is maybe running
+    echo -n "$progname: another copy may be running as pid $(cat $runpidfile)..." &&
+    if kill -0 $(cat $runpidfile) 2>/dev/null &&	# program exists
+	[ "$(cat $runpidfile)" != $$ ] &&	# program is not me
+	otherpid 5 &&			# was living five min ago
+	sleep 310 &&			# wait five minutes
+	otherpid 5; then		# was living five min ago
+	if [ "$restart" -o "$stop" ]; then
+	    echo " killing it."
+	    kill $(cat $runpidfile)	# kill other copy
+	else
+	    echo " yes, exiting."
+	    exit 2
+	fi
+    else
+	echo " no, removing stale pid file."
+    fi
+    > $runpidfile			# clear stale pid file
+fi
+
+if [ "$stop" ]; then
+    ./stop-freenet.sh 2>/dev/null
+    exit 0				# nothing more to do
+fi
+
+# End of initial checks
+################################################################
+
+trap 'echo "$message"; byebye' HUP INT	# print a message on exit
+trap 'byebye' TERM			# exit silently
+	
+if ! kill -0 $(cat $PIDFILE) 2>/dev/null || [ "$force" ]; then
+    restartserver
+else
+    echo "$(fnettime): freenet server running (pid $(cat $PIDFILE))."
+    gracetime
+    gccountinit
+fi
+
+[ "$tune" ] && SLEEPBETWEENTESTS=$TUNESLEEP # ease tuning
+
+while true; do
+    message=$(echo -n 'files:'
+	for ((t=1; t<21; t++)); do
+	    printf "%d" $(find $STORE *_[ab] -maxdepth 0 -mmin $t | wc -l)
+	done | tr 0 .)
+    if oldfiles $OLDFILESAGE; then
+	echo "Problem: files not updated in $OLDFILESAGE minutes"
+	[ "$tune" ] && ls -ltd store *_[ab]
+    elif connectfail && connectfail && connectfail; then
+	echo "Problem: connection to $CLIENTHOST:$CLIENTPORT failed"
+    elif [ "$unusedmem" = "None" ]; then
+	echo "Problem: Java memory heap exhausted"
+    elif ((MAXRUNHOURS > 0)) && (($(runhours) >= MAXRUNHOURS)); then
+	echo "Problem: maximum running time ($MAXRUNHOURS hours) exceeded"
+    elif ! gccounttest; then
+	printf "Problem: green connections less than %d for %d seconds\n" \
+	    $MINGCCOUNT $((${SLEEPBETWEENTESTS%%.*} * GCCOUNTS))
+    else
+	if [ "$tune" ]; then
+	    printf "%s|mem:%12s|gc:%3d|hrs:%3d|fnettime:%s\n" \
+                "$message" "$unusedmem" $greencontacts $(runhours) "$(fnettime)"
+	fi
+	message="$(fnettime): freenet server running (pid $(cat $PIDFILE))."
+	heartbeat
+	continue
+    fi
+    message=
+    restartserver
+done
+
+echo "$progname: abnormal exit from main loop: last exit code is $?" >&2
+exit 12
