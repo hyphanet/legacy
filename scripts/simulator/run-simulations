@@ -1,0 +1,14 @@
+#!/bin/bash
+# Copy the jars
+mkdir -p /var/log/freenet-experimental/simulator
+cd /var/log/freenet-experimental/simulator
+cp /usr/src/cvs/freenet-unstable/lib/freenet.jar /usr/src/cvs/freenet-unstable/lib/freenet-ext.jar .
+#for x in "fastestimators pcaching smoothing newbie" "fastestimators pcaching newbie" "fastestimators nopcaching newbie" "pcaching random"; do 
+#for x in "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.1" "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.2"; do
+#for x in "fastestimators pcaching smoothing nonewbie noannounce movementfactor=0.025"; do
+#for x in "fastestimators pcaching nonewbie noannounce probeinexperience"; do
+for x in "fastestimators pcaching nonewbie probeinexperience randomizewhenequal sparseprobe"; do
+echo Running simulation with options: $x
+echo "java -Xmx256M -cp freenet.jar:freenet-ext.jar freenet.node.simulator.Main -- $x > /dev/null 2> simulator-`echo "$x" | tr " " "-"`-`date +%Y-%m-%d-%H-%M-%S`.log"
+java -Xmx256M -cp freenet.jar:freenet-ext.jar freenet.node.simulator.Main -- $x > /dev/null 2> simulator-`echo "$x" | tr " " "-"`-`date +%Y-%m-%d-%H-%M-%S`.log < /dev/zero &
+done

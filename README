@@ -1,0 +1,378 @@
+Fred 0.5
+========
+"It's kind of a mix of Usenet, the Web, and a RAID disk system, all fudged 
+up into a super-crypto wet dream" - The PigDog Journal
+
+1. Blame 
+-------- 
+1.1 People 
+---------- 
+Many people have contributed to the current codebase and it is
+impossible to list all of them, but those most likely to complain if
+they aren't included here are:
+
+Ian Clarke       - Project Founder, Coordinator, and Egomaniac
+Tavin Cole	 - Core Developer and Probable NSA Mole
+Gianni Johansson - Core Developer and Womanizer
+Scott Miller     - Crypto Guru and Alcohol Lightweight
+Matthew Toseland - Core Developer and Project Amphibian
+Oskar Sandberg   - Core Developer and Project Grouch
+
+1.2 Copyright
+-------------
+(c) Copyright 1999-2002 The Freenet Project Inc
+Released under the GNU Public License Version 2.
+
+2. Introduction 
+--------------- 
+Fred (FREenet Daemon) is the reference Java implementation of the Freenet
+Protocol.  Freenet is an architecture designed to permit true freedom of
+communication over the Internet.  The system is designed to be used in
+conjunction with one or more Freenet clients, and depending on the client,
+can look like the World Wide Web, a Usenet server, or a file-sharing
+application.  FProxy, a web interface to Freenet, is included.  See
+http://freenetproject.org/ for more information (and source code if you
+don't have it already).
+
+This software was brought to you by the letter P, and several randomly
+chosen large prime numbers.
+
+
+3. Running Freenet 
+----------------
+3.1 Requirements 
+----------------
+Freenet requires a Java Runtime Environment to be installed prior to use.
+Due to bugs in the current release version of Kaffe, and IBM's Java Runtime
+Environment, we strongly suggest that you use the latest version of Sun's 
+Java Runtime Environment for your platform (see http://java.sun.com/). If 
+you want to use fproxy, we STRONGLY recommend you use a web browser that 
+doesn't ignore MIME types... Mozilla and Konqueror are OK, Internet 
+Explorer will seriously jeopardize your anonymity. Freenet also requires
+that your system clock is within a few minutes of the actual time.
+
+----------------------------
+3.1.1 Dealing with firewalls
+----------------------------
+For a Freenet node to work correctly, other Freenet nodes must be able
+to open connections to it, and normally NATs or Firewalls will prevent
+this.
+
+If you are behind a NAT or firewall you must do several things:
+
+1) When Freenet asks you for your computer's IP address (ie. the
+   ipAddress setting in the freenet.conf file), you should give the
+   external address of your NAT or firewall. This will be under 
+   "expert" because freenet can now auto-detect the IP address of
+   most non-firewalled nodes.
+2) After you have completed the steps in section 3.2, you should check
+   the listenPort setting in your freenet.conf file.
+3) Configure your NAT or firewall to forward incoming TCP connections
+   on this port to your computer (see your NAT or firewall's manual
+   for instructions on how to do this)
+
+3.2 Starting Freenet
+--------------------
+On *NIX Type:
+> sh start-freenet.sh 
+
+To run Freenet.  The first time you run it it will ask you some questions 
+to create a configuration file (freenet.conf).  You can edit this
+manually later if you need to, but generally you shouldn't change
+anything unless you know what you are doing.
+
+3.3 Accessing Freenet via FProxy
+--------------------------------
+You can look at some websites in Freenet by visiting http://localhost:8888/
+in your web browser.  You can also find interesting information about what
+your node is doing there. Please read the SECURITY CAUTIONS below 
+BEFORE using a Web Browser with Freenet
+
+
+SETTING UP A BROWSER FOR BEST PERFORMANCE
+
+---Mozilla and Gecko Based Browsers(ie. Netscape):
+Many browsers limit the number of simultaneous connections to something far
+too low for efficiently browsing Freenet (since Freenet pages often have
+much higher latency than web pages). This can usually be reconfigured. For
+example, for Mozilla post-1.3, go to about:config, and change the following
+settings:
+
+network.http.max-connections				200
+network.http.max-connections-per-server			100
+network.http.max-persistent-connections-per-server	10
+network.http.max-persistent-connections-per-proxy	50
+
+For Mozilla prior to 1.3: create a file with the following contents called
+user.js in the directory with prefs.js, or append to an existing user.js:
+
+user_pref("network.http.max-connections", 200);
+user_pref("network.http.max-connections-per-server", 100);
+user_pref("network.http.max-persistent-connections-per-server", 10);
+user_pref("network.http.max-persistent-connections-per-proxy", 50);
+
+Note that these settings will cause mozilla to use more connections for
+all your browsing, which may not be desirable from a network congestion
+point of view; volunteers to make mozilla allow this sort of settings to
+be set per host would be welcome...
+
+---Opera Browser
+Go to File/Preferences/Network
+- set 'Max connections to a server' to 20, 32 or 64,  if you find you are getting 
+'could not connect to server' warnings adjust your setting one step down
+- set ''Max total connections' to one setting higher than max connections, 
+this will allow Freenet to use all connections available to it without interfering
+with web browsing ie. if Max to server is 32 then Max total should be 64
+
+Note that these settings will cause Opera to use more connections for
+all your browsing, which may not be desirable from a network congestion
+point of view
+
+
+SECURITY CAUTIONS
+
+---Mozilla and other Gecko-based browsers (i.e., Netscape, Firefox and
+possibly Galeon and a few others):
+
+The following is VERY IMPORTANT:
+
+For Mozilla prior to 1.3: create a file with the following contents called
+user.js in the same directory with prefs.js, or append to an existing user.js:
+
+user_pref("browser.goBrowsing.enabled", false);
+
+This disables Mozilla's default behaviour of feeding timed out
+queries into Google, thus DESTROYING YOUR ANONYMITY.
+
+In later versions of Mozilla, this setting can be edited within the program
+itself by typing the URL "about:config" into the URL location box, 
+right-clicking on "browser.goBrowsing.enabled" in the list of preferences
+that comes up, selecting "Modify", and changing the setting from true to false.
+
+---Microsoft Internet Explorer:
+Internet Explorer (all versions, we think) has a totally different
+ANONYMITY-DESTROYING BEHAVIOUR (not respecting MIME types), and also some 
+problems with auto-detecting UTF16 even when we tell it in the headers to use 
+some other charset). Internet Explorer is NOT recommended for 
+anonymous browsing
+
+---Opera Browser:
+Opera's default behaviour is similar to Internet Explorer's and can compromise 
+anonymity. Opera users MUST change the following setting to change this
+ANONYMITY-DESTROYING BEHAVIOUR:
+
+Go to File/Preferences/File types
+- Click on 'Determine action by MIME type
+
+---All Browsers:
+It is possible that the anonymity filter can be circumvented by other means, so
+if you care about your anonymity while browsing Freenet:
+a) Don't use Internet Explorer and setup Opera properly, see above.
+b) Turn off javascript, java, active scripting, and any other scripting your 
+browser supports.
+c) Set your browser to only load images, frames, etc from the server that 
+originated the web page
+d) Be extra paranoid! Keep your browser up to date etc. Extreme measures include 
+browser proxies that block everything except localhost:8888 HTTP, encrypted disk
+partitions or virtual disks, and so on.
+e) Set in your config file:
+mainport.params.servlet.1.params.filterParanoidStringCheck=true
+mainport.params.servlet.7.params.sfFilterParanoidStringCheck=true
+f) Consider using your operating system's security features to sandbox your 
+Freenet browsing. For example, on Linux, you can (after setting 
+httpInserts=false and fcpInserts=false in your freenet.conf) create a user 
+specifically for browsing freenet, only use that user to browse freenet, and
+type the following lines to prevent that user from accessing the regular 
+internet (assuming the safe user, which must not be the user running the node,
+is called "freenet"):
+
+# Accept TCP packets destined for local ports 8888 and 8481.
+iptables -A OUTPUT -d localhost -p tcp --dport 8888 -m owner --uid-owner freenet -j ACCEPT
+iptables -A OUTPUT -d localhost -p tcp --dport 8481 -m owner --uid-owner freenet -j ACCEPT
+
+# Drop everything else.
+iptables -A OUTPUT -m owner --uid-owner freenet -j DROP
+
+Your kernel must be configured with these options:
+
+	CONFIG_IP_NF_IPTABLES
+	CONFIG_IP_NF_MATCH_OWNER
+	CONFIG_IP_NF_FILTER
+
+Verify that the filter rules have been added:
+
+$ iptables -L OUTPUT
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+ACCEPT     tcp  --  anywhere             localhost          OWNER UID match freenet tcp dpt:8888
+ACCEPT     tcp  --  anywhere             localhost          OWNER UID match freenet tcp dpt:8481
+DROP       all  --  anywhere             anywhere           OWNER UID match freenet
+
+g) If you are accessing files that will get you into serious trouble, consider
+using something simpler than a web browser to access Freenet... or better yet,
+DON'T DO IT! This is still beta software, it probably has more bugs. Having 
+said that, millions of people access questionable content through much less 
+secure systems than Freenet. Use your common sense. You can't conceal the fact
+that you are running a freenet node from a determined attacker, because of the
+way Freenet works (path shortening - for more details visit our web site). 
+However short of compromizing your computer, other expensive forms of 
+surveillance, you doing something stupid, or more bugs, it should be very 
+difficult for them to find out _what_ you browse (or publish) on Freenet.
+
+What you want to prevent (in parts a,b,c) is freesites accessing the Real 
+Internet, and giving away the combination of your IP address along and the
+fact that you visited a given freesite or downloaded (or uploaded) a specific
+file. This is called a Web Bug, and the simplest form is an image in a 
+freesite loaded from somewhere on the real web - this gives away your IP 
+address, and the page you are browsing (if the attacker is clever, or you have
+Referer: turned on), to the server the image is downloaded from. Fproxy 
+(freenet's web interface) contains code ("the anonymity filter") to try to
+warn about or remove such things, but there could always be bugs in freenet or
+in your web browser that would let something through. You can of course reduce
+the likelihood of this by turning off images support in your browser.
+
+The following formats are known to be able to carry data that could compromize your
+anonymity (but there are no doubt many more that can do this):
+
+* RealPlayer
+* Windows Media Player
+* MP3s (some id3 tags cause winamp to open web sites and thus compromize your anonymity)
+* HTML and CSS, of course, hence the filter.
+
+Finally, you should disable your browser cache AND set the option mainport.params.servlet.1.params.noCache=true in your config file (to tell freenet to send no-cache directives to the browser).
+
+FILTER ISSUES FOR CONTENT AUTHORS
+---------------------------------
+
+Things to bear in mind when inserting HTML content/freesites:
+
+* The new filter is VERY fussy about quote marks. Something like:
+  <img src="something.png" width="95" height="32" alt="grey cat" align="left" "hspace="5">
+  or
+  <IMG SRC="../../../Blah/2//issue.png"" ALT="Issue 2" WIDTH=95 HEIGHT=32>
+  will confuse it... this is partly because the HTML 4.01 spec seems to imply that <> 
+  characters are allowed in strings inside tags. This should not be a problem using GUI
+  tools; it is however a problem if you write the HTML directly.
+* Charsets. If you want to insert a file with a charset other than the default iso-8859-1,
+  tell your insertion tool to use the new charset in the mime type, for example 
+  "text/html;charset=UTF16". The META tag to set the mime type is NOT supported. Neither
+  is the UTF16 byte order mark.
+* All unrecognized HTML tags are removed by fproxy, for security reasons.
+
+JVM ISSUES
+----------
+
+There are issues with lots of JVMs.
+* RedHat 9.0 and other distributions having Native Posix Threads are 
+  _very_ unstable. That's why the startup script has been modified to 
+  disable NPTL on Redhat; if you are using different distribution and you 
+  know or suspect that it is with NPTL, try seting LD_ASSUME_KERNEL=2.2.5. 
+  If this causes Freenet to fail to load with a library error, try 2.4.1, 
+  but 2.4.1 will not work with the 1.4.2 JRE at the time of writing. 
+  Hence, Gentoo requires the JRE to be Sun 1.4.1, not 1.4.2. :<
+* Beta versions of Sun 1.4 don't work; 1.4.1r01 seems to work OK; 1.4.0 won't
+  work due to significant changes to NIO made between 1.4.0 and 1.4.1
+* Even under the Sun JVM, we have numerous reports of the -server VM causing
+  wierd crashes. It has therefore been disabled in start-freenet.sh.
+* Sun-derived JDKs (Sun, Blackdown, IBM etc) prior to 1.4 do not work.
+* There are reports of exceptions on Blackdown that don't occur on Sun.
+* Kaffe 1.0.6 and prior do not work at all.
+* Kaffe 1.1 (possibly from CVS) will probably work, although it has a
+  few issues:
+    * Automatic detection of IP addresses is only done once at startup, so if
+      your IP address changes often, you will need to restart your node often.
+    * Mysteriously long delays acquiring locks and in other parts of the code
+      that can make the node think it is overloaded.
+* If you use Kaffe to run it, and you are not just using the provided JARs,
+  which _will_ work with Kaffe, you need a compiler. Jikes 1.14 works. Jikes 
+  1.15 and 1.16 at least don't work. Recent Jikes 1.18 CVS seems to work.
+* If you run on MacOS/X, there is a default file descriptor limit of 256. 
+  So Freenet uses a default connection limit of 128 if OS/X is detected, as 
+  it uses fds for many things other than connections). You will probably be
+  able to raise the limit with the command ulimit -n 1024, and then set
+  maxNodeConnections=512 explicitly in the config file. Most other unix(tm)
+  derived systems have a default limit of 1024, so they are ok (the default
+  512 connections should be plenty for most purposes).
+
+TWEAKING
+--------
+
+1. How To Speed Up Large Splitfiles
+-----------------------------------
+
+You can speed up splitfiles (FEC encoded splitfiles, the default), by using
+native compiled FEC libraries.
+
+Details are at this URL:
+http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/freenet/Contrib/fecimpl/onion/README?rev=HEAD&content-type=text/vnd.viewcvs-markup
+(that is fecimpl/onion/README in the freenet Contrib CVS module),
+
+The info on Native FEC support on the Nubile freesite (edition 11) is completly obsolete.
+
+The zip file that the readme refers to is in CVS (in the Contrib module,
+*not* the main freenet module).
+
+You can access it on the web here:
+
+http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/freenet/Contrib/fecimpl/onion/alien/fec-1.0.3.zip
+
+(Do a "Save link as..."  on the "(download)" link from your browser)
+
+I didn't deploy native FEC support by default because I didn't want to deal
+with the per platform configuration issues.   The instructions in the file
+given above are geared toward people who already know about JNI libraries.
+
+If someone out there wants to write per platform (*nix, Windows) end user
+install doc, suitable for inclusion in the generic Freenet README, that would
+be a valuable contribution to the project.
+
+-- gj
+
+4. Attributions
+----------------
+Special thanks to Justin Chapweske and Onion Networks
+(www.onionnetworks.com) for making their Java Forward 
+Error Correction (FEC) library available under 
+an open license.
+
+Here's the text of the Onion license that is embedded in
+freenet-ext.jar with the FEC plugin implementation:
+
+/*
+ * Java Forward Error Correction Library
+ * Copyright (C) 2001 Onion Networks
+ * Copyright (C) 2000 OpenCola
+ *
+ * Portions derived from code by Luigi Rizzo:
+ * fec.c -- forward error correction based on Vandermonde matrices
+ * 980624
+ * (C) 1997-98 Luigi Rizzo (luigi@iet.unipi.it)
+ *
+ * Portions derived from code by Phil Karn (karn@ka9q.ampr.org),
+ * Robert Morelos-Zaragoza (robert@spectra.eng.hawaii.edu) and Hari
+ * Thirumoorthy (harit@spectra.eng.hawaii.edu), Aug 1995
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above
+ *    copyright notice, this list of conditions and the following
+ *    disclaimer in the documentation and/or other materials
+ *    provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ */

@@ -1,0 +1,65 @@
+#!/bin/sh
+
+## Copyright (C) 2003 Francesco Potortì
+## available at <ftp://fly.cnuce.cnr.it/pub/software/unix/freenet-local>
+## This program is released under the GNU GPL, whichever version,
+## which is available at http://www.gnu.org/licenses/gpl.txt
+
+NAME=freenet-local
+DESC="freenet node server"
+
+# Set defaults. Please change these options in /etc/default/$NAME.
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+FPATH=/var/freenet
+USER=freenet
+PROG=run-freenet
+ARGS=
+LOGFILE=run-freenet.log
+
+# Read in local configuration.
+if [ -r /etc/default/$NAME ]; then
+  . /etc/default/$NAME
+fi
+
+test -x $FPATH/$PROG -a -x $FPATH/stop-freenet.sh || exit 0
+
+set -e
+
+cd $FPATH
+
+case "$1" in
+  start|force-reload)
+    # start the freenet server and the supervisor: if another
+    # supervisor is already running, replace it with new parameters
+    # from /etc/default/$NAME; if no freenet server is running, start
+    # one 
+    echo -n "Enabling $DESC: "
+    su $USER -pc "./$PROG --restart $ARGS > $LOGFILE 2>&1" &
+    echo "$PROG."
+    ;;
+
+  stop)
+    # start the freenet server and the supervisor: if another
+    # supervisor is already running, replace it with new parameters from
+    # /etc/default/$NAME; if a freenet server is already running,
+    # leave it alone 
+    #echo -n "Disabling $DESC: "
+    #su $USER -pc "./$PROG --stop >> $LOGFILE 2>&1"
+    #echo "$PROG."
+    ;;
+
+  restart)
+    # restart both the freenet server and the supervisor
+    echo -n "Restarting $DESC: "
+    su $USER -pc "./$PROG --restart --force $ARGS > $LOGFILE 2>&1" &
+    echo "$PROG."
+    ;;
+
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start|stop|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

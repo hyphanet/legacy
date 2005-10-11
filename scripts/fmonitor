@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Freenet monitor script.  Requires printf(1), nc(1) (netcat) and bc(1).
+# [cc] Counter-copyright 2003 Greg Wooledge.  This program is in the public
+# domain.  It may be used, distributed and/or modified without restrictions.
+
+# This program is provided "as is" without waranty of any kind, either
+# expressed or implied, including, but not limited to, the implied waranties of
+# merchantability and fitness for a particular purpose.  The entire risk as
+# to the quality and performance of the program is with you.  Should the
+# program prove defective, you assume the cost of all necessary servicing,
+# repair or correction.
+
+# You may be able to find older and/or newer versions of this program at
+# http://wooledge.org/~greg/fmonitor/ .  Then again, you may not.
+
+# Basic algorithm: we check the Local mean traffic (queries per hour)
+# via the web interface (default port 8888) every 60 seconds.  We keep
+# a running average of the last three values, to avoid weirdness from any
+# sudden spikes.
+#
+# Using the running average values, we keep track of the peak traffic
+# that the node has seen.  If the running average for the node falls below
+# epslion percent of the peak, we do something.
+
+# Configuration variables:
+
+NODEHOST=127.0.0.1
+NODEPORT=8888
+LOADURL=/servlet/nodeinfo/networking/loadstats
+GREPSTRING='Local mean traffic'
+# The exact format of the line is somewhat hard-coded in the script below.
+# So it's not *completely* configurable using only these variables.
+
+SLEEPTIME=60
+EPSILON=0.05
+ACTION='echo Peak $peak last2 $last2 last1 $last1 now $now |
+    mailx -s "Your node needs you" greg; exit 0'
+
+
+# Internal variables:
+
+peak=0
+last2=0
+last1=0
+now=0
+
+# Main loop:
+
+while :; do
+    last2=$last1
+    last1=$now
+    now=`printf "GET $LOADURL HTTP/1.0\n\n" | nc $NODEHOST $NODEPORT |
+        grep "$GREPSTRING" | sed -e 's#^.*: ##' -e 's#</li>$##'`
+    average=`printf "scale=2\n ($last2 + $last1 + $now) / 3\n" | bc`
+    printf "%s  %.2f\t%.2f\t%.2f\t%.2f\n" \
+        `date +%H:%M` $last2 $last1 $now $average
+
+    # bc returns 1 if the expression is true.  We can't do floats in /bin/sh.
+    if [ `echo $average \> $peak | bc` = 1 ]; then
+        peak=$average
+	echo "** New peak $peak"
+    elif [ `echo $average \< \($peak \* $EPSILON\) | bc` = 1 ]; then
+	echo "** Load $average less than $EPSILON of peak $peak"
+        eval $ACTION
+    fi
+    sleep $SLEEPTIME
+done

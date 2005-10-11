@@ -1,0 +1,300 @@
+<!-- ======================================================================= -->
+<!-- Ant build files for Freenet.                                            -->
+<!-- Please download and install ant from http://jakarta.apache.org/ant/     -->
+<!-- ======================================================================= -->
+<project name="Freenet" default="dist" basedir=".">
+	<property name="name" value="freenet"/>
+	<property name="version" value="0.6"/>
+	
+	
+	<!-- Replace this with classic/modern/jikes as you like -->
+	<property name="build.compiler" value="modern"/>
+
+	<!-- set global properties for this build -->
+	<property name="src"	location="src"/>
+	<property name="build"	location="build"/>
+	<property name="lib"	location="lib"/>
+	<property name="dist"	location="dist/${name}-${version}"/>
+	<property name="docs"	location="docs/api"/>
+	<property name="rpm"	location="rpm"/>
+
+	<property name="jar.location" location="${lib}/freenet.jar"/>
+	<property name="freenet-ext.location" location="${lib}/freenet-ext.jar"/>
+	<!-- this is where the Contrib directory is supposed to be. Override this
+	if necessary -->
+	<property name="contrib.location" location=".."/>
+	<property name="servlet.location" location="${contrib.location}/Contrib/freenet_ext/build_dir"/>
+	
+<!-- ======================================================================= -->
+    <target name="env"
+        description="Learn about the environment">
+		<available file="${lib}/freenet-ext.jar" property="freenet-ext.present"/>
+		<available classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" 
+		property="junit.present"/>
+		<available file="${lib}/junit-gpl.jar"	property="junit-gpl.present"/>
+		<available file="${contrib.location}/Contrib" property="contrib.present"/>
+		<available file="${dist}/seednodes.ref"	property="seednodes.present"/>
+    </target>
+    <target name="init" depends="env"
+        description="Create directories">
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}"/>
+		<mkdir dir="${dist}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${docs}"/>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="get-extjar" unless="freenet-ext.present"
+		description="Download some external libraries which Freenet relies on">
+		<get src="http://freenetproject.org/snapshots/freenet-ext.jar" 
+		 	dest="${freenet-ext.location}" 
+		 	verbose="true"
+		 	usetimestamp="true"/>
+		<property name="freenet-ext.present" value="true"/>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="get-seednodes" unless="seednodes.present"
+		description="Download some seednodes from a well-known location">
+		<get src="http://freenetproject.org/snapshots/unstable.ref.bz2" 
+		 	dest="${dist}/seednodes.ref.bz2" 
+		 	verbose="true"
+		 	usetimestamp="true"/>
+		<bunzip2 src="${dist}/seednodes.ref.bz2" dest="${dist}/seednodes.ref"/>
+		<property name="seednodes.present" value="true"/>
+	</target>
+	
+<!-- ======================================================================= -->
+
+	<target name="compile-servlet" depends="init" if="contrib.present" unless="freenet-ext.present">
+		<ant dir="${contrib.location}/Contrib/freenet_ext" target="servlet" inheritAll="false">
+			<property name="build" location="${servlet.location}"/>
+			<property name="classpath" location="${build}"/>
+		</ant>		
+		<property name="servlet.present" value="true"/>
+	</target>
+
+	<target name="compile-support" depends="init, compile-servlet" unless="freenet-ext.present">
+		<property name="support.location" location="${build}"/>
+		<javac destdir="${support.location}" source="1.4" target="1.4" debug="on" optimize="on">
+			<src path="${src}"/>
+			<include name="freenet/support/**"/>
+			<exclude name="**/*Test*.java"/>
+			<exclude name="**/*Benchmark.java"/>
+			<exclude name="**/SSL.java"/>
+			<classpath path="${servlet.location}"/>
+		</javac>
+		<property name="support.present" value="true"/>
+	</target>
+<!-- ======================================================================= -->
+	<target name="assure-junit" unless="junit.present"
+		description="Instruct the user to go out and get Junit">
+		<echo>
+			The test target requires the junit.jar from JUnit. 
+			Please download it from http://www.junit.org and add
+			it to your classpath (The easiest way to do this is to
+			put it in the ant/lib directory).
+		</echo>
+		<fail/>
+	</target>
+<!-- ======================================================================= -->
+
+	<target name="get-contrib" depends="init" unless="contrib.present"
+		description="Check some contributed packages out of CVS">
+		<cvspass cvsroot=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/freenet"
+			password="" />
+		<cvs cvsRoot=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/freenet"
+			command="-z3 co"
+			package="Contrib"
+			dest="${contrib.location}" />
+	</target>
+	
+	<target name="compile-ext" depends="init, compile-support" if="contrib.present" unless="freenet-ext.present">
+		<ant dir="${contrib.location}/Contrib/freenet_ext" target="jar" inheritAll="false">
+			<property name="build" location="${contrib.location}/Contrib/freenet_ext/build_dir"/>
+			<property name="classpath" location="${support.location}"/>
+		</ant>
+		<copy file="${contrib.location}/Contrib/freenet_ext/freenet-ext.jar" tofile="${freenet-ext.location}"/>
+		<property name="freenet-ext.present" value="true"/>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="compile" depends="init, compile-ext"
+		description="Build Freenet">
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac destdir="${build}" source="1.4" target="1.4" debug="on" optimize="on">
+			<src path="${src}"/>
+			<exclude name="**/test*/"/>
+			<exclude name="**/*Test*.java"/>
+			<exclude name="**/*Benchmark.java"/>
+			<exclude name="**/SSL.java"/>
+			<classpath path="${freenet-ext.location}"/>
+		</javac>
+		
+		<copy todir="${build}/freenet/node/http/templates">
+			<fileset dir="${src}/freenet/node/http/templates"/>
+		</copy>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="compile-tests" depends="compile" if="junit.present"
+		description="Compile the unit test classes">
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac destdir="${build}" source="1.4" target="1.4" debug="on" optimize="on">
+			<src path="${src}"/>
+			<include name="**/*Test*.java"/>
+			<classpath path="${freenet-ext.location}"/>
+			<classpath path="${jar.location}"/>
+		</javac>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="jar" depends="compile" unless="jar.present"
+		description="Create a .jar containing Freenet">
+		<jar jarfile="${jar.location}"
+			basedir="${build}"
+			manifest="${src}/node.manifest"
+			includes="**">
+			<exclude name="**/test*/"/>
+			<exclude name="**/*Test*.class"/>
+			<exclude name="**/*Benchmark.class"/>
+			<exclude name="**/SSL.class"/>
+		</jar>
+		<property name="jar.present" value="true"/>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="dist" depends="jar,get-seednodes"
+		description="Create a directory containing a cross-platform distribution">
+		<copy file="${jar.location}" tofile="${dist}/freenet.jar" />
+		<copy file="${freenet-ext.location}" tofile="${dist}/freenet-ext.jar" />
+		<copy file="README" tofile="${dist}/README" />
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="linuxdist" depends="dist"
+		description="Create a directory containing a Linux distribution">
+		<copy file="start-freenet.sh" tofile="${dist}/start-freenet.sh" />
+		<chmod file="${dist}/start-freenet.sh" perm="a+x"/>
+		<copy file="stop-freenet.sh" tofile="${dist}/stop-freenet.sh" />
+		<chmod file="${dist}/stop-freenet.sh"  perm="a+x"/>
+		<copy file="scripts/preconfig.sh" tofile="${dist}/preconfig.sh" />
+		<chmod file="${dist}/preconfig.sh" perm="a+x"/>
+		<copy file="scripts/update.sh" tofile="${dist}/update.sh" />
+		<chmod file="${dist}/update.sh" perm="a+x"/>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="rpmdist" depends="dist,linuxdist"
+		description="Create an RPM for Linux">
+		<copy file="${dist}/start-freenet.sh" tofile="/tmp/freenet/start-freenet.sh" />
+		<copy file="${dist}/stop-freenet.sh" tofile="/tmp/freenet/stop-freenet.sh" />
+		<copy file="${dist}/preconfig.sh" tofile="/tmp/freenet/preconfig.sh" />
+		<copy file="${dist}/update.sh" tofile="/tmp/freenet/update.sh" />
+		<copy file="${jar.location}" tofile="/tmp/freenet/freenet.jar" />
+		<copy file="${freenet-ext.location}" tofile="/tmp/freenet/freenet-ext.jar" />
+		<copy file="${dist}/seednodes.ref" tofile="/tmp/freenet/seednodes.ref" />
+		<rpm specFile="freenet.spec" />
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="test" depends="init, assure-junit, compile-tests"
+		description="Run Freenet's unit tests">
+		<junit>        
+			<classpath>
+				<pathelement location="${freenet-ext.location}" />
+				<pathelement location="${build}" />
+			</classpath>
+			
+			<formatter type="brief" usefile="false"/>
+			
+			<batchtest> 
+				<fileset dir="${src}">
+					<include name="**/*Test*.java" />
+				</fileset>
+			</batchtest>
+		</junit>  
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="tgz" depends="linuxdist"
+		description="Create a .tgz file containing a Linux distribution of Freenet">
+		<property name="tgzname" value="${name}-${version}" />
+		<property name="tarfile" value="dist/${tgzname}.tar" />
+		<property name="tgzfile" value="dist/${tgzname}.tgz" />
+		<tar tarfile="${tarfile}">
+			<tarfileset dir="${dist}" prefix="freenet">
+				<exclude name="**.sh"/>
+			</tarfileset>
+			<tarfileset dir="${dist}" prefix="freenet" mode="777">
+				<include name="**.sh"/>
+			</tarfileset>
+		</tar>
+		<gzip zipfile="${tgzfile}" src="${tarfile}"/>
+		<delete file="${tarfile}" />
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="javadoc" depends="init, jar, assure-junit, compile-ext" 
+		description="Create Javadoc documentation of Freenet code in docs/ directory">
+		<javadoc packagenames="freenet.*"
+			sourcepath="${src}"
+			destdir="${docs}"
+			windowtitle="Fred Code Documentation"
+			classpath="${jar.location}:${freenet-ext.location}:${java.class.path}"
+			Private="true">
+			<excludepackage name="freenet.fs.tests"/>
+			<excludepackage name="freenet.support.test"/>
+			<excludepackage name="freenet.transport.test"/>
+			<link href="http://java.sun.com/j2se/1.4.2/docs/api/" />
+			<link href="http://java.sun.com/products/servlet/2.2/javadoc" />
+			<link href="http://www.junit.org/junit/javadoc/3.8.1/index.htm" />
+		</javadoc>
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="zip" depends="dist"
+		description="Unimplemented">
+	</target>
+	
+<!-- ======================================================================= -->
+	<target name="all" depends="test, tgz, zip"
+		description="Build the code, test it, and create a .tgz Linux distribution">
+	</target>
+	
+<!-- ======================================================================= -->
+    <target name="cleanext" depends="env" if="contrib.present"
+		description="Delete the build directory trees. Need this if you ever change a public static final var (such as buildNumber)">
+        <ant dir="${contrib.location}/Contrib/freenet_ext" target="clean" inheritAll="false">
+			<property name="build" location="${servlet.location}"/>
+		</ant>		
+	</target>
+
+	<target name="cleanbuild"
+		description="Delete the build directory trees. Need this if you ever change a public static final var (such as buildNumber)">
+		<delete dir="${build}"/>
+	</target>
+	
+    <target name="clean" depends="cleanbuild, cleanext"
+		description="Delete the build, dist, and docs directory trees">
+		<delete dir="${dist}"/>
+		<delete dir="${docs}"/>
+	</target>
+	
+	<target name="distclean" depends="clean" description="Clean everything, including the jars">
+		<delete dir="${lib}"/>
+	</target>	
+</project>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

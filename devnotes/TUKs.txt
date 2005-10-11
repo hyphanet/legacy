@@ -1,0 +1,236 @@
+Time Updatable Keys notes file
+===============================================================================
+From: jrand0m
+Subject: [freenet-dev] TUK (redux)
+
+Ok, lots of chatting on IRC today about updatable keys, spawned by 
+"<toad_> we must do something about this silly edition site prejudice"
+Almost two hours later, I think we've got something.
+
+Proposal:
+Add a new key type that supports secure sites that:
+- are like edition sites that can be bookmarked
+- are like DBR sites, but don't dissapear when they aren't inserted
+- doesn't allow people to delete their content
+- allows people to backtrack to old versions without much trouble
+
+Summary:
+There are two parts to the proposal - a new key type and some supporting
+metadata.  The new Time Updatable Key (TUK) contains in its payload
+only the latest site edition number.  The TUK itself is signed by
+the site's owner, and nodes throughout freenet have access to the update
+date through standard datastore/FNP mechanisms.  Whenever a TUK
+collision occurs, the one with the latest timestamp wins, replacing the
+old version.
+
+So, here we are with a new key containing a value that can be updated.
+Typical (proper) usage would have the TUK contain an ever increasing
+edition number (or milliseconds since epoch, for you DBR fans).
+
+The way the TUK would be made useful would be by adding support for
+TUKs to SSKs, ala
+DateRedirect.UseTUK=true
+or
+Redirect.UseTUK=true
+
+The TUK itself is located at TUK@<pk>,<entropy>/<name>-TUK/
+where <pk> and <name> are the same as from the SSK
+(this we didn't discuss on IRC, or maybe we did and I missed it.  toad?)
+
+This way, when a site is inserted at SSK@<key>,<entropy>/<name>//  
+containing Redirect.UseTUK=true, fred looks for TUK@<key>,<entropy>/<name>-TUK/
+Once it finds a TUK it redirects the action to SSK@<key>,<entropy>/<TUKvalue>-<name>/
+where TUKvalue is the content in the TUK.
+
+People can go to the beginning by attempting to fetch SSK@<key>,<entropy>/0-<name>/
+(or, for that damn Colours author, SSK@<key>,<entropy>/f640c0-<name>/)
+
+While a malicious author attempting to make backtracking hard can do so
+(by not using monotonously incrementing 0 originated numbers as TUK values),
+normal freesite authors should have a link to their explicit edition (ala movable
+type permalinks):
+<a href="/SSK@<pk>,<entropy>/<TUKvalue>-<name>//index.html">this version</a>
+and a link to the bookmarkable, updating page:
+<a href="/SSK@<pk>,<entropy>/<name>//index.html">this site</a>
+
+The threat of Big Scary Dood coming over and forcing the normal freesite author
+to update their TUK pointing at content they don't approve of to a "cleansed"
+version is minimal, as reasonably normal people can decrement to previous version
+(e.g. SSK@<pk>,<entropy>/5-<name>// to SSK@<pk>,<entropy>/4-<name>//)
+Malicious TUK-based freesites however aren't necessarily so easy to decrement.
+
+Is there anything I've missed toad?  Does anyone have any questions, problems, or
+suggestions?  I know TUKs have been discussed off and on for long periods of time -  
+does this address the qualms people had with previous proposals?  This is all based
+on the point of view of the normal freesite development - anyone care to comment from
+the perspective of FMB/Frost?
+
+-jrandom
+(btw, I have the irc log from this afternoon discussing this that I
+can post up on a freesite (if toad has no objections).  Its only 24k.)
+===============================================================================
+On Fri, May 16, 2003 at 05:03:22AM +0000, jrandom wrote:
+> Ok, lots of chatting on IRC today about updatable keys, spawned by
+> "<toad_> we must do something about this silly edition site prejudice"
+> Almost two hours later, I think we've got something.
+> 
+> Proposal:
+> Add a new key type that supports secure sites that:
+> - are like edition sites that can be bookmarked
+> - are like DBR sites, but don't dissapear when they aren't inserted
+> - doesn't allow people to delete their content
+> - allows people to backtrack to old versions without much trouble
+>
+> Summary:
+> There are two parts to the proposal - a new key type and some supporting
+> metadata.  The new Time Updatable Key (TUK) contains in its payload
+> only the latest site edition number.  The TUK itself is signed by
+> the site's owner, and nodes throughout freenet have access to the update
+> date through standard datastore/FNP mechanisms.  Whenever a TUK
+> collision occurs, the one with the latest timestamp wins, replacing the
+> old version.
+
+Important point: this occurs not only on inserts, but also, when we make
+a request, we keep going, fetching later versions if they are available,
+until we run out of HTL or reach the desired timestamp.
+> 
+> So, here we are with a new key containing a value that can be updated.
+> Typical (proper) usage would have the TUK contain an ever increasing
+> edition number (or milliseconds since epoch, for you DBR fans).
+
+Right, TUKs must only contain a 32-bit integer, encrypted, and the
+updated time, plaintext (but obviously rounded up by the client),
+for optimizing queries.
+>
+> The way the TUK would be made useful would be by adding support for
+> TUKs to SSKs, ala
+> DateRedirect.UseTUK=true
+> or
+> Redirect.UseTUK=true
+> 
+> The TUK itself is located at TUK@<pk>,<entropy>/<name>-TUK/
+> where <pk> and <name> are the same as from the SSK
+> (this we didn't discuss on IRC, or maybe we did and I missed it.  toad?)
+>
+> This way, when a site is inserted at SSK@<key>,<entropy>/<name>//
+> containing Redirect.UseTUK=true, fred looks for TUK@<key>,<entropy>/<name>-TUK/
+> Once it finds a TUK it redirects the action to SSK@<key>,<entropy>/<TUKvalue>-<name>/
+> where TUKvalue is the content in the TUK.
+> 
+> People can go to the beginning by attempting to fetch SSK@<key>,<entropy>/0-<name>/
+> (or, for that damn Colours author, SSK@<key>,<entropy>/f640c0-<name>/)
+>
+> While a malicious author attempting to make backtracking hard can do so
+> (by not using monotonously incrementing 0 originated numbers as TUK values),
+> normal freesite authors should have a link to their explicit edition (ala movable
+> type permalinks):
+> <a href="/SSK@<pk>,<entropy>/<TUKvalue>-<name>//index.html">this version</a>
+> and a link to the bookmarkable, updating page:
+> <a href="/SSK@<pk>,<entropy>/<name>//index.html">this site</a>
+> 
+> The threat of Big Scary Dood coming over and forcing the normal freesite author
+> to update their TUK pointing at content they don't approve of to a "cleansed"
+> version is minimal, as reasonably normal people can decrement to previous version
+> (e.g. SSK@<pk>,<entropy>/5-<name>// to SSK@<pk>,<entropy>/4-<name>//)
+> Malicious TUK-based freesites however aren't necessarily so easy to decrement.
+> 
+> Is there anything I've missed toad?  Does anyone have any questions, problems, or
+> suggestions?  I know TUKs have been discussed off and on for long periods of time -  
+> does this address the qualms people had with previous proposals?  This is all based
+> on the point of view of the normal freesite development - anyone care to comment from
+> the perspective of FMB/Frost?
+> 
+> -jrandom
+> (btw, I have the irc log from this afternoon discussing this that I
+> can post up on a freesite (if toad has no objections).  Its only 24k.)
+==============================================================================
+Subject: Re: [freenet-dev] TUK (redux)
+From: Scott Young <scottyoung@adelphia.net>
+To: devl@freenetproject.org
+
+....
+Updatable keys have been debated over, and over, and over again for the
+past several years, so I'll weigh in on what I've gathered so far.  The
+problem of going the entire HTL is, of course, the time lag that every
+request for updatable content must suffer.  Oskar's Interval
+Pass-Through Update scheme from September of 2000 was an early idea to
+solve this problem:
+
+http://www.geocrawler.com/archives/3/928/2000/9/50/4421682/
+
+One change that I would make to his scheme, though, is to use a formula
+that would make the next-time-to-allow-pass-through the same throughout
+the network, so that there isn't a mess with nodes mismatching update
+windows and continually re-propagating old content.
+
+
+Another scheme would be to do the request, return the first TUK that the
+request hits immediately, but still continue the request on until the
+most recent one is found, and return that if it exists.  A "reload" in
+the browser window would give the new content once it was received.
+This scheme would be much quicker at distributing new content, but it
+would cause more network traffic.  Although, TUKs would only be a few
+bytes long so traffic might not be so much of a problem.
+
+
+Both of these schemes require a key that will always route to the same
+area of the keyspace for all keys updating the same content.  A node
+needs to know where the updates will be located in order to find them,
+which becomes difficult if an update redirect keeps changing routing
+location.  This is the main reason why a new key type and a modification
+to the FNP is needed for these two schemes.
+==============================================================================
+From: Nick Tarleton <nickptar@mindspring.com>
+To: devl@freenetproject.org
+Subject: Re: [freenet-dev] TUK (redux)
+
+On Friday 16 May 2003 02:50 pm, Toad wrote:
+> > This way, when a site is inserted at SSK@<key>,<entropy>/<name>//
+> > containing Redirect.UseTUK=true, fred looks for
+> > TUK@<key>,<entropy>/<name>-TUK/ Once it finds a TUK it redirects the
+> > action to SSK@<key>,<entropy>/<TUKvalue>-<name>/ where TUKvalue is the
+> > content in the TUK.
+> >
+Or, TUK@<key>,<entropy>/<name>-TUK/ could just be linked to. Come to think of
+it, you don't even need the -TUK. What is entropy? Also, could you have
+KSK-like TUKs, or would you have to share the private key?
+> > This is all based on the point of view of the normal
+> > freesite development - anyone care to comment from the perspective of
+> > FMB/Frost?
+FMB idea: TUK@<userkey>/fmb points to the most recent channel update:
+SSK@<userkey>/fmb/<date>/<slot#>.
+===============================================================================
+From: jrandom <jrandom@cryptomail.org>
+To: devl@freenetproject.org
+Subject: [freenet-dev] re: TUK (redux)
+
+So as soon as I got home last night I remembered something.  What may
+be helpful is that perhaps the content at the TUK contains both an expected  
+update date as well as the content previously discussed.  This way, if a
+TUK is retrieved after only a few hops, but the expected update date has
+not yet occurred, the value in that TUK version is used.  However, if the
+expected update date has passed, another request goes out (at HTL 15?
+at an HTL specified in the SSK via TUK.updateSearchHTL=?), and the
+most recent TUK value is found.  This way, TUKs won't necessarily be
+searched for at a full HTL depth always, but in the case that the TUK isn't
+retrievable or the suggested update date has passed, the full HTL will
+be used.
+
+Also, I don't think the TUK content should be limited by fred to be a small
+size (e.g. 1k as discussed on IRC).  For normal freenet publishing
+purposes, yes it should be severely limited when interpreted through the
+.UseTUK= metadata flag to be a single value ([0-9a-zA-Z]*), but I can imagine
+FMB and other similar systems using a single inbox or outbox containing
+their messages, rather than relying on the
+SSK@<key>,<entropy>/fmb/<date>/<slotNum>
+
+(yikes, I can't believe it took over a full hour for my post last night to go
+through.  damn thee mailmain && / || cryptomail!)
+
+So, um, er, thoughts?
+
+-jrandom
+==============================================================================
+
+
+Add more notes on TUKs here.

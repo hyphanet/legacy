@@ -1,0 +1,91 @@
+
+1. Building With Make on Unix
+-----------------------------
+
+NOTE:  While this Makefile is not intended to be GNU-make specific
+       or linux-specific, it has only been tested with GNU make on linux.
+       Corrections are appreciated.
+
+The javax servlet API classes must be in your CLASSPATH.  You also need junit
+to compile and run the unit tests.  If you don't have the servlet API classes
+installed, you can run 'make getlibs'.  A jar file will be downloaded from
+http://freenetproject.org/snapshots/freenet-ext.jar and saved in
+lib/freenet-ext.jar.  Make builds will detect its presence and add it to the
+CLASSPATH for you.  Note that this only contains the javax servlet API.
+If you want to build the unit tests you still need to install junit.
+A GPL'd reimplementation of junit can be found in the Freenet Project
+CVS module named "Contrib".
+
+Now type 'make jar' to build the node, client, fproxy/node-status servlet, 
+and some additional tools.  Use 'make tests' to build the unit tests or 
+'make check' to build and run them. Use 'make getseeds' to obtain a seed 
+nodes file from http://hawk.freenetproject.org/~freenet4/seednodes.ref.
+
+To run the node, set your CLASSPATH to contain lib/freenet.jar, (and 
+lib/freenet-ext.jar if you don't have the servlet API classes), and call 
+freenet.node.Main.
+
+Example:
+
+    java -cp lib/freenet-ext.jar:lib/freenet.jar freenet.node.Main
+
+At first the node will complain about not finding the configuration file.
+Running the node with the --config switch will create the configuration file.
+
+NOTE:  You must obtain seed nodereferences from somewhere and place them
+       in the seed-nodes file (<seedFile> config setting:
+       defaults to seednodes.ref), for your node to be able
+       to join the network.  It is best to obtain these node
+       references from sources you know and trust.
+
+
+Here is a summary of the make targets:
+
+    make            - equivalent to: make client fproxy tools node
+    
+    make clean      - removes build/freenet and lib/freenet.jar
+
+    make realclean  - removes all generated files
+                      (including the installed node)
+    
+    make check      - runs make test then scripts/test.sh
+    
+    make getlibs    - downloads
+                      http://freenetproject.org/snapshots/freenet-ext.jar
+                      to lib/freenet-ext.jar
+    
+    make getseeds   - downloads
+                      http://hawk.freenetproject.org/~freenet4/seednodes.ref
+                      to ./seednodes.ref
+                      
+    make jar        - runs make then creates lib/freenet.jar 
+    
+    make tgz        - creates files in tgz/ for making a snapshot tarball
+    
+    make client     - compiles the client libs and CLI client
+    
+    make fproxy     - compiles fproxy and the node-status servlet
+    
+    make tools      - compiles various servlet and CLI tools
+    
+    make node       - compiles the node
+    
+    make tests      - compiles all unit test classes
+    
+
+
+2. Building With Ant
+--------------------
+
+<this section needs to be written>
+
+
+3. Building on Win32
+--------------------
+
+Win32 users can open a command prompt and use the build.bat script.
+Win32 users can also use Ant.
+
+<this section needs to be written>
+
+
