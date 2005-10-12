@@ -20,7 +20,7 @@ public abstract class Version {
 	public static String protocolVersion = "STABLE-1.51";
 
 	/** The build number of the current revision */
-	public static final int buildNumber = 5105;
+	public static final int buildNumber = 5106;
 
 	/** Oldest build of Fred we will talk to */
 	public static final int lastGoodBuild = 5099;
@@ -71,8 +71,7 @@ public abstract class Version {
 	 */
 	private static boolean goodProtocol(String prot) {
 		if (prot.equals(protocolVersion)
-// uncomment next line to accept unstable, see also explainBadVersion() below
-//			|| prot.equals(unstableProtocolVersion)
+			|| prot.equals(unstableProtocolVersion)
 			)
 			return true;
 		return false;
@@ -149,8 +148,7 @@ public abstract class Version {
 		if (v.length < 3 || !goodProtocol(v[2])) {
 			return "Required protocol version is "
 						+ protocolVersion
-// uncomment next line if accepting unstable, see also goodProtocol() above
-//						+ " or " + unstableProtocolVersion
+						+ " or " + unstableProtocolVersion
 						;
 		}
 		if (sameVersion(v)) {
