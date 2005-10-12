@@ -1,3 +1,7 @@
+Freenet 0.5 is now in maintenance mode. All major development is
+occurring on 0.7. As a result, the previously incompatible 0.5
+and 0.6 branches have been merged.
+
 Fred 0.5
 ========
 "It's kind of a mix of Usenet, the Web, and a RAID disk system, all fudged 
