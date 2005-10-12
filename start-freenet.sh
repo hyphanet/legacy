@@ -160,6 +160,12 @@ fi
  fi
 fi 
 
+# Increase the file descriptor count for OSX. If freenet is launched from this script,
+# you may uncomment and set maxNodeConnections=512 in freenet.conf
+if test `uname` == "Darwin"; then
+	ulimit -S -n 1024
+fi
+
 echo -n "Starting Freenet now: "
 echo Command line: java -Xmx${MEMORY}m $JAVA_ARGS freenet.node.Main "$@"
 nice -n 10 -- java -Xmx${MEMORY}m $JAVA_ARGS freenet.node.Main "$@" &

@@ -541,19 +541,25 @@ public class NativeBigInteger extends BigInteger {
     	boolean isWindows =(System.getProperty("os.name").toLowerCase().indexOf("windows") != -1);
     	boolean isLinux =(System.getProperty("os.name").toLowerCase().indexOf("linux") != -1);
     	boolean isFreebsd =(System.getProperty("os.name").toLowerCase().indexOf("freebsd") != -1);
+    	boolean isMac = System.getProperty("os.name").startsWith("Mac");
     	if(isWindows)
 		 	return "jbigi-windows"+sAppend; // The convention on Windows
 		if(isLinux)
 			return "jbigi-linux"+sAppend; // The convention on linux...
 		if(isFreebsd)
 			return "jbigi-freebsd"+sAppend; // The convention on freebsd...
+		if(isMac)
+			return "jbigi-osx"+sAppend; // The convention on MacOS...
 		throw new RuntimeException("Dont know jbigi library name for os type '"+System.getProperty("os.name")+"'");
     }
     private static final String getLibrarySuffix()
     {
     	boolean isWindows =System.getProperty("os.name").toLowerCase().indexOf("windows") != -1;
+    	boolean isMac = System.getProperty("os.name").startsWith("Mac");
     	if(isWindows)
     		return "dll";
+    	if(isMac)
+    		return "jnilib";
     	else
     		return "so";
     }
