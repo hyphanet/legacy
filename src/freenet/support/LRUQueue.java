@@ -6,7 +6,12 @@ import java.util.Hashtable;
 
 public class LRUQueue implements Serializable {
 
-    /*
+    /**
+	 * Our serial ID 
+	 */
+	private static final long serialVersionUID = 0x277f088b03d34608L;
+	
+	/*
      * I've just converted this to using the DLList and Hashtable
      * this makes it Hashtable time instead of O(N) for push and
      * remove, and Hashtable time instead of O(1) for pop.  Since
@@ -92,11 +97,3 @@ public class LRUQueue implements Serializable {
         }
     }
 }
-
-
-
-
-
-
-
-

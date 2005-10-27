@@ -1171,13 +1171,10 @@ public class Node extends Core implements ConnectionThrottler{
 			"Use a datastore index file. Shorter startup time, but we have to run checkpoints, which lock the datastore, causing a hiccup");
 
 		// rtMaxRefs
-		config.setExpert("rtMaxRefs", true);
+		config.setDeprecated("rtMaxRefs", true);
 		config.argDesc("rtMaxRefs", "<integer>");
 		config.shortDesc("rtMaxRefs", "max no. of refs per node");
-		config.longDesc(
-			"rtMaxRefs",
-			"The number of references allowed per node in the routing table.",
-			"This should not be set too high.");
+		config.longDesc("rtMaxRefs", "Deprecated (hangover from classic routing)");
 
 		// rtMaxNodes
 		config.setExpert("rtMaxNodes", true);
@@ -1185,7 +1182,9 @@ public class Node extends Core implements ConnectionThrottler{
 		config.shortDesc("rtMaxNodes", "max no. unique nodes in routing table");
 		config.longDesc(
 			"rtMaxNodes",
-			"The number of unique nodes that can be contained in the routing table. Note that the node will try to keep an idle connection open to each of these, so don't set it to more than half the value of maxNodeConnections. Too big or too small will result in inefficient or completely useless routing, or slow specialization; the default 50 is reasonable (if you see another default, it's because you have an OS with too few connections).");
+			"The number of unique nodes that can be contained in the routing table. " +
+			"IGNORED UNLESS MAXNODECONNECTIONS IS ZERO (normally forced to 2 * maxNodeConnections). " +
+			"Note that the node will try to keep an idle connection open to each of these, so don't set it to more than half the value of maxNodeConnections. Too big or too small will result in inefficient or completely useless routing, or slow specialization; the default 50 is reasonable (if you see another default, it's because you have an OS with too few connections).");
 
 		// doEstimatorSmoothing
 		config.setExpert("doEstimatorSmoothing", true);
