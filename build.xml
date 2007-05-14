@@ -49,7 +49,7 @@
 <!-- ======================================================================= -->
   <target name="get-extjar" unless="freenet-ext.present"
     description="Download some external libraries which Freenet relies on">
-    <get src="http://freenetproject.org/snapshots/freenet-ext.jar" 
+    <get src="http://downloads.freenetproject.org/freenet-ext.jar" 
 		 	dest="${freenet-ext.location}" 
 	 verbose="true"
 	 usetimestamp="true"/>
@@ -59,7 +59,7 @@
 <!-- ======================================================================= -->
   <target name="get-seednodes" unless="seednodes.present"
     description="Download some seednodes from a well-known location">
-		<get src="http://freenetproject.org/snapshots/seednodes.ref.bz2" 
+		<get src="http://downloads.freenetproject.org/seednodes/seednodes.ref.bz2" 
 		 	dest="${dist}/seednodes.ref.bz2" 
 	 verbose="true"
 	 usetimestamp="true"/>
