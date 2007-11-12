@@ -497,6 +497,11 @@ public final class FnpLink implements LinkConstants, Link {
             rawOut.flush();
         }
         Ca = Util.readMPI(rawIn);
+        
+        if(!DiffieHellman.checkDHExponentialValidity(this.getClass(), Ca)) {
+        	String err = "Cannot accept remote exponential. WARNING: WITH HIGH PROBABILITY, THIS WAS A DELIBERATE ATTACK!";
+        	throw new NegotiationFailedException(conn.getPeerAddress(), err);
+        }
 
         Z = Ca.modPow(R, DiffieHellman.getGroup().getP());
         byte[] kent = Util.MPIbytes(Z);
@@ -646,6 +651,12 @@ public final class FnpLink implements LinkConstants, Link {
         }
 
         Cb = Util.readMPI(rawIn);
+        
+        if(!DiffieHellman.checkDHExponentialValidity(this.getClass(), Cb)) {
+        	String err = "Cannot accept remote exponential. WARNING: WITH HIGH PROBABILITY, THIS WAS A DELIBERATE ATTACK!";
+        	throw new NegotiationFailedException(conn.getPeerAddress(), err);
+        }
+        
         long readMPITime = System.currentTimeMillis();
         long readmpilen = readMPITime - readByteTime;
         if (logDEBUG || readmpilen > 500)
