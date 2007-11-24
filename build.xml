@@ -20,10 +20,10 @@
 
 	<property name="jar.location" location="${lib}/freenet.jar"/>
 	<property name="freenet-ext.location" location="${lib}/freenet-ext.jar"/>
-	<!-- this is where the Contrib directory is supposed to be. Override this
+	<!-- this is where the contrib directory is supposed to be. Override this
 	if necessary -->
 	<property name="contrib.location" location=".."/>
-	<property name="servlet.location" location="${contrib.location}/Contrib/freenet_ext/build_dir"/>
+	<property name="servlet.location" location="${contrib.location}/contrib/freenet_ext/build_dir"/>
 
 <!-- ======================================================================= -->
     <target name="env"
@@ -32,7 +32,7 @@
 		<available classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" 
 		property="junit.present"/>
 		<available file="${lib}/junit-gpl.jar"	property="junit-gpl.present"/>
-		<available file="${contrib.location}/Contrib" property="contrib.present"/>
+		<available file="${contrib.location}/contrib" property="contrib.present"/>
 		<available file="${dist}/seednodes.ref"	property="seednodes.present"/>
     </target>
     <target name="init" depends="env"
@@ -70,7 +70,7 @@
 <!-- ======================================================================= -->
 
 	<target name="compile-servlet" depends="init" if="contrib.present" unless="freenet-ext.present">
-		<ant dir="${contrib.location}/Contrib/freenet_ext" target="servlet" inheritAll="false">
+		<ant dir="${contrib.location}/contrib/freenet_ext" target="servlet" inheritAll="false">
 			<property name="build" location="${servlet.location}"/>
 			<property name="classpath" location="${build}"/>
 		</ant>		
@@ -108,16 +108,16 @@
 			password="" />
 		<cvs cvsRoot=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/freenet"
 			command="-z3 co"
-			package="Contrib"
+			package="contrib"
 			dest="${contrib.location}" />
 	</target>
 	
 	<target name="compile-ext" depends="init, compile-support" if="contrib.present" unless="freenet-ext.present">
-		<ant dir="${contrib.location}/Contrib/freenet_ext" target="jar" inheritAll="false">
-			<property name="build" location="${contrib.location}/Contrib/freenet_ext/build_dir"/>
+		<ant dir="${contrib.location}/contrib/freenet_ext" target="jar" inheritAll="false">
+			<property name="build" location="${contrib.location}/contrib/freenet_ext/build_dir"/>
 			<property name="classpath" location="${support.location}"/>
 		</ant>
-		<copy file="${contrib.location}/Contrib/freenet_ext/freenet-ext.jar" tofile="${freenet-ext.location}"/>
+		<copy file="${contrib.location}/contrib/freenet_ext/freenet-ext.jar" tofile="${freenet-ext.location}"/>
 		<property name="freenet-ext.present" value="true"/>
 	</target>
 
@@ -268,7 +268,7 @@
 <!-- ======================================================================= -->
     <target name="cleanext" depends="env" if="contrib.present"
 		description="Delete the build directory trees. Need this if you ever change a public static final var (such as buildNumber)">
-        <ant dir="${contrib.location}/Contrib/freenet_ext" target="clean" inheritAll="false">
+        <ant dir="${contrib.location}/contrib/freenet_ext" target="clean" inheritAll="false">
 			<property name="build" location="${servlet.location}"/>
 		</ant>		
 	</target>

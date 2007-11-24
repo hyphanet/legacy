@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.Stack;
 
 import freenet.Core;
+import freenet.support.Logger;
 
 public class DiffieHellman {
 	
