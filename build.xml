@@ -3,14 +3,14 @@
 <!-- Please download and install ant from http://jakarta.apache.org/ant/     -->
 <!-- ======================================================================= -->
 <project name="Freenet" default="dist" basedir=".">
-  <property name="name"    value="freenet"/>
+	<property name="name"    value="freenet"/>
 	<property name="version" value="0.5"/>
 	
 
-  <!-- Replace this with classic/modern/jikes as you like -->
-  <property name="build.compiler" value="modern"/>
+	<!-- Replace this with classic/modern/jikes as you like -->
+	<property name="build.compiler" value="modern"/>
 
-  <!-- set global properties for this build -->
+	<!-- set global properties for this build -->
 	<property name="src"	location="src"/>
 	<property name="build"	location="build"/>
 	<property name="lib"	location="lib"/>
@@ -22,8 +22,8 @@
 	<property name="freenet-ext.location" location="${lib}/freenet-ext.jar"/>
 	<!-- this is where the contrib directory is supposed to be. Override this
 	if necessary -->
-	<property name="contrib.location" location=".."/>
-	<property name="servlet.location" location="${contrib.location}/contrib/freenet_ext/build_dir"/>
+	<property name="contrib.location" location="../contrib"/>
+	<property name="servlet.location" location="${contrib.location}/freenet_ext/build_dir"/>
 
 <!-- ======================================================================= -->
     <target name="env"
@@ -32,10 +32,10 @@
 		<available classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" 
 		property="junit.present"/>
 		<available file="${lib}/junit-gpl.jar"	property="junit-gpl.present"/>
-		<available file="${contrib.location}/contrib" property="contrib.present"/>
+		<available file="${contrib.location}" property="contrib.present"/>
 		<available file="${dist}/seednodes.ref"	property="seednodes.present"/>
     </target>
-    <target name="init" depends="env"
+    <target name="init" depends="env, assure-contrib"
         description="Create directories">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -70,7 +70,7 @@
 <!-- ======================================================================= -->
 
 	<target name="compile-servlet" depends="init" if="contrib.present" unless="freenet-ext.present">
-		<ant dir="${contrib.location}/contrib/freenet_ext" target="servlet" inheritAll="false">
+		<ant dir="${contrib.location}/freenet_ext" target="servlet" inheritAll="false">
 			<property name="build" location="${servlet.location}"/>
 			<property name="classpath" location="${build}"/>
 		</ant>		
@@ -95,29 +95,27 @@
     <echo>
       The test target requires the junit.jar from JUnit. 
       Please download it from http://www.junit.org and add
-			it to your classpath (The easiest way to do this is to
-			put it in the ant/lib directory).
+      it to your classpath (The easiest way to do this is to
+      put it in the ant/lib directory).
     </echo>
     <fail/>
   </target>
 <!-- ======================================================================= -->
-
-	<target name="get-contrib" depends="init" unless="contrib.present"
-		description="Check some contributed packages out of CVS">
-		<cvspass cvsroot=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/freenet"
-			password="" />
-		<cvs cvsRoot=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/freenet"
-			command="-z3 co"
-			package="contrib"
-			dest="${contrib.location}" />
-	</target>
-	
+  <target name="assure-contrib" unless="contrib.present"
+    description="Instruct the user to go out and get Contrib">
+    <echo>
+      The test target requires the "contrib" classes.
+      Please download them from http://freenet.googlecode.com/svn/branches/legacy/contrib/.
+    </echo>
+    <fail/>
+  </target>
+<!-- ======================================================================= -->
 	<target name="compile-ext" depends="init, compile-support" if="contrib.present" unless="freenet-ext.present">
-		<ant dir="${contrib.location}/contrib/freenet_ext" target="jar" inheritAll="false">
-			<property name="build" location="${contrib.location}/contrib/freenet_ext/build_dir"/>
+		<ant dir="${contrib.location}/freenet_ext" target="jar" inheritAll="false">
+			<property name="build" location="${contrib.location}/freenet_ext/build_dir"/>
 			<property name="classpath" location="${support.location}"/>
 		</ant>
-		<copy file="${contrib.location}/contrib/freenet_ext/freenet-ext.jar" tofile="${freenet-ext.location}"/>
+		<copy file="${contrib.location}/freenet_ext/freenet-ext.jar" tofile="${freenet-ext.location}"/>
 		<property name="freenet-ext.present" value="true"/>
 	</target>
 
@@ -268,7 +266,7 @@
 <!-- ======================================================================= -->
     <target name="cleanext" depends="env" if="contrib.present"
 		description="Delete the build directory trees. Need this if you ever change a public static final var (such as buildNumber)">
-        <ant dir="${contrib.location}/contrib/freenet_ext" target="clean" inheritAll="false">
+        <ant dir="${contrib.location}/freenet_ext" target="clean" inheritAll="false">
 			<property name="build" location="${servlet.location}"/>
 		</ant>		
 	</target>
