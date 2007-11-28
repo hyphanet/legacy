@@ -22,7 +22,7 @@
 	<property name="freenet-ext.location" location="${lib}/freenet-ext.jar"/>
 	<!-- this is where the contrib directory is supposed to be. Override this
 	if necessary -->
-	<property name="contrib.location" location="../contrib"/>
+	<property name="contrib.location" location="contrib"/>
 	<property name="servlet.location" location="${contrib.location}/freenet_ext/build_dir"/>
 
 <!-- ======================================================================= -->
