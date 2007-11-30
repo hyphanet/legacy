@@ -218,7 +218,7 @@
   </target>
 
 <!-- ======================================================================= -->
-  <target name="tgz" depends="linuxdist"
+  <target name="tgz" depends="env,linuxdist"
    description="Create a .tgz file containing a Linux distribution of Freenet">
     <property name="tgzname" value="${name}-${version}" />
     <property name="tarfile" value="dist/${tgzname}.tar" />
