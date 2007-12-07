@@ -21,7 +21,7 @@ public abstract class Version {
 	public static String altProtocolVersion = "1.52";
 
 	/** The build number of the current revision */
-	public static final int buildNumber = 60277;
+	public static final int buildNumber = 60278;
 
 	/** Oldest build of Fred we will talk to */
 	public static final int lastGoodBuild = 60235;

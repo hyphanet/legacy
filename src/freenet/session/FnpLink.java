@@ -74,8 +74,8 @@ public final class FnpLink implements LinkConstants, Link {
 	// augmented
 	// with debug logging and timings
 
-	//profiling
-	//WARNING:remove before release
+	// profiling
+	// WARNING:remove before release
 	public static volatile int instances = 0;
 
 	private static final Object profLock = new Object();
@@ -498,6 +498,11 @@ public final class FnpLink implements LinkConstants, Link {
 		}
 		Ca = Util.readMPI(rawIn);
 
+		if (!DiffieHellman.checkDHExponentialValidity(this.getClass(), Ca)) {
+			String err = "Cannot accept remote exponential. WARNING: WITH HIGH PROBABILITY, THIS WAS A DELIBERATE ATTACK!";
+			throw new NegotiationFailedException(conn.getPeerAddress(), err);
+		}
+
 		Z = Ca.modPow(R, DiffieHellman.getGroup().getP());
 		byte[] kent = Util.MPIbytes(Z);
 		Util.makeKey(kent, k, 0, k.length);
@@ -547,8 +552,8 @@ public final class FnpLink implements LinkConstants, Link {
 		setInputStream(c, rawIn);
 		Ya = (DSAIdentity) DSAIdentity.read(in);
 		if(logDEBUG)
-		    Core.logger.log(this, "Read Ya: "+Ya.fingerprintToString()+": y="+
-		            Ya.getYAsHexString()+", group: "+Ya.getGroup(), Logger.DEBUG);
+			Core.logger.log(this, "Read Ya: "+Ya.fingerprintToString()+": y="+
+				Ya.getYAsHexString()+", group: "+Ya.getGroup(), Logger.DEBUG);
 		byte[] Yabytes = Ya.asBytes();
 		//System.err.println(freenet.support.HexUtil.bytesToHex(Yabytes));
 		//System.err.println(Ya.toString());
@@ -558,8 +563,8 @@ public final class FnpLink implements LinkConstants, Link {
 		M = new NativeBigInteger(1, ctx.digest());
 		DSASignature sigYaCaCb = DSASignature.read(in);
 		if(logDEBUG)
-		    Core.logger.log(this, "Read signature: "+sigYaCaCb+", M should be: "+M+
-		            ", Ya="+Ya.fingerprintToString(), Logger.DEBUG);
+			Core.logger.log(this, "Read signature: "+sigYaCaCb+", M should be: "+M+
+				", Ya="+Ya.fingerprintToString(), Logger.DEBUG);
 		if (!DSA.verify(Ya, sigYaCaCb, M)) {
 			String err = "Remote does not posess the private key to the public key it offered";
 			throw new AuthenticationFailedException(conn.getPeerAddress(), err);
@@ -646,6 +651,12 @@ public final class FnpLink implements LinkConstants, Link {
 		}
 
 		Cb = Util.readMPI(rawIn);
+
+		if (!DiffieHellman.checkDHExponentialValidity(this.getClass(), Cb)) {
+			String err = "Cannot accept remote exponential. WARNING: WITH HIGH PROBABILITY, THIS WAS A DELIBERATE ATTACK!";
+			throw new NegotiationFailedException(conn.getPeerAddress(), err);
+		}
+
 		long readMPITime = System.currentTimeMillis();
 		long readmpilen = readMPITime - readByteTime;
 		if (logDEBUG || readmpilen > 500)
@@ -675,9 +686,9 @@ public final class FnpLink implements LinkConstants, Link {
 		//System.err.println("LALA " + pubMe.toString());
 		pubMe.writeForWire(out);
 		if(logDEBUG)
-		    Core.logger.log(this, "Written pubMe: "+pubMe.fingerprintToString()+
-		            ": y="+pubMe.getYAsHexString()+", "+pubMe.getGroup().toString(),
-		            Logger.DEBUG);
+			Core.logger.log(this, "Written pubMe: "+pubMe.fingerprintToString()+
+				": y="+pubMe.getYAsHexString()+", "+pubMe.getGroup().toString(),
+				Logger.DEBUG);
 		long writtenPKTime = System.currentTimeMillis();
 		long wplen = writtenPKTime - writtenIVTime;
 		if (logDEBUG || wplen > 500)
@@ -707,7 +718,7 @@ public final class FnpLink implements LinkConstants, Link {
 		if (logDEBUG || wsiglen > 500)
 			Core.logger.log(this, "Written sig in " + wsiglen, wsiglen > 500 ? Logger.MINOR : Logger.DEBUG);
 		if(logDEBUG)
-		    Core.logger.log(this, "Sig: "+sigYaCaCb+", M: "+M+" for "+pubMe.fingerprintToString(), Logger.DEBUG);
+			Core.logger.log(this, "Sig: "+sigYaCaCb+", M: "+M+" for "+pubMe.fingerprintToString(), Logger.DEBUG);
 
 		out.flush();
 		long flushedAgainTime = System.currentTimeMillis();
