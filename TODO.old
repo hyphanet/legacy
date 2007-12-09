@@ -1,0 +1,53 @@
+# When marking something done/dropped, please add your name and the date.
+# This TODO started January 16th, 2002.
+
+
++ means todo
+= means done
+- means the feature was dropped
+
++ Logfile rotation with deletion of old logfiles and management of space usage. Logfile compression perhaps on the fly (write to .gz in parallel to the plain log then delete the plain log), and without gzip.
++ Look at ways of making inserts self-regulating, as requests are with NGRouting.
++ Find where we are using 128 bit AES keys, and upgrade them to 256 bits.
++ Add an option for anonymizing logs - if true, never log keys in any form (hash them with a random node global session key, then you can use that for searching) - or base it on loglevel?
++ Investigate why we get so many DOC_BAD_KEYs fetching ARKs. Error message looks like this:
+May 16, 2003 11:14:15 PM (freenet.client.GetRequestProcess, QThread-211, NORMAL): Event: The document was found to be invalid: DOC_BAD_KEY for freenet.client.GetRequestProcess:freenet:SSK@Cr1BZEnGOoH75ZV1Mqt6dUVrERgPAgM,mxFsJ7LjS0owBejcxoOnBCuZQHkM6FLd1TlDOka90Kw/d@25,true before failure
++ Add options to disable caching on all content sent by Freenet (not freenet content, things like the various builtin images, the servlets and so on - freenet CONTENT has a no cache option in the config file already), for the really paranoid.
++ Track down cause of "Please close() me manually in finalizer:" messages - we _thought_ we had fixed them. We were wrong.
++ Ditto for "FSDataStoreElement not closed in finalizer"
++ Get the native FEC libraries working and include them with the installers.
++ Implement online config updater options other than the very few already implemented
++ Implement web reconfiguration interface with automatic writing out of options to config file and changing on the fly of all that are possible via above mechanism
++ Make freenet work with just java -jar freenet.jar and go to the web interface... configure it on the web interface, no platform specific installer necessary
++ NIO work: make trailing fields asynchronous, make message sends asynchronous, etc
++ Clean up FProxy code - it is a mess - complete rewrite? Use NIO - LocalHTTPInterface is a good place to start, and AutoRequester now supports asynchronous fetches
++ Add "rpm" target to build.xml to create a redhat install file
++ Add "deb" target to create a debian install file
++ Add "webstart" target to create a webstart file
++ Make freenet nodes zero maintenance ("fire and forget") - firstly, we need to use fewer threads and less CPU, secondly we need to use less memory. Suggest profiling. Talk to Iakin about this.
++ Support FS resize as an admin-passworded FCP command
++ something is opening buffers, getting streams, and never closing them. This works OK with GC, but it would be better to find the leaks. However because it does work with GC, it is not urgent.
++ limit total # of fds used by NativeFSDirectory
++ implement the pre-mix stage to disguise HTL information
++ when one request for a file is in progress and another comes in, combine them. This is harder than it looks to make work correctly (I tried in the native fs dir, it flamingoed up)
++ is FNPClient being maintained? Does it handle Restarted etc correctly? Move it to attic if it's not being maintained
++ Move bookkeeping variables somewhere else - RequestState base class, or a large object pointed to by Node or Core. Not _in_ Core, where they are now. Consider using logging mechanism to collect info.
++ Allow multiple addresses in bindAddress - should be easy enough now that we have nio
++ Look into the possibility of supporting _SAFE_ (this is hard, we need to prevent it from knowing what is in the datastore even by timing attacks) scripting in fproxy
++ Look into including the length of the data in the key for a CHK. Useful for apps using prefetch - which are inevitable.
++ <Fruser_> data:image/gif;base64,R0lGODdhIAAgAIAAAAAAAPj8+CwAAAAAIAAgAAAClYyPqcu
+          9AJyCjtIKc5w5xP14xgeO2tlY3nWcajmZZdeJcGKxrmimms1KMTa1Wg8UROx4MNUq1Hry
+          cMjHT9b6xKxaFLM6VRKzI+pKS9XtXpcbdun6uWVxJXA8pNPkdkkxhxc21LZHFOgD2KMoQ
+          Xa2KMWIJtnE2KizVUkYJVZZ1nczBxXlFopZBtoJ2diXGdNUymmJdFMAADs=
+	( works in Mozilla at least )
+	- http://www.ietf.org/rfc/rfc2397.txt
+   -> inline images - do we want to support this in fproxy? We would need to 
+      check the MIME type and either block or filter dangerous content.
+
++ add UPnP support to freenet (code available in Azureus' source tree)
+  + support detection of external IP address
+  + support autoconfig of port forwarding to hop NAT
++ add a diagnostics page of current transfers' status (both local and
+  remote)
++ measure amount of information in statistical evaluators (# samples?)
+  for use in newbie evaluation

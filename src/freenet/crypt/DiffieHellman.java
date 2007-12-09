@@ -14,7 +14,7 @@ import freenet.Core;
 import freenet.support.Logger;
 
 public class DiffieHellman {
-	
+
 	/**
 	 * When the number of precalculations falls below this threshold generation
 	 * starts up to make more.
@@ -37,7 +37,7 @@ public class DiffieHellman {
 	private static Object precalcerWaitObj = new Object();
 
 	private static Thread precalcThread;
-	
+
 	public static final BigInteger MIN_EXPONENTIAL_VALUE = new BigInteger("2").pow(24);
 	public static final BigInteger MAX_EXPONENTIAL_VALUE = group.getP().subtract(MIN_EXPONENTIAL_VALUE);
 
@@ -68,20 +68,20 @@ public class DiffieHellman {
 				precalcThread.setPriority(Thread.NORM_PRIORITY);
 
 				synchronized (precalcerWaitObj) {
-						try {
+					try {
 						// Do not set the thread priority here because the
 						// thread may have been stopped while holding the
 						// precalcerWaitObj lock. The stop causes the thread
 						// group to be cleared and setPriority to throw a NPE.
 						precalcerWaitObj.wait(PRECALC_TIMEOUT);
 						// TODO: this timeout might very well be unneccsary
-						} catch (InterruptedException ie) {
-							// Ignored.
-						}
+					} catch (InterruptedException ie) {
+						// Ignored.
 					}
 				}
 			}
 		}
+	}
 
 	/**
 	 * This method does not do anything, but calling it causes the
@@ -105,14 +105,14 @@ public class DiffieHellman {
 				precalcerWaitObj.notify();
 			}
 		}
-			}
+	}
 
 	public static BigInteger[] getParams() {
 		synchronized (precalcBuffer) {
-			//Ensure that we will have something to pop (at least pretty soon)
-			askRefill(); 
+			// Ensure that we will have something to pop (at least pretty soon)
+			askRefill();
 
-			//Wait until we actually have something to pop
+			// Wait until we actually have something to pop
 			while (precalcBuffer.isEmpty()) {
 				try {
 					precalcBuffer.wait();
@@ -123,10 +123,10 @@ public class DiffieHellman {
 
 			BigInteger[] result = (BigInteger[]) precalcBuffer.pop();
 
-			//Hint the precalcer that it might have something to do now
+			// Hint the precalcer that it might have something to do now
 			askRefill();
 
-			//Release possible other precalc value waiters
+			// Release possible other precalc value waiters
 			precalcBuffer.notify();
 
 			return result;
@@ -140,7 +140,7 @@ public class DiffieHellman {
 			params[0] = new BigInteger(256, r);
 			params[1] = group.getG().modPow(params[0], group.getP());
 		} while(!DiffieHellman.checkDHExponentialValidity(DiffieHellman.class, params[1]));
-		
+
 		return params;
 	}
 
@@ -155,7 +155,7 @@ public class DiffieHellman {
 	 */
 	public static boolean checkDHExponentialValidity(Class caller, BigInteger exponential) {
 		int onesCount=0, zerosCount=0;
-	
+
 		// Ensure that we have at least 16 bits of each gender
 		for(int i=0; i < exponential.bitLength(); i++)
 			if(exponential.testBit(i))
@@ -166,7 +166,7 @@ public class DiffieHellman {
 			Core.logger.log(caller, "The provided exponential contains "+zerosCount+" zeros and "+onesCount+" ones wich is unacceptable!", Logger.ERROR);
 			return false;
 		}
-		
+
 		// Ensure that g^x > 2^24
 		if(MIN_EXPONENTIAL_VALUE.compareTo(exponential) > -1) {
 			Core.logger.log(caller, "The provided exponential is smaller than 2^24 which is unacceptable!", Logger.ERROR);
@@ -177,14 +177,12 @@ public class DiffieHellman {
 			Core.logger.log(caller, "The provided exponential is bigger than (p - 2^24) which is unacceptable!", Logger.ERROR);
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	public static DHGroup getGroup() {
 		return group;
 	}
-	
-	
-	
+
 }
