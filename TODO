@@ -5,16 +5,23 @@ Building, installing, updating & running:
   cases of logflooding ("Consecutive same winner")
 - Shell scripts preconfig.sh, start-freenet.sh, stop-freenet.sh, and update.sh
   are outdated.
-- Find memory leaks (so we don't need a garbage collector)
 - building: unchecked operations
 - Vanessa's mod: problem: Vanessa did not license her mod.
-- building: deprecated language features
-- more platform specific build targets
-- Readme:
-  * goBrowsing?
+  Solution: it's at least GPL2 because she distributed the entire freenet
+  0.5 code with her modifications on Frost.
+  (thanks Agrajag for providing the relevant entries from the GNU FAQ:
+   http://www.gnu.org/licenses/gpl-faq.html
+   http://www.gnu.org/licenses/gpl-faq.html#GPLRequireSourcePostedPublic
+   http://www.gnu.org/licenses/gpl-faq.html#TheGPLSaysModifiedVersions
+   http://www.gnu.org/licenses/gpl-faq.html#GPLModuleLicense)
+- more platform specific build targets (rpm, deb, installer for Win?)
+- README:
+  * More help for M$ users
 - general code cleanup:
+  * Find memory leaks
   * remove dead code
   * check variable usage
+  * deprecated language features
   * check inheritance structure
 - "Attempt to use a released TempFileBucket"
 
@@ -53,6 +60,9 @@ FProxy/Web Interface:
 - Safe ECMAScript support
 - better diagnostics
 - default charset: replace ISO-8859-1 with UTF-8?
+- Browser feature vulnerabilities:
+  * Prefetching (solution: convert anchor to form submit button)
+  * Browser ignores MIME types of RSS feeds (and ATOM feeds?)
 
 Clients, Tools & Documentation:
 - junit generates a lot of errors
