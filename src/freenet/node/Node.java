@@ -89,64 +89,64 @@ import freenet.transport.tcpListener;
 public class Node extends Core implements ConnectionThrottler{
 
 
-    /**
-     * @author root
-     *
-     * TODO To change the template for this generated type comment go to
-     * Window - Preferences - Java - Code Generation - Code and Comments
-     */
-    private class RateLimitingWriterCheckpointed extends LoadSaveCheckpointed {
+	/**
+	 * @author root
+	 *
+	 * TODO To change the template for this generated type comment go to
+	 * Window - Preferences - Java - Code Generation - Code and Comments
+	 */
+	private class RateLimitingWriterCheckpointed extends LoadSaveCheckpointed {
 
-        public RateLimitingWriterCheckpointed(File routingDir) {
-            super(routingDir, new String[] { "ratedata_a", "ratedata_b" });
-        }
+		public RateLimitingWriterCheckpointed(File routingDir) {
+			super(routingDir, new String[] { "ratedata_a", "ratedata_b" });
+		}
 
-        protected int checkpointPeriod() {
-            return 60000;
-        }
+		protected int checkpointPeriod() {
+			return 60000;
+		}
 
-        public void writeData(DataOutputStream dos) throws IOException {
-            receivedRequestCounter.writeDataTo(dos);
-            acceptedExternalRequestCounter.writeDataTo(dos);
-            globalQuotaAverager.writeDataTo(dos);
-            sentRequestCounter.writeDataTo(dos);
-        }
+		public void writeData(DataOutputStream dos) throws IOException {
+			receivedRequestCounter.writeDataTo(dos);
+			acceptedExternalRequestCounter.writeDataTo(dos);
+			globalQuotaAverager.writeDataTo(dos);
+			sentRequestCounter.writeDataTo(dos);
+		}
 
-        protected void fillInBlanks() {
-            if(receivedRequestCounter == null)
-                receivedRequestCounter = new ExtrapolatingTimeDecayingEventCounter(rateLimitingInterval, 1000);
-            Core.logger.log(this, "receivedRequestCounter = "+receivedRequestCounter, Logger.DEBUG);
-            if(acceptedExternalRequestCounter == null)
-                acceptedExternalRequestCounter = new ExtrapolatingTimeDecayingEventCounter(rateLimitingInterval, 1000);
-            Core.logger.log(this, "acceptedExternalRequestCounter = "+acceptedExternalRequestCounter, Logger.DEBUG);
-            if(globalQuotaAverager == null)
-                globalQuotaAverager = new TimeDecayingRunningAverage(1000, rateLimitingInterval, 0, Double.MAX_VALUE);
-            Core.logger.log(this, "globalQuotaAverager = "+globalQuotaAverager, Logger.DEBUG);
-            if(sentRequestCounter == null)
-                sentRequestCounter = new ExtrapolatingTimeDecayingEventCounter(rateLimitingInterval/2, 1000);
-            Core.logger.log(this, "sentRequestCounter = "+sentRequestCounter, Logger.DEBUG);
-        }
+		protected void fillInBlanks() {
+			if(receivedRequestCounter == null)
+				receivedRequestCounter = new ExtrapolatingTimeDecayingEventCounter(rateLimitingInterval, 1000);
+			Core.logger.log(this, "receivedRequestCounter = "+receivedRequestCounter, Logger.DEBUG);
+			if(acceptedExternalRequestCounter == null)
+				acceptedExternalRequestCounter = new ExtrapolatingTimeDecayingEventCounter(rateLimitingInterval, 1000);
+			Core.logger.log(this, "acceptedExternalRequestCounter = "+acceptedExternalRequestCounter, Logger.DEBUG);
+			if(globalQuotaAverager == null)
+				globalQuotaAverager = new TimeDecayingRunningAverage(1000, rateLimitingInterval, 0, Double.MAX_VALUE);
+			Core.logger.log(this, "globalQuotaAverager = "+globalQuotaAverager, Logger.DEBUG);
+			if(sentRequestCounter == null)
+				sentRequestCounter = new ExtrapolatingTimeDecayingEventCounter(rateLimitingInterval/2, 1000);
+			Core.logger.log(this, "sentRequestCounter = "+sentRequestCounter, Logger.DEBUG);
+		}
 
-        protected void readFrom(DataInputStream dis) throws IOException {
-            receivedRequestCounter = new ExtrapolatingTimeDecayingEventCounter(1000, rateLimitingInterval, dis);
-            Core.logger.log(this, "Read receivedRequestCounter: "+receivedRequestCounter, Logger.MINOR);
-            acceptedExternalRequestCounter = new ExtrapolatingTimeDecayingEventCounter(1000, rateLimitingInterval, dis);
-            Core.logger.log(this, "Read acceptedExternalRequestCounter: "+acceptedExternalRequestCounter, Logger.MINOR);
-            globalQuotaAverager = new TimeDecayingRunningAverage(1000, rateLimitingInterval, 0, Double.MAX_VALUE, dis);
-            Core.logger.log(this, "Read globalQuotaAverager: "+globalQuotaAverager, Logger.MINOR);
-            sentRequestCounter = new ExtrapolatingTimeDecayingEventCounter(1000, rateLimitingInterval, dis);
-            Core.logger.log(this, "Read sentRequestCounter: "+sentRequestCounter, Logger.MINOR);
-        }
+		protected void readFrom(DataInputStream dis) throws IOException {
+			receivedRequestCounter = new ExtrapolatingTimeDecayingEventCounter(1000, rateLimitingInterval, dis);
+			Core.logger.log(this, "Read receivedRequestCounter: "+receivedRequestCounter, Logger.MINOR);
+			acceptedExternalRequestCounter = new ExtrapolatingTimeDecayingEventCounter(1000, rateLimitingInterval, dis);
+			Core.logger.log(this, "Read acceptedExternalRequestCounter: "+acceptedExternalRequestCounter, Logger.MINOR);
+			globalQuotaAverager = new TimeDecayingRunningAverage(1000, rateLimitingInterval, 0, Double.MAX_VALUE, dis);
+			Core.logger.log(this, "Read globalQuotaAverager: "+globalQuotaAverager, Logger.MINOR);
+			sentRequestCounter = new ExtrapolatingTimeDecayingEventCounter(1000, rateLimitingInterval, dis);
+			Core.logger.log(this, "Read sentRequestCounter: "+sentRequestCounter, Logger.MINOR);
+		}
 
-        protected void preload() {
-            // All will be initted to null
-        }
+		protected void preload() {
+			// All will be initted to null
+		}
 
-        public String getCheckpointName() {
-            return "Rate limiting data save process";
-        }
+		public String getCheckpointName() {
+			return "Rate limiting data save process";
+		}
 
-    }
+	}
 	public static int maxConnDefault = 200;
 	public static int maxFileDefault = 256;
 	public static boolean isWin95;
@@ -161,7 +161,7 @@ public class Node extends Core implements ConnectionThrottler{
 	private static final NumberFormat nf03;
 	private static final NumberFormat nf3;
 	static float overloadHighDefault = 1.25f;
-    private static final String ARG_BOOLEAN = "<true|false>";
+	private static final String ARG_BOOLEAN = "<true|false>";
 	static {
 		nfp = NumberFormat.getPercentInstance();
 		nfp.setMinimumFractionDigits(0);
@@ -379,7 +379,7 @@ public class Node extends Core implements ConnectionThrottler{
 		config.addOption("doLowLevelInputLimiting", 1, true, 3267);
 		// Commented out because of limited use and potential political
 		// problems i.e. not cross platform
-	    config.addOption("doCPULoad",1,false,3264);
+		config.addOption("doCPULoad",1,false,3264);
 		config.addOption("sendingQueueLength", 1, 256, 3266);
 		config.addOption("sendingQueueBytes", 1, 1492 * 8, 3267);
 		config.addOption("requestIntervalDefault", 1, 1000, 3268);
@@ -484,10 +484,10 @@ public class Node extends Core implements ConnectionThrottler{
 			false,
 			4119);
 		config.addOption(
-		    "mainport.params.servlet.1.params.dontWarnOperaUsers",
-		    1,
-		    false,
-		    4119);
+			"mainport.params.servlet.1.params.dontWarnOperaUsers",
+			1,
+			false,
+			4119);
 		config.addOption(
 			"mainport.params.servlet.2.uri",
 			1,
@@ -534,47 +534,47 @@ public class Node extends Core implements ConnectionThrottler{
 			"Oldest living Freenet index site (no categories, but has activelinks)",
 			6103);
 
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.1.key",
-//			1,
-//			"SSK@rjYFfgPHfolmcStiaoxESFfBXz8PAgM/FreenetHelp//",
-//			6110);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.1.title",
-//			1,
-//			"The Freenet Help Index",
-//			6111);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.1.activelinkFile",
-//			1,
-//			"ActiveLink.png",
-//			6112);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.1.description",
-//			1,
-//			"Index of Freenet help resources",
-//			6113);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.1.key",
+//            1,
+//            "SSK@rjYFfgPHfolmcStiaoxESFfBXz8PAgM/FreenetHelp//",
+//            6110);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.1.title",
+//            1,
+//            "The Freenet Help Index",
+//            6111);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.1.activelinkFile",
+//            1,
+//            "ActiveLink.png",
+//            6112);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.1.description",
+//            1,
+//            "Index of Freenet help resources",
+//            6113);
 //
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.2.key",
-//			1,
-//			"SSK@IWmzQkYKOlOefQoWbGCQSrkS3vsPAgM,NzRr-Pj88cVT0bN~1urLVg/FIND//",
-//			6120);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.2.title",
-//			1,
-//			"FIND is Not Dolphin",
-//			6121);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.2.activelinkFile",
-//			1,
-//			"activelink.png",
-//			6122);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.2.description",
-//			1,
-//			"Index of sites available within the \"stable\" network, often available here too",
-//			6123);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.2.key",
+//            1,
+//            "SSK@IWmzQkYKOlOefQoWbGCQSrkS3vsPAgM,NzRr-Pj88cVT0bN~1urLVg/FIND//",
+//            6120);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.2.title",
+//            1,
+//            "FIND is Not Dolphin",
+//            6121);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.2.activelinkFile",
+//            1,
+//            "activelink.png",
+//            6122);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.2.description",
+//            1,
+//            "Index of sites available within the \"stable\" network, often available here too",
+//            6123);
 //
 		config.addOption(
 			"mainport.params.servlet.2.bookmarks.1.key",
@@ -597,110 +597,110 @@ public class Node extends Core implements ConnectionThrottler{
 			"One of Freenet's oldest Freesites, witty discussion of Freenet, the universe, and everything",
 			6133);
 
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.4.key",
-//			1,
-//			"SSK@Sc6qV~D6iFhaYord6HtbjJ8MaEYPAgM/YoYo//",
-//			6140);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.4.title",
-//			1,
-//			"YoYo!",
-//			6141);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-//			1,
-//			"activelink.png",
-//			6142);
-//		config.addOption(
-//			"mainport.params.servlet.2.bookmarks.4.description",
-//			1,
-//			"Categorized freenet index",
-//			6143);
-//		
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.4.key",
+//            1,
+//            "SSK@Sc6qV~D6iFhaYord6HtbjJ8MaEYPAgM/YoYo//",
+//            6140);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.4.title",
+//            1,
+//            "YoYo!",
+//            6141);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//            1,
+//            "activelink.png",
+//            6142);
+//        config.addOption(
+//            "mainport.params.servlet.2.bookmarks.4.description",
+//            1,
+//            "Categorized freenet index",
+//            6143);
+//        
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.2.key",
+			"mainport.params.servlet.2.bookmarks.2.key",
 			1,
-		    "SSK@JiqlnfX6MK4nHDl6ZjOrSaMnDB8PAgM,CUnDuNQdRTeTXiDMRM93dQ/OFIFY//",
-		    6140);
+			"SSK@JiqlnfX6MK4nHDl6ZjOrSaMnDB8PAgM,CUnDuNQdRTeTXiDMRM93dQ/OFIFY//",
+			6140);
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.2.title",
+			"mainport.params.servlet.2.bookmarks.2.title",
 			1,
-		    "Oskar Finds It For You",
-		    6141);
+			"Oskar Finds It For You",
+			6141);
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.2.activelinkFile",
+			"mainport.params.servlet.2.bookmarks.2.activelinkFile",
 			1,
 			"activelink.png",
-		    6142);
+			6142);
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.2.description",
+			"mainport.params.servlet.2.bookmarks.2.description",
 			1,
-		    "Another index freesite (one page per category)",
-		    6143);
+			"Another index freesite (one page per category)",
+			6143);
 		
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.3.key",
-		    1,
-		    "SSK@y~-NCd~il6RMxOe9jjf~VR7mSYwPAgM,ds52dBUTmr8fSHePn1Sn4g/OneMore//",
-		    6150);
+			"mainport.params.servlet.2.bookmarks.3.key",
+			1,
+			"SSK@y~-NCd~il6RMxOe9jjf~VR7mSYwPAgM,ds52dBUTmr8fSHePn1Sn4g/OneMore//",
+			6150);
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.3.title",
-		    1,
-		    "One More Time",
-		    6151);
+			"mainport.params.servlet.2.bookmarks.3.title",
+			1,
+			"One More Time",
+			6151);
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.3.activelinkFile",
-		    1,
-		    "activelink.gif",
-		    6152);
+			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
+			1,
+			"activelink.gif",
+			6152);
 		config.addOption(
-		    "mainport.params.servlet.2.bookmarks.3.description",
-		    1,
-		    "Yet another index freesite (one page per category)",
-		    6153);
+			"mainport.params.servlet.2.bookmarks.3.description",
+			1,
+			"Yet another index freesite (one page per category)",
+			6153);
 
 		config.addOption(
-		        "mainport.params.servlet.2.bookmarks.4.key",
-			    1,
-			    "SSK@sPolFAwS69lG2Le~TTRzNEVarcEPAgM/DFI//",
-			    6160);
+				"mainport.params.servlet.2.bookmarks.4.key",
+				1,
+				"SSK@sPolFAwS69lG2Le~TTRzNEVarcEPAgM/DFI//",
+				6160);
 			config.addOption(
-			    "mainport.params.servlet.2.bookmarks.4.title",
-			    1,
-			    "Dolphin's Freenet Index",
-			    6161);
+				"mainport.params.servlet.2.bookmarks.4.title",
+				1,
+				"Dolphin's Freenet Index",
+				6161);
 			config.addOption(
-			    "mainport.params.servlet.2.bookmarks.4.activelinkFile",
-			    1,
-			    "activelink.png",
-			    6162);
+				"mainport.params.servlet.2.bookmarks.4.activelinkFile",
+				1,
+				"activelink.png",
+				6162);
 			config.addOption(
-			    "mainport.params.servlet.2.bookmarks.4.description",
-			    1,
-			    "Another categorized Freenet index (one big page)",
-			    6163);
+				"mainport.params.servlet.2.bookmarks.4.description",
+				1,
+				"Another categorized Freenet index (one big page)",
+				6163);
 
 		config.addOption(
-		        "mainport.params.servlet.2.bookmarks.5.key",
-			    1,
-			    "SSK@rVxBgVi4oLfrFEWPdPas1XZSYooPAgM,QZvYaKsdFJxfCjq~FiC5XA/CICFI//",
-			    6160);
+				"mainport.params.servlet.2.bookmarks.5.key",
+				1,
+				"SSK@rVxBgVi4oLfrFEWPdPas1XZSYooPAgM,QZvYaKsdFJxfCjq~FiC5XA/CICFI//",
+				6160);
 			config.addOption(
-			    "mainport.params.servlet.2.bookmarks.5.title",
-			    1,
-			    "CIC's Freesite Index",
-			    6161);
+				"mainport.params.servlet.2.bookmarks.5.title",
+				1,
+				"CIC's Freesite Index",
+				6161);
 			config.addOption(
-			    "mainport.params.servlet.2.bookmarks.5.activelinkFile",
-			    1,
-			    "activelink.png",
-			    6162);
+				"mainport.params.servlet.2.bookmarks.5.activelinkFile",
+				1,
+				"activelink.png",
+				6162);
 			config.addOption(
-			    "mainport.params.servlet.2.bookmarks.5.description",
-			    1,
-			    "Yet another categorized single page Freenet index",
-			    6163);
+				"mainport.params.servlet.2.bookmarks.5.description",
+				1,
+				"Yet another categorized single page Freenet index",
+				6163);
 
 		
 		
@@ -906,10 +906,10 @@ public class Node extends Core implements ConnectionThrottler{
 			true,
 			4179);
 		config.addOption(
-		    "mainport.params.servlet.7.params.maxRetries",
-		    1,
-		    50,
-		    4179);
+			"mainport.params.servlet.7.params.maxRetries",
+			1,
+			50,
+			4179);
 
 		String downloadDir;
 		try {
@@ -1191,14 +1191,14 @@ public class Node extends Core implements ConnectionThrottler{
 		config.setExpert("doEstimatorSmoothing", true);
 		config.argDesc("doEstimatorSmoothing", ARG_BOOLEAN);
 		config.longDesc("doEstimatorSmoothing", 
-		        "Whether to use adjacent buckets to estimate the value of a given bucket in a KeyspaceEstimator when it has no reports. "+
-		        "If you don't understand what I just said you should probably leave it alone!");
+				"Whether to use adjacent buckets to estimate the value of a given bucket in a KeyspaceEstimator when it has no reports. "+
+				"If you don't understand what I just said you should probably leave it alone!");
 
 		// useFastEstimators
 		config.setExpert("useFastEstimators", true);
 		config.argDesc("useFastEstimators", ARG_BOOLEAN);
 		config.longDesc("useFastEstimators",
-		        "Whether to use doubles (floating point, 53 bit mantissa, implemented in hardware on most systems) instead of BigIntegers (full 160 bits, slow) in NGRouting estimators.");
+				"Whether to use doubles (floating point, 53 bit mantissa, implemented in hardware on most systems) instead of BigIntegers (full 160 bits, slow) in NGRouting estimators.");
 		
 		// minCP
 		config.setExpert("minCP", true);
@@ -1416,8 +1416,8 @@ public class Node extends Core implements ConnectionThrottler{
 		config.setExpert("maxOpenConnectionsNewbieFraction", true);
 		config.argDesc  ("maxOpenConnectionsNewbieFraction", "<number between 0.0 and 1.0>");
 		config.shortDesc("maxOpenConnectionsNewbieFraction", 
-		        "Proportion of open connections limit that may be newbie nodes before we start "+
-		        "rejecting new connections (unless there are free slots)");
+				"Proportion of open connections limit that may be newbie nodes before we start "+
+				"rejecting new connections (unless there are free slots)");
 		
 		// maxNodeFilesOpen
 		config.setExpert("maxNodeFilesOpen", true);
@@ -1975,7 +1975,7 @@ public class Node extends Core implements ConnectionThrottler{
 		config.setExpert("logInputBytes", true);
 		config.argDesc  ("logInputBytes", "true/false");
 		config.shortDesc("logInputBytes", "Set true to count non-local TCP bytes "
-		        + "received for diagnostics. Also used for part of rate limiting.");
+				+ "received for diagnostics. Also used for part of rate limiting.");
 		
 		config.setExpert("watchme", true);
 		config.argDesc("watchme", "true/false");
@@ -2502,12 +2502,12 @@ public class Node extends Core implements ConnectionThrottler{
 		config.setExpert("mainport.params.servlet.1.params.dontWarnOperaUsers", true);
 		config.argDesc  ("mainport.params.servlet.1.params.dontWarnOperaUsers", "yes|no");
 		config.shortDesc("mainport.params.servlet.1.params.dontWarnOperaUsers", 
-		        "Set true to not warn Opera users about MIME types. READ LONG DESCRIPTION.");
+				"Set true to not warn Opera users about MIME types. READ LONG DESCRIPTION.");
 		config.longDesc ("mainport.params.servlet.1.params.dontWarnOperaUsers",
-		        "Opera and IE suffer from a design flaw that prevent FProxy from protecting ",
-		        "your anonymity properly. In Opera, it can be turned off. If you are sure you ",
-		        "have done so (read the warning page for instructions), enable this option to ",
-		        "eliminate the warning page.");
+				"Opera and IE suffer from a design flaw that prevent FProxy from protecting ",
+				"your anonymity properly. In Opera, it can be turned off. If you are sure you ",
+				"have done so (read the warning page for instructions), enable this option to ",
+				"eliminate the warning page.");
 		
 		// mainport.params.servlet.2.uri
 		config.setExpert("mainport.params.servlet.2.uri", true);
@@ -2642,67 +2642,67 @@ public class Node extends Core implements ConnectionThrottler{
 			"mainport.params.servlet.2.bookmarks.2.description",
 			"The description of the third bookmark on the web proxy");
 
-//		config.setExpert("mainport.params.servlet.2.bookmarks.3.key", true);
-//		config.argDesc(
-//			"mainport.params.servlet.2.bookmarks.3.key",
-//			"freenet key");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.3.key",
-//			"The fourth bookmark for the web proxy");
-//		config.setExpert("mainport.params.servlet.2.bookmarks.3.title", true);
-//		config.argDesc("mainport.params.servlet.2.bookmarks.3.title", "string");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.3.title",
-//			"The title for the fourth bookmark for the web proxy");
-//		config.setExpert(
-//			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-//			true);
-//		config.argDesc(
-//			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-//			"string");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-//			"The name of the activelink image within the key for the fourth bookmark");
-//		config.setExpert(
-//			"mainport.params.servlet.2.bookmarks.3.description",
-//			true);
-//		config.argDesc(
-//			"mainport.params.servlet.2.bookmarks.3.description",
-//			"string");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.3.description",
-//			"The description of the fourth bookmark on the web proxy");
+//        config.setExpert("mainport.params.servlet.2.bookmarks.3.key", true);
+//        config.argDesc(
+//            "mainport.params.servlet.2.bookmarks.3.key",
+//            "freenet key");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.3.key",
+//            "The fourth bookmark for the web proxy");
+//        config.setExpert("mainport.params.servlet.2.bookmarks.3.title", true);
+//        config.argDesc("mainport.params.servlet.2.bookmarks.3.title", "string");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.3.title",
+//            "The title for the fourth bookmark for the web proxy");
+//        config.setExpert(
+//            "mainport.params.servlet.2.bookmarks.3.activelinkFile",
+//            true);
+//        config.argDesc(
+//            "mainport.params.servlet.2.bookmarks.3.activelinkFile",
+//            "string");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.3.activelinkFile",
+//            "The name of the activelink image within the key for the fourth bookmark");
+//        config.setExpert(
+//            "mainport.params.servlet.2.bookmarks.3.description",
+//            true);
+//        config.argDesc(
+//            "mainport.params.servlet.2.bookmarks.3.description",
+//            "string");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.3.description",
+//            "The description of the fourth bookmark on the web proxy");
 //
-//		config.setExpert("mainport.params.servlet.2.bookmarks.4.key", true);
-//		config.argDesc(
-//			"mainport.params.servlet.2.bookmarks.4.key",
-//			"freenet key");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.4.key",
-//			"The fifth bookmark for the web proxy");
-//		config.setExpert("mainport.params.servlet.2.bookmarks.4.title", true);
-//		config.argDesc("mainport.params.servlet.2.bookmarks.4.title", "string");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.4.title",
-//			"The title for the fifth bookmark for the web proxy");
-//		config.setExpert(
-//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-//			true);
-//		config.argDesc(
-//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-//			"string");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-//			"The name of the activelink image within the key for the fifth bookmark");
-//		config.setExpert(
-//			"mainport.params.servlet.2.bookmarks.4.description",
-//			true);
-//		config.argDesc(
-//			"mainport.params.servlet.2.bookmarks.4.description",
-//			"string");
-//		config.shortDesc(
-//			"mainport.params.servlet.2.bookmarks.4.description",
-//			"The description of the fifth bookmark on the web proxy");
+//        config.setExpert("mainport.params.servlet.2.bookmarks.4.key", true);
+//        config.argDesc(
+//            "mainport.params.servlet.2.bookmarks.4.key",
+//            "freenet key");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.4.key",
+//            "The fifth bookmark for the web proxy");
+//        config.setExpert("mainport.params.servlet.2.bookmarks.4.title", true);
+//        config.argDesc("mainport.params.servlet.2.bookmarks.4.title", "string");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.4.title",
+//            "The title for the fifth bookmark for the web proxy");
+//        config.setExpert(
+//            "mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//            true);
+//        config.argDesc(
+//            "mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//            "string");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.4.activelinkFile",
+//            "The name of the activelink image within the key for the fifth bookmark");
+//        config.setExpert(
+//            "mainport.params.servlet.2.bookmarks.4.description",
+//            true);
+//        config.argDesc(
+//            "mainport.params.servlet.2.bookmarks.4.description",
+//            "string");
+//        config.shortDesc(
+//            "mainport.params.servlet.2.bookmarks.4.description",
+//            "The description of the fifth bookmark on the web proxy");
 //
 		// mainport.params.servlet.3.uri
 		config.setExpert("mainport.params.servlet.3.uri", true);
@@ -2996,14 +2996,14 @@ public class Node extends Core implements ConnectionThrottler{
 
 		// mainport.params.servlet.7.params.maxRetries
 		config.setExpert(
-		    "mainport.params.servlet.7.params.maxRetries",
-		    true);
+			"mainport.params.servlet.7.params.maxRetries",
+			true);
 		config.argDesc(
-		    "mainport.params.servlet.7.params.maxRetries",
-		    "positive integer");
+			"mainport.params.servlet.7.params.maxRetries",
+			"positive integer");
 		config.shortDesc(
-		    "mainport.params.servlet.7.params.maxRetries",
-		    "Maximum number of retries per block for a splitfile");
+			"mainport.params.servlet.7.params.maxRetries",
+			"Maximum number of retries per block for a splitfile");
 		
 		// mainport.params.servlet.7.params.sfRetryHtlIncrement
 		config.setExpert(
@@ -3381,7 +3381,7 @@ public class Node extends Core implements ConnectionThrottler{
 	static public RecentKeyList recentKeys;
 	private static Object syncCountsByBackoffCount = new Object();
 	private static long[] successesByBackoffCount;
-    private static long[] failuresByBackoffCount;
+	private static long[] failuresByBackoffCount;
 
 	public static boolean isAuthorized(Identity id, String p) {
 		if (adminPassword != null
@@ -3480,8 +3480,8 @@ public class Node extends Core implements ConnectionThrottler{
 		lowLevelBWLimitMultiplier =
 			params.getFloat("lowLevelBWLimitMultiplier")
 				* lowLevelBWLimitFudgeFactor;
-//		doLowLevelOutputLimiting = false;
-//		doLowLevelInputLimiting = false;
+//        doLowLevelOutputLimiting = false;
+//        doLowLevelInputLimiting = false;
 		doLowLevelOutputLimiting =
 			params.getBoolean("doLowLevelOutputLimiting");
 		doLowLevelInputLimiting = params.getBoolean("doLowLevelInputLimiting");
@@ -3575,11 +3575,11 @@ public class Node extends Core implements ConnectionThrottler{
 		maxNodeConnections = params.getInt("maxNodeConnections");
 		maxNodeFilesOpen = params.getInt("maxNodeFilesOpen");
 		maxOpenConnectionsNewbieFraction = 
-		    params.getDouble("maxOpenConnectionsNewbieFraction");
+			params.getDouble("maxOpenConnectionsNewbieFraction");
 
 		rtMaxRefs = params.getInt("rtMaxRefs");
 		if(maxNodeConnections > 0)
-		    rtMaxNodes = maxNodeConnections * 2;
+			rtMaxNodes = maxNodeConnections * 2;
 		else
 		rtMaxNodes = params.getInt("rtMaxNodes");
 		doEstimatorSmoothing = params.getBoolean("doEstimatorSmoothing");
@@ -3685,7 +3685,7 @@ public class Node extends Core implements ConnectionThrottler{
 		}
 		//Unfortunately the below method doesn't work then the JVM is killed bu the user...
 		//However, it looks better if we at least _try_ to clean up after us.
-		lockFile.deleteOnExit(); 		
+		lockFile.deleteOnExit();         
 
 		// locate the data files
 		nodeFile = params.getString("nodeFile");
@@ -3773,10 +3773,10 @@ public class Node extends Core implements ConnectionThrottler{
 		// protocol
 		// version to prevent spy nodes from polluting the real network
 		if (params.getBoolean("watchme")) {
-		    watchme = new WatchMe();
-		    watchme.init(params.getInt("watchmeRetries"));
-		    Version.protocolVersion = Version.protocolVersion + "wm";
-		    freenet.session.FnpLink.AUTH_LAYER_VERSION = 0x05;
+			watchme = new WatchMe();
+			watchme.init(params.getInt("watchmeRetries"));
+			Version.protocolVersion = Version.protocolVersion + "wm";
+			freenet.session.FnpLink.AUTH_LAYER_VERSION = 0x05;
 		}
 		// Around 1000 seconds.
 		// This is the time it would take for a request to start and finish
@@ -3988,12 +3988,12 @@ public class Node extends Core implements ConnectionThrottler{
 	final RateLimitingWriterCheckpointed rlwc;
 	
 	public void begin(Ticker t,
-	        OpenConnectionManager ocm, NIOInterface[] inter,
-	        boolean daemon) throws CoreException {
-	    connectionOpener = 
-	        new ConnectionOpenerManager(maxNegotiations, rt, ocm, this);
+			OpenConnectionManager ocm, NIOInterface[] inter,
+			boolean daemon) throws CoreException {
+		connectionOpener = 
+			new ConnectionOpenerManager(maxNegotiations, rt, ocm, this);
 		queueManager = new QueueManager(ocm, (NGRoutingTable)(Main.origRT), t);
-	    super.begin(t, ocm, inter, daemon);
+		super.begin(t, ocm, inter, daemon);
 	}
 	
 	protected class NodeBackgroundInserter extends BackgroundInserter {
@@ -4230,77 +4230,77 @@ public class Node extends Core implements ConnectionThrottler{
 		return false;
 	}
 
-	     static class TickStat {
-	     long user;
-	     long nice;
-	     long system;
-	     long spare;
+		 static class TickStat {
+		 long user;
+		 long nice;
+		 long system;
+		 long spare;
 
-	     boolean read(File f) {
-	         String firstline;
-	         try {
-	         FileInputStream fis = new FileInputStream(f);
-	         ReadInputStream ris = new ReadInputStream(fis);
-	         firstline = ris.readln();
-	         ris.close();
-	         } catch (IOException e) { return false; }
-	         logger.log(this, "Read first line: "+firstline,
-	                 Logger.DEBUG);
-	         if(!firstline.startsWith("cpu")) return false;
-	         long[] data = new long[4];
-	         for(int i=0;i<4;i++) {
-	         firstline = firstline.substring("cpu".length()).trim();
-	         firstline = firstline + ' ';
-	         int x = firstline.indexOf(' ');
-	         if(x == -1) return false;
-	         String firstbit = firstline.substring(0, x);
-	         try {
-	             data[i] = Long.parseLong(firstbit);
-	         } catch (NumberFormatException e) {
-	             return false;
-	         }
-	         firstline = firstline.substring(x);
-	         }
-	         user = data[0];
-	         nice = data[1];
-	         system = data[2];
-	         spare = data[3];
-	         logger.log(this, "Read from file: user "+user+" nice "+nice+
-	                 " system "+system+" spare "+spare, Logger.DEBUG);
-	         return true;
-	     }
+		 boolean read(File f) {
+			 String firstline;
+			 try {
+			 FileInputStream fis = new FileInputStream(f);
+			 ReadInputStream ris = new ReadInputStream(fis);
+			 firstline = ris.readln();
+			 ris.close();
+			 } catch (IOException e) { return false; }
+			 logger.log(this, "Read first line: "+firstline,
+					 Logger.DEBUG);
+			 if(!firstline.startsWith("cpu")) return false;
+			 long[] data = new long[4];
+			 for(int i=0;i<4;i++) {
+			 firstline = firstline.substring("cpu".length()).trim();
+			 firstline = firstline + ' ';
+			 int x = firstline.indexOf(' ');
+			 if(x == -1) return false;
+			 String firstbit = firstline.substring(0, x);
+			 try {
+				 data[i] = Long.parseLong(firstbit);
+			 } catch (NumberFormatException e) {
+				 return false;
+			 }
+			 firstline = firstline.substring(x);
+			 }
+			 user = data[0];
+			 nice = data[1];
+			 system = data[2];
+			 spare = data[3];
+			 logger.log(this, "Read from file: user "+user+" nice "+nice+
+					 " system "+system+" spare "+spare, Logger.DEBUG);
+			 return true;
+		 }
 
-	     int calculate(TickStat old) {
-	         long userdiff = user - old.user;
-	         long nicediff = nice - old.nice;
-	         long systemdiff = system - old.system;
-	         long sparediff = spare - old.spare;
+		 int calculate(TickStat old) {
+			 long userdiff = user - old.user;
+			 long nicediff = nice - old.nice;
+			 long systemdiff = system - old.system;
+			 long sparediff = spare - old.spare;
 
-	         if(userdiff + nicediff + systemdiff + sparediff <= 0) return 0;
-	         logger.log(this, "User changed by "+userdiff+", Nice: "+nicediff+
-	                 ", System: "+systemdiff+", Spare: "+sparediff,
-	                 Logger.DEBUG);
-	         int usage = (int)((100 * (userdiff + nicediff + systemdiff)) /
-	                   (userdiff + nicediff + systemdiff + sparediff));
-	         logger.log(this, "CPU usage: "+usage, Logger.DEBUG);
-	         return usage;
-	     }
+			 if(userdiff + nicediff + systemdiff + sparediff <= 0) return 0;
+			 logger.log(this, "User changed by "+userdiff+", Nice: "+nicediff+
+					 ", System: "+systemdiff+", Spare: "+sparediff,
+					 Logger.DEBUG);
+			 int usage = (int)((100 * (userdiff + nicediff + systemdiff)) /
+					   (userdiff + nicediff + systemdiff + sparediff));
+			 logger.log(this, "CPU usage: "+usage, Logger.DEBUG);
+			 return usage;
+		 }
 
-	     void copyFrom(TickStat old) {
-	         user = old.user;
-	         nice = old.nice;
-	         system = old.system;
-	         spare = old.spare;
-	     }
-	     }
+		 void copyFrom(TickStat old) {
+			 user = old.user;
+			 nice = old.nice;
+			 system = old.system;
+			 spare = old.spare;
+		 }
+		 }
 
-	     int lastCPULoadEstimate = 0;
-	     long lastCPULoadEstimateTime = 0;
+		 int lastCPULoadEstimate = 0;
+		 long lastCPULoadEstimateTime = 0;
 
-	     File proc = File.separator.equals("/") ?
-	     new File("/proc/stat") : null;
-	     TickStat tsOld = new TickStat();
-	     TickStat tsNew = null;
+		 File proc = File.separator.equals("/") ?
+		 new File("/proc/stat") : null;
+		 TickStat tsOld = new TickStat();
+		 TickStat tsNew = null;
 
 	float lastEstimatedLoad = 0;
 	float lastEstimatedRateLimitingLoad = 0;
@@ -4327,14 +4327,14 @@ public class Node extends Core implements ConnectionThrottler{
 
 		long now = System.currentTimeMillis();
 		if(why == null) {
-		    synchronized(loadSync) {
-		        long last = forRateLimiting ? lastCalculatedRateLimitingLoad :
-		            lastCalculatedEstimatedLoad;
-		            if(last + minLoadEstimationInterval > now) {
-		                return forRateLimiting ? lastEstimatedRateLimitingLoad :
-		                    lastEstimatedLoad;
-		            }
-		    }
+			synchronized(loadSync) {
+				long last = forRateLimiting ? lastCalculatedRateLimitingLoad :
+					lastCalculatedEstimatedLoad;
+					if(last + minLoadEstimationInterval > now) {
+						return forRateLimiting ? lastEstimatedRateLimitingLoad :
+							lastEstimatedLoad;
+					}
+			}
 		}
 		
 		// FIXME: make it proportional?
@@ -4370,7 +4370,7 @@ public class Node extends Core implements ConnectionThrottler{
 				delay = 0.0;
 			double load;
 			load = calculateLoadForUnit("routingTime", "ms", why, delay, 
-			        requestDelayCutoff, successfulDelayCutoff, forRateLimiting);
+					requestDelayCutoff, successfulDelayCutoff, forRateLimiting);
 			
 			if (ret < load)
 				ret = load;
@@ -4382,8 +4382,8 @@ public class Node extends Core implements ConnectionThrottler{
 				delay = 0.0;
 			
 			double load = calculateLoadForUnit("messageSendTimeRequest", "ms", why,
-			        delay, requestSendTimeCutoff, successfulSendTimeCutoff,
-			        forRateLimiting);
+					delay, requestSendTimeCutoff, successfulSendTimeCutoff,
+					forRateLimiting);
 			
 			if (load > overloadLow && ret < load)
 				ret = load;
@@ -4391,29 +4391,29 @@ public class Node extends Core implements ConnectionThrottler{
 
 		// by backedOffCount
 		//if(Main.origRT instanceof NGRoutingTable && forRateLimiting) {
-		//	int totnod=((NGRoutingTable)Main.origRT).countConnectedN
-		//		odes();
-		//	if(totnod>20) {
-		//		int openod=((NGRoutingTable)Main.origRT).countUn
-		//			backedOffNodes();
-		//		double load=(double)(totnod-openod)/(double)totn
-		//			od;
-		//		// multiply by 1/x , where x is the desired percent
-		//		// of backed off routes. As of 08/26, anything below
-		//		// about 70% is foolhardy
-		//		load *= 1.333 ; // target 75% closed (25% open)
-//		    if (load > overloadLow && ret < load)
-//		        ret = load;
-		//		if (why != null) {
-		//			why.append("<br />Load due to backoff = ");
-		//			why.append(nfp.format(load));
-		//			why.append(" (");
-		//			why.append(openod);
-		//			why.append(" of ");
-		//			why.append(totnod);
-		//			why.append(" backed off)");
-//		}
-		//	}
+		//    int totnod=((NGRoutingTable)Main.origRT).countConnectedN
+		//        odes();
+		//    if(totnod>20) {
+		//        int openod=((NGRoutingTable)Main.origRT).countUn
+		//            backedOffNodes();
+		//        double load=(double)(totnod-openod)/(double)totn
+		//            od;
+		//        // multiply by 1/x , where x is the desired percent
+		//        // of backed off routes. As of 08/26, anything below
+		//        // about 70% is foolhardy
+		//        load *= 1.333 ; // target 75% closed (25% open)
+//            if (load > overloadLow && ret < load)
+//                ret = load;
+		//        if (why != null) {
+		//            why.append("<br />Load due to backoff = ");
+		//            why.append(nfp.format(load));
+		//            why.append(" (");
+		//            why.append(openod);
+		//            why.append(" of ");
+		//            why.append(totnod);
+		//            why.append(" backed off)");
+//        }
+		//    }
 		//}
 
 		if (logOutputBytes
@@ -4462,304 +4462,304 @@ public class Node extends Core implements ConnectionThrottler{
 				ret = load;
 		}
 
-        if (doCPULoad && File.separator.equals("/") && forRateLimiting) {
-            if (now - lastCPULoadEstimateTime > 1000) {
-                try {
-                    lastCPULoadEstimateTime = now;
-                    if (tsNew == null) {
-                        tsOld.read(proc);
-                        tsNew = new TickStat();
-                    } else {
-                        if (!tsNew.read(proc)) {
-                            logger.log(this, "Failed to parse /proc",
-                                    Logger.MINOR);
-                        }
-                        lastCPULoadEstimate = tsNew.calculate(tsOld);
-                        tsOld.copyFrom(tsNew);
-                    }
-                } catch (Throwable t) {
-                    lastCPULoadEstimate = 0;
-                    logger.log(this, "Failed real-CPU-load estimation: "
-                            + t, t, Logger.NORMAL);
-                }
-            }
-            float f = (float)(((lastCPULoadEstimate) / 100.0F) / 0.75); 
-            // target 75% cpu usage - FIXME
-            if(why != null) {
-                why.append("<br />\nLoad due to CPU usage = ");
-                why.append(nfp.format(f));
-                why.append(" = ");
-                why.append(lastCPULoadEstimate);
-                why.append("% / 0.75");
-            }
-            
-            if (f > ret) ret = f;
+		if (doCPULoad && File.separator.equals("/") && forRateLimiting) {
+			if (now - lastCPULoadEstimateTime > 1000) {
+				try {
+					lastCPULoadEstimateTime = now;
+					if (tsNew == null) {
+						tsOld.read(proc);
+						tsNew = new TickStat();
+					} else {
+						if (!tsNew.read(proc)) {
+							logger.log(this, "Failed to parse /proc",
+									Logger.MINOR);
+						}
+						lastCPULoadEstimate = tsNew.calculate(tsOld);
+						tsOld.copyFrom(tsNew);
+					}
+				} catch (Throwable t) {
+					lastCPULoadEstimate = 0;
+					logger.log(this, "Failed real-CPU-load estimation: "
+							+ t, t, Logger.NORMAL);
+				}
+			}
+			float f = (float)(((lastCPULoadEstimate) / 100.0F) / 0.75); 
+			// target 75% cpu usage - FIXME
+			if(why != null) {
+				why.append("<br />\nLoad due to CPU usage = ");
+				why.append(nfp.format(f));
+				why.append(" = ");
+				why.append(lastCPULoadEstimate);
+				why.append("% / 0.75");
+			}
+			
+			if (f > ret) ret = f;
 
-        }
+		}
 		// Predicted inbound bandwidth load
 		if(Main.origRT instanceof NGRoutingTable && forRateLimiting) {
-		    double sentRequestsHour = sentRequestCounter.getExtrapolatedEventsPerHour();
-		    double pTransfer = ((NGRoutingTable)Main.origRT).pTransferGivenRequest();
-		    double stdFileSize = calculateStandardFileSize();
-		    double bytesExpected = sentRequestsHour * pTransfer *
-		    	stdFileSize;
-		    double maxBytesPerMinute;
-		    String reason;
-		    if(inputBandwidthLimit > 0) {
-		        maxBytesPerMinute = inputBandwidthLimit * 60;
-		        reason = " (set input limit) ";
-		    } else {
-		        maxBytesPerMinute = tcpConnection.maxSeenIncomingBytesPerMinute();
-		        reason = " (max observed bytes per minute) ";
-		        // Assume output is at least as wide as input
-		        // If this is wrong, set inputBandwidthLimit
-		        double altMaxBytesPerMinute = outputBandwidthLimit * 60 * 4;
-		        if(altMaxBytesPerMinute > maxBytesPerMinute) {
-		            maxBytesPerMinute = altMaxBytesPerMinute;
-		        	reason = " (output limit assumed smaller than input capacity) ";
-		        }
-		    }
-		    double maxBytes = maxBytesPerMinute * (60 * 1.1);
-		    double myLoad = maxBytes==0?0:bytesExpected / maxBytes;
-		    if(ret < myLoad) ret = myLoad;
-		    if(why != null) {
-                why.append("<br />\nLoad due to expected inbound transfers: ");
-		        why.append(nfp.format(myLoad));
-		        why.append(" because: ");
-		        why.append(sentRequestsHour);
-		        why.append(" req/hr * ");
-		        why.append(pTransfer);
-		        why.append(" (pTransfer) * ");
-		        why.append(stdFileSize);
-		        why.append(" bytes = ");
-		        why.append((long)bytesExpected);
-		        why.append(" bytes/hr expected from current requests, but maxInputBytes/minute = ");
-		        why.append((long)maxBytesPerMinute);
-		        why.append(reason);
-		        why.append(" * 60 * 1.1 = ");
-		        why.append((long)maxBytes);
-		        why.append(" bytes/hr target");
-		    }
+			double sentRequestsHour = sentRequestCounter.getExtrapolatedEventsPerHour();
+			double pTransfer = ((NGRoutingTable)Main.origRT).pTransferGivenRequest();
+			double stdFileSize = calculateStandardFileSize();
+			double bytesExpected = sentRequestsHour * pTransfer *
+				stdFileSize;
+			double maxBytesPerMinute;
+			String reason;
+			if(inputBandwidthLimit > 0) {
+				maxBytesPerMinute = inputBandwidthLimit * 60;
+				reason = " (set input limit) ";
+			} else {
+				maxBytesPerMinute = tcpConnection.maxSeenIncomingBytesPerMinute();
+				reason = " (max observed bytes per minute) ";
+				// Assume output is at least as wide as input
+				// If this is wrong, set inputBandwidthLimit
+				double altMaxBytesPerMinute = outputBandwidthLimit * 60 * 4;
+				if(altMaxBytesPerMinute > maxBytesPerMinute) {
+					maxBytesPerMinute = altMaxBytesPerMinute;
+					reason = " (output limit assumed smaller than input capacity) ";
+				}
+			}
+			double maxBytes = maxBytesPerMinute * (60 * 1.1);
+			double myLoad = maxBytes==0?0:bytesExpected / maxBytes;
+			if(ret < myLoad) ret = myLoad;
+			if(why != null) {
+				why.append("<br />\nLoad due to expected inbound transfers: ");
+				why.append(nfp.format(myLoad));
+				why.append(" because: ");
+				why.append(sentRequestsHour);
+				why.append(" req/hr * ");
+				why.append(pTransfer);
+				why.append(" (pTransfer) * ");
+				why.append(stdFileSize);
+				why.append(" bytes = ");
+				why.append((long)bytesExpected);
+				why.append(" bytes/hr expected from current requests, but maxInputBytes/minute = ");
+				why.append((long)maxBytesPerMinute);
+				why.append(reason);
+				why.append(" * 60 * 1.1 = ");
+				why.append((long)maxBytes);
+				why.append(" bytes/hr target");
+			}
 		}
 		// Predicted outbound bandwidth load
 		if(Main.origRT instanceof NGRoutingTable && forRateLimiting &&
-		        outputBandwidthLimit > 0 && acceptedExternalRequestCounter.countEvents() > 10) {
-		    double receivedRequestsHour = acceptedExternalRequestCounter.getExtrapolatedEventsPerHour();
-		    double pTransfer = ((NGRoutingTable)Main.origRT).pTransferGivenInboundRequest();
-		    double stdFileSize = calculateStandardFileSize();
-		    double bytesExpected = receivedRequestsHour * pTransfer *
-		    	stdFileSize;
-		    double maxBytesPerMinute;
-		    maxBytesPerMinute = outputBandwidthLimit * 60 * 0.7; // assume significant overhead
-		    double maxBytes = maxBytesPerMinute * 60;
-		    double myLoad = maxBytes==0?0:bytesExpected / maxBytes;
-		    if(ret < myLoad) ret = myLoad;
-		    if(why != null) {
-                why.append("<br />\nLoad due to expected outbound transfers: ");
-		        why.append(nfp.format(myLoad));
-		        why.append(" because: ");
-		        why.append(receivedRequestsHour);
-		        why.append(" req/hr * ");
-		        why.append(pTransfer);
-		        why.append("(");
-		        why.append(((NGRoutingTable)Main.origRT).whyPTransferGivenInboundRequest());
-		        why.append(") (pTransfer) * ");
-		        why.append(stdFileSize);
-		        why.append(" bytes = ");
-		        why.append((long)bytesExpected);
-		        why.append(" bytes/hr expected from current requests, but maxOutputBytes/minute = ");
-		        why.append((long)maxBytesPerMinute);
-		        why.append(" * 60 = ");
-		        why.append((long)maxBytes);
-		        why.append(" bytes/hr target");
-		    }
+				outputBandwidthLimit > 0 && acceptedExternalRequestCounter.countEvents() > 10) {
+			double receivedRequestsHour = acceptedExternalRequestCounter.getExtrapolatedEventsPerHour();
+			double pTransfer = ((NGRoutingTable)Main.origRT).pTransferGivenInboundRequest();
+			double stdFileSize = calculateStandardFileSize();
+			double bytesExpected = receivedRequestsHour * pTransfer *
+				stdFileSize;
+			double maxBytesPerMinute;
+			maxBytesPerMinute = outputBandwidthLimit * 60 * 0.7; // assume significant overhead
+			double maxBytes = maxBytesPerMinute * 60;
+			double myLoad = maxBytes==0?0:bytesExpected / maxBytes;
+			if(ret < myLoad) ret = myLoad;
+			if(why != null) {
+				why.append("<br />\nLoad due to expected outbound transfers: ");
+				why.append(nfp.format(myLoad));
+				why.append(" because: ");
+				why.append(receivedRequestsHour);
+				why.append(" req/hr * ");
+				why.append(pTransfer);
+				why.append("(");
+				why.append(((NGRoutingTable)Main.origRT).whyPTransferGivenInboundRequest());
+				why.append(") (pTransfer) * ");
+				why.append(stdFileSize);
+				why.append(" bytes = ");
+				why.append((long)bytesExpected);
+				why.append(" bytes/hr expected from current requests, but maxOutputBytes/minute = ");
+				why.append((long)maxBytesPerMinute);
+				why.append(" * 60 = ");
+				why.append((long)maxBytes);
+				why.append(" bytes/hr target");
+			}
 		}
-//		if(forRateLimiting) {
-//		    // Propagation
-//		    double outgoingRequestRate = sentRequestCounter.getExtrapolatedEventsPerHour();
-//		    double incomingRequestRate = acceptedExternalRequestCounter.getExtrapolatedEventsPerHour();
-//		    /**
-//		     * Don't use it until we have received a certain number of requests.
-//		     * Otherwise fetches on startup will cause MAJOR problems.
-//		     */
-//		    if(acceptedExternalRequestCounter.countEvents() > 10) {
-//		        double myLoad = outgoingRequestRate / incomingRequestRate;
-//		        if(ret < myLoad) ret = myLoad;
-//		        if(why != null) {
-//		            why.append("<br />Load due to propagation = ");
-//		            why.append(nfp.format(myLoad));
-//		            why.append(" = ");
-//		            why.append(outgoingRequestRate);
-//		            why.append(" / ");
-//		            why.append(incomingRequestRate);
-//		        }
-//		    }
-//		}
-//		
-//		// Backoff load
-//		if (forRateLimiting) {
-//			double meanLogBackoffLoad = Core.diagnostics.getContinuousValue("logBackoffLoad", Diagnostics.MINUTE, Diagnostics.MEAN_VALUE);
-//			if(!(Double.isNaN(meanLogBackoffLoad))) {
-//				double estBackoffLoad = Math.exp(meanLogBackoffLoad);
-//				if(estBackoffLoad > ret) ret = estBackoffLoad;
-//				if(why != null) {
+//        if(forRateLimiting) {
+//            // Propagation
+//            double outgoingRequestRate = sentRequestCounter.getExtrapolatedEventsPerHour();
+//            double incomingRequestRate = acceptedExternalRequestCounter.getExtrapolatedEventsPerHour();
+//            /**
+//             * Don't use it until we have received a certain number of requests.
+//             * Otherwise fetches on startup will cause MAJOR problems.
+//             */
+//            if(acceptedExternalRequestCounter.countEvents() > 10) {
+//                double myLoad = outgoingRequestRate / incomingRequestRate;
+//                if(ret < myLoad) ret = myLoad;
+//                if(why != null) {
+//                    why.append("<br />Load due to propagation = ");
+//                    why.append(nfp.format(myLoad));
+//                    why.append(" = ");
+//                    why.append(outgoingRequestRate);
+//                    why.append(" / ");
+//                    why.append(incomingRequestRate);
+//                }
+//            }
+//        }
+//        
+//        // Backoff load
+//        if (forRateLimiting) {
+//            double meanLogBackoffLoad = Core.diagnostics.getContinuousValue("logBackoffLoad", Diagnostics.MINUTE, Diagnostics.MEAN_VALUE);
+//            if(!(Double.isNaN(meanLogBackoffLoad))) {
+//                double estBackoffLoad = Math.exp(meanLogBackoffLoad);
+//                if(estBackoffLoad > ret) ret = estBackoffLoad;
+//                if(why != null) {
 //                  why.append("<br />\nLoad due to backoff: ");
-//					why.append(nfp.format(estBackoffLoad));
-//					why.append(" = e^");
-//					why.append(meanLogBackoffLoad);
-//					why.append(" (average logBackoffLoad)");
-//				}
-//			}
-//		}
+//                    why.append(nfp.format(estBackoffLoad));
+//                    why.append(" = e^");
+//                    why.append(meanLogBackoffLoad);
+//                    why.append(" (average logBackoffLoad)");
+//                }
+//            }
+//        }
 		
 		// Allow >100% load either way
-//		if ((!forRateLimiting) && ret > 1.0f) {
-//		    ret = 1.0f;
-//		}
+//        if ((!forRateLimiting) && ret > 1.0f) {
+//            ret = 1.0f;
+//        }
 
 		synchronized(loadSync) {
-		    now = System.currentTimeMillis();
-		    if(forRateLimiting) {
-		        lastEstimatedRateLimitingLoad = (float) ret;
-		        lastCalculatedRateLimitingLoad = now;
-		    } else {
-		        lastEstimatedLoad = (float) ret;
-		        lastCalculatedEstimatedLoad = now;
-		    }
+			now = System.currentTimeMillis();
+			if(forRateLimiting) {
+				lastEstimatedRateLimitingLoad = (float) ret;
+				lastCalculatedRateLimitingLoad = now;
+			} else {
+				lastEstimatedLoad = (float) ret;
+				lastCalculatedEstimatedLoad = now;
+			}
 		}
 		
 		return (float) ret;
 	}
 
-    private double calculateLoadForUnit(String name, String units, StringBuffer why, 
-            double delay, int delayCutoff, int successCutoff, 
-            boolean forRateLimiting) {
-        double load;
-        double denom = successCutoff - delayCutoff;
-        if(forRateLimiting) {
-            load = delay / delayCutoff;
-        } else {
-            load = overloadLow
-            + (1 - overloadLow)
-            * (delay - delayCutoff)
-            / (denom == 0.0 ? 1.0 : denom);
-        }
-        if (why != null) {
-            why.append("<br />\nLoad due to "+name+" = ");
-            why.append(nfp.format(load) + " = ");
-            if(forRateLimiting) {
-                why.append((int)delay + units + " / " +
-                        delayCutoff + units);
-                why.append(load > overloadLow ? " > " : " <= ");
-                why.append("overloadLow (");
-                why.append(nfp.format(overloadLow));
-            } else {
-                why.append(
-                        nfp.format(overloadLow)
-                        + " + "
-                        + nfp.format(1 - overloadLow)
-                        + " * ("
-                        + nf3.format(delay)
+	private double calculateLoadForUnit(String name, String units, StringBuffer why, 
+			double delay, int delayCutoff, int successCutoff, 
+			boolean forRateLimiting) {
+		double load;
+		double denom = successCutoff - delayCutoff;
+		if(forRateLimiting) {
+			load = delay / delayCutoff;
+		} else {
+			load = overloadLow
+			+ (1 - overloadLow)
+			* (delay - delayCutoff)
+			/ (denom == 0.0 ? 1.0 : denom);
+		}
+		if (why != null) {
+			why.append("<br />\nLoad due to "+name+" = ");
+			why.append(nfp.format(load) + " = ");
+			if(forRateLimiting) {
+				why.append((int)delay + units + " / " +
+						delayCutoff + units);
+				why.append(load > overloadLow ? " > " : " <= ");
+				why.append("overloadLow (");
+				why.append(nfp.format(overloadLow));
+			} else {
+				why.append(
+						nfp.format(overloadLow)
+						+ " + "
+						+ nfp.format(1 - overloadLow)
+						+ " * ("
+						+ nf3.format(delay)
 						+ units
-                        + " - "
-                        + nf3.format(delayCutoff)
+						+ " - "
+						+ nf3.format(delayCutoff)
 						+ units
-                        + ") / "
-                        + nf3.format(denom)
+						+ ") / "
+						+ nf3.format(denom)
 						+ units);
-            }
-            why.append(")");
-        }
+			}
+			why.append(")");
+		}
 
-        return load;
-    }
+		return load;
+	}
 
-    double lastGlobalQuota;
-    long lastGlobalQuotaTime;
-    Object lastGlobalQuotaSync = new Object();
-    
+	double lastGlobalQuota;
+	long lastGlobalQuotaTime;
+	Object lastGlobalQuotaSync = new Object();
+	
 	/**
 	 * @return the target total number of queries per hour that the
 	 * node can handle, based on the current load and traffic levels.
 	 * If load is zero returns positive infinity.
 	 */
 	public double getGlobalQuota() {
-	    /** Cache it for 2 reasons:
-	     * 1. Save CPU usage.
-	     * 2. Make the averages more or less averages over time, rather than
-	     * being biased by message send rates.
-	     */
-	    synchronized(lastGlobalQuotaSync) {
-	        if(System.currentTimeMillis() < lastGlobalQuotaTime + 5000)
-	            return lastGlobalQuota;
-	    }
-	    // First calculate the total number of queries received per hour
-	    // This is a kind of average, necessarily...
-	    double requestsPerHour = receivedRequestCounter.getExtrapolatedEventsPerHour();
-	    Core.diagnostics.occurrenceContinuous("estimatedIncomingRequestsPerHour",
-	            requestsPerHour);
-	    if(Double.isInfinite(requestsPerHour)) {
-	        return Double.POSITIVE_INFINITY;
-	    }
-	    double load = estimatedLoad(true);
-	    /** DO NOT average load.
-	     * Why?
-	     * If an external stimulus causes a slightly increased load for
-	     * a while, and traffic starts to fall, and then the external stimulus
-	     * is taken away, traffic will CONTINUE FALLING for as long as it 
-	     * takes for the load average to come back down to below 1.0.
-	     */
-	    Core.diagnostics.occurrenceContinuous("rateLimitingLoad", load);
-//	    try {
-//	    loadAverager.report(rawLoad);
-//	    } catch (IllegalArgumentException e) {
-//	        logger.log(this, "Caught exception reporting load to load averager",e,
-//	                Logger.NORMAL);
-//	    }
-//	    double load = loadAverager.currentValue();
-//	    Core.diagnostics.occurrenceContinuous("rateLimitingLoad", load);
-	    if(load == 0.0) return Double.POSITIVE_INFINITY;
-	    double ret = requestsPerHour / load; 
-	    Core.diagnostics.occurrenceContinuous("globalQuotaPerHourRaw", ret);
-	    // Now clip it to the maximum the link can sustain
-	    double wasGlobalQuota = ret;
-	    double maxGlobalQuota = getMaxGlobalQuota();
-	    if(ret > maxGlobalQuota) ret = maxGlobalQuota;
-	    logger.log(this, "getGlobalQuota(): requests per hour: "+
-	            requestsPerHour+", load: "+load+
-	            ", raw globalQuota="+wasGlobalQuota+", maxGlobalQuota="+
-	            maxGlobalQuota+", unaveraged globalQuota="+ret, Logger.MINOR);
-	    // Now we DEFINITELY need to average the output
-	    globalQuotaAverager.report(ret);
-	    ret = globalQuotaAverager.currentValue();
-	    Core.diagnostics.occurrenceContinuous("globalQuotaPerHour", ret);
-	    logger.log(this, "getGlobalQuota() returning "+ret, Logger.MINOR);
-	    synchronized(lastGlobalQuotaSync) {
-	        lastGlobalQuota = ret;
-	        lastGlobalQuotaTime = System.currentTimeMillis();
-	    }
-	    return ret;
+		/** Cache it for 2 reasons:
+		 * 1. Save CPU usage.
+		 * 2. Make the averages more or less averages over time, rather than
+		 * being biased by message send rates.
+		 */
+		synchronized(lastGlobalQuotaSync) {
+			if(System.currentTimeMillis() < lastGlobalQuotaTime + 5000)
+				return lastGlobalQuota;
+		}
+		// First calculate the total number of queries received per hour
+		// This is a kind of average, necessarily...
+		double requestsPerHour = receivedRequestCounter.getExtrapolatedEventsPerHour();
+		Core.diagnostics.occurrenceContinuous("estimatedIncomingRequestsPerHour",
+				requestsPerHour);
+		if(Double.isInfinite(requestsPerHour)) {
+			return Double.POSITIVE_INFINITY;
+		}
+		double load = estimatedLoad(true);
+		/** DO NOT average load.
+		 * Why?
+		 * If an external stimulus causes a slightly increased load for
+		 * a while, and traffic starts to fall, and then the external stimulus
+		 * is taken away, traffic will CONTINUE FALLING for as long as it 
+		 * takes for the load average to come back down to below 1.0.
+		 */
+		Core.diagnostics.occurrenceContinuous("rateLimitingLoad", load);
+//        try {
+//        loadAverager.report(rawLoad);
+//        } catch (IllegalArgumentException e) {
+//            logger.log(this, "Caught exception reporting load to load averager",e,
+//                    Logger.NORMAL);
+//        }
+//        double load = loadAverager.currentValue();
+//        Core.diagnostics.occurrenceContinuous("rateLimitingLoad", load);
+		if(load == 0.0) return Double.POSITIVE_INFINITY;
+		double ret = requestsPerHour / load; 
+		Core.diagnostics.occurrenceContinuous("globalQuotaPerHourRaw", ret);
+		// Now clip it to the maximum the link can sustain
+		double wasGlobalQuota = ret;
+		double maxGlobalQuota = getMaxGlobalQuota();
+		if(ret > maxGlobalQuota) ret = maxGlobalQuota;
+		logger.log(this, "getGlobalQuota(): requests per hour: "+
+				requestsPerHour+", load: "+load+
+				", raw globalQuota="+wasGlobalQuota+", maxGlobalQuota="+
+				maxGlobalQuota+", unaveraged globalQuota="+ret, Logger.MINOR);
+		// Now we DEFINITELY need to average the output
+		globalQuotaAverager.report(ret);
+		ret = globalQuotaAverager.currentValue();
+		Core.diagnostics.occurrenceContinuous("globalQuotaPerHour", ret);
+		logger.log(this, "getGlobalQuota() returning "+ret, Logger.MINOR);
+		synchronized(lastGlobalQuotaSync) {
+			lastGlobalQuota = ret;
+			lastGlobalQuotaTime = System.currentTimeMillis();
+		}
+		return ret;
 	}
 	
 	/**
-     * @return the upper limit on the globalQuota, calculated from
-     * the output and input bandwidth limits.
-     */
-    public double getMaxGlobalQuota() {
-        int limit = 0;
-        if(outputBandwidthLimit > 0) limit = outputBandwidthLimit;
-        if(inputBandwidthLimit > 0 && inputBandwidthLimit < outputBandwidthLimit)
-            limit = inputBandwidthLimit;
-	    if(limit > 0) {
-		    double pTransfer = ((NGRoutingTable)Main.origRT).pTransferGivenInboundRequest();
-	        double maxGlobalQuota = (limit * 60 * 60) /
-	        	(calculateStandardFileSize() * pTransfer);
-	        return maxGlobalQuota;
-	    }
-	    return Double.MAX_VALUE;
-    }
+	 * @return the upper limit on the globalQuota, calculated from
+	 * the output and input bandwidth limits.
+	 */
+	public double getMaxGlobalQuota() {
+		int limit = 0;
+		if(outputBandwidthLimit > 0) limit = outputBandwidthLimit;
+		if(inputBandwidthLimit > 0 && inputBandwidthLimit < outputBandwidthLimit)
+			limit = inputBandwidthLimit;
+		if(limit > 0) {
+			double pTransfer = ((NGRoutingTable)Main.origRT).pTransferGivenInboundRequest();
+			double maxGlobalQuota = (limit * 60 * 60) /
+				(calculateStandardFileSize() * pTransfer);
+			return maxGlobalQuota;
+		}
+		return Double.MAX_VALUE;
+	}
 
-    private void accept(
+	private void accept(
 		Key searchKey,
 		int hopsToLive,
 		String diagAddr,
@@ -4775,16 +4775,16 @@ public class Node extends Core implements ConnectionThrottler{
 		int hopsToLive,
 		String diagAddr,
 		String verstr) {
-	    // Do nothing
+		// Do nothing
 	}
 
 	private static final int DEFAULT_FILE_SIZE = 350000;
 	// typical value 13/3/04
 
 	public static long calculateStandardFileSize(Node node) {
-	    if (node == null)
-	        return DEFAULT_FILE_SIZE;
-	    else return node.calculateStandardFileSize();
+		if (node == null)
+			return DEFAULT_FILE_SIZE;
+		else return node.calculateStandardFileSize();
 	}
 	
 	long lastCalculatedStandardFileSizeTime = -1;
@@ -4797,7 +4797,7 @@ public class Node extends Core implements ConnectionThrottler{
 	//unable to ask the store (== if this NGRT doesn't know what node it is
 	// used in)
 	public long calculateStandardFileSize() {
-	        long now = System.currentTimeMillis();
+			long now = System.currentTimeMillis();
 		//Avoid contention for the lastUpdatedNewNodeStatsLock lock if possible
 		if (isRecalculatingStandardFileSize || now - lastCalculatedStandardFileSizeTime < 60*1000)
 			return lastStandardFileSize;
@@ -4805,25 +4805,25 @@ public class Node extends Core implements ConnectionThrottler{
 		//Then test again, holding the proper lock, just to be _sure_ that we should run
 		synchronized(fileSizeTimestampSync){
 			if (isRecalculatingStandardFileSize || now - lastCalculatedStandardFileSizeTime < 60*1000)
-	            return lastStandardFileSize;
+				return lastStandardFileSize;
 			isRecalculatingStandardFileSize = true;
-	        }
+			}
 		try{
-	        long keys = dir.countKeys();
-	        if (keys > 16) {
-	            lastStandardFileSize = dir.used() / keys;  
-	            lastCalculatedStandardFileSizeTime = now;
-	            return lastStandardFileSize;
-	        } else
-	        	return DEFAULT_FILE_SIZE;
+			long keys = dir.countKeys();
+			if (keys > 16) {
+				lastStandardFileSize = dir.used() / keys;  
+				lastCalculatedStandardFileSizeTime = now;
+				return lastStandardFileSize;
+			} else
+				return DEFAULT_FILE_SIZE;
 		}finally{
 			lastCalculatedStandardFileSizeTime = now;
 			isRecalculatingStandardFileSize = false;
-	    }
+		}
 	}
 
 	public void logRequest(Key k) {
-	    receivedRequestCounter.logEvent();
+		receivedRequestCounter.logEvent();
 	}
 	
 	/**
@@ -4867,16 +4867,16 @@ public class Node extends Core implements ConnectionThrottler{
 				// 1.0 = (almost) never accept
 				double rankFraction;
 				if (Main.origRT instanceof NGRoutingTable &&
-				        searchKey != null) {
-				    /** Selective request accept/reject, based on estimate.
-				     * a.k.a. unobtanium accept.
-				     * 
-				     * We want to accept the top x% of incoming requests, where
-				     * x depends on load, by their estimates (lower is better).
-				     * 
-				     * So we route the request and see what the estimate is for
-				     * the first node on the list.
-				     */
+						searchKey != null) {
+					/** Selective request accept/reject, based on estimate.
+					 * a.k.a. unobtanium accept.
+					 * 
+					 * We want to accept the top x% of incoming requests, where
+					 * x depends on load, by their estimates (lower is better).
+					 * 
+					 * So we route the request and see what the estimate is for
+					 * the first node on the list.
+					 */
 					NGRouting routes =
 						(NGRouting) (Main
 							.origRT
@@ -4885,7 +4885,7 @@ public class Node extends Core implements ConnectionThrottler{
 								hopsToLive,
 								calculateStandardFileSize(),
 								// searchKey.getExpectedTransmissionLength(),
-								       //Don't bias the estimate with the size of the key
+									   //Don't bias the estimate with the size of the key
 								false,
 								false,
 								false,
@@ -4894,19 +4894,19 @@ public class Node extends Core implements ConnectionThrottler{
 					
 					if (routes.getNextRoute() == null){
 						// Sh*t happens
-					    // No currently contactable nodes we could route to
+						// No currently contactable nodes we could route to
 						rankFraction = Math.random();
 						logger.log(this, "Initial getNextRoute() call during load "+
-						        "calculation returned no estimate, using random value "+
-						        "for rankFraktion, routes="+routes, Logger.MINOR);
+								"calculation returned no estimate, using random value "+
+								"for rankFraktion, routes="+routes, Logger.MINOR);
 					} else {
 					double estimate = routes.lastEstimatedTime();
 					routes.terminateNoDiagnostic();
 					rankFraction = getRankFraction(estimate);
 						if(logger.shouldLog(Logger.DEBUG, this))
-						    logger.log(this, "Unobtanium: key=" + searchKey + 
-						            ", hopsToLive=" + hopsToLive + " -> estimate: "
-						            + estimate + " -> rank: " + rankFraction, 
+							logger.log(this, "Unobtanium: key=" + searchKey + 
+									", hopsToLive=" + hopsToLive + " -> estimate: "
+									+ estimate + " -> rank: " + rankFraction, 
 						Logger.MINOR);
 					}
 				} else {
@@ -4915,7 +4915,7 @@ public class Node extends Core implements ConnectionThrottler{
 					// If loadThreshold is higher than load, reject
 					// Therefore loadThreshold high = accept more requests 
 					double loadThreshold =
-					    overloadLow + (1.0-rankFraction) * (overloadHigh - overloadLow);
+						overloadLow + (1.0-rankFraction) * (overloadHigh - overloadLow);
 			
 				logger.log(
 						this,
@@ -5059,16 +5059,16 @@ public class Node extends Core implements ConnectionThrottler{
 	 */
 	public final TrailerWriter sendMessage(
 		Message m,
-	        Identity id,
-	        long timeout)
+			Identity id,
+			long timeout)
 		throws SendFailedException {
 		return connections.sendMessage(
 			m,
-	            id,
+				id,
 			null,
 			timeout,
-	            PeerPacketMessage.NORMAL,
-	            presentations.getDefault());
+				PeerPacketMessage.NORMAL,
+				presentations.getDefault());
 	}
 
 	
@@ -5132,26 +5132,26 @@ public class Node extends Core implements ConnectionThrottler{
 	}
 
 	public final void sendMessageAsync(
-	        Message m,
-	        Identity id,
-	        long timeout,
-	        MessageSendCallback cb) {
-	    connections.sendMessageAsync(
-	            m,
-	            id,
-	            null,
-	            cb,
-	            timeout,
-	            PeerPacketMessage.NORMAL);
+			Message m,
+			Identity id,
+			long timeout,
+			MessageSendCallback cb) {
+		connections.sendMessageAsync(
+				m,
+				id,
+				null,
+				cb,
+				timeout,
+				PeerPacketMessage.NORMAL);
 	}
 
 	public final void sendMessageAsync(
 		Message m,
-	        Identity id,
-	        int msgPrio,
-	        long timeout,
-	        MessageSendCallback cb) {
-	    connections.sendMessageAsync(m, id, null, cb, timeout, msgPrio);
+			Identity id,
+			int msgPrio,
+			long timeout,
+			MessageSendCallback cb) {
+		connections.sendMessageAsync(m, id, null, cb, timeout, msgPrio);
 	}
 	
 	public final void sendMessageAsync(
@@ -5191,8 +5191,8 @@ public class Node extends Core implements ConnectionThrottler{
 		Core.logger.log(Node.class, "Perturbing HTL: htl="+htl, Logger.MINOR);
 		if (maxHopsToLive == 0) return htl;
 		if (htl > 3 && ((float)htl / (float)maxHopsToLive) > 0.5) {
-		    if(htl > (maxHopsToLive - 2)) htl = (maxHopsToLive - 2);
-		    Core.logger.log(Node.class, "HTL now "+htl, Logger.MINOR);
+			if(htl > (maxHopsToLive - 2)) htl = (maxHopsToLive - 2);
+			Core.logger.log(Node.class, "HTL now "+htl, Logger.MINOR);
 			f = getRandSource().nextFloat();
 			if (f < 0.2)
 				htl += 2;
@@ -5284,15 +5284,15 @@ public class Node extends Core implements ConnectionThrottler{
 	 *            FieldSet of initial estimator, or null
 	 */
 	public void reference(Key k, Identity id, 
-	        NodeReference nr, FieldSet estimator) {
+			NodeReference nr, FieldSet estimator) {
 		boolean logDEBUG = logger.shouldLog(Logger.DEBUG, this);
 		if(logDEBUG) logger.log(this, "referencing: "+k+", "+nr+", "+
 					estimator, Logger.DEBUG);
 		if(id == null) id = nr.getIdentity();
 		if(id == null) {
-		    Core.logger.log(this, "Referencing: "+k+","+id+","+nr+","+estimator,
-		            new Exception("debug"), Logger.ERROR);
-		    return;
+			Core.logger.log(this, "Referencing: "+k+","+id+","+nr+","+estimator,
+					new Exception("debug"), Logger.ERROR);
+			return;
 		}
 		rt.reference(k, id, nr, estimator);
 		if(logDEBUG) logger.log(this, "adding peer for: "+id+": "+ nr,
@@ -5310,24 +5310,24 @@ public class Node extends Core implements ConnectionThrottler{
 	 * called on startup. Also creates PeerHandlers for each.
 	 */
 	public void scheduleOpenAllConnections() {
-	    logger.log(this, "Scheduling open on all connections", Logger.MINOR);
-	    RTDiagSnapshot snap =
-	        rt.getSnapshot(true);
-	    IdRefPair[] nodes = snap.getIdRefPairs();
-	    for(int i=0;i<nodes.length;i++)
-	        connections.makePeerHandler(nodes[i].id, nodes[i].ref, 
-	                presentations.getDefault());
-	    logger.log(this, "Scheduling open on all "+nodes.length+" connections",
+		logger.log(this, "Scheduling open on all connections", Logger.MINOR);
+		RTDiagSnapshot snap =
+			rt.getSnapshot(true);
+		IdRefPair[] nodes = snap.getIdRefPairs();
+		for(int i=0;i<nodes.length;i++)
+			connections.makePeerHandler(nodes[i].id, nodes[i].ref, 
+					presentations.getDefault());
+		logger.log(this, "Scheduling open on all "+nodes.length+" connections",
 				Logger.MINOR);
-	    rescheduleConnectionOpener();
+		rescheduleConnectionOpener();
 		logger.log(this, "Scheduled open on all connections",
 			Logger.MINOR);
 	}
 
-    public void rescheduleConnectionOpener() {
-        if(connectionOpener != null)
-            connectionOpener.reschedule();
-    }
+	public void rescheduleConnectionOpener() {
+		if(connectionOpener != null)
+			connectionOpener.reschedule();
+	}
 
 	public int getMaxPacketLength() {
 		if (obw != null)
@@ -5336,86 +5336,86 @@ public class Node extends Core implements ConnectionThrottler{
 			return 1492; // fixme
 	}
 
-    /**
-     * @return
-     */
-    public int getMaxTrailerChunkSize() {
-        if (obw != null) {
-            int i = obw.maximumPacketLength();
-            i = i / 5;
-            /** Impose a minimum:
-             * The chunk overhead is 10 bytes
-             * Lets say the maximum acceptable overhead is 5%
-             * That makes 200 bytes a reasonable minimum.
-             */
-            if(i < 200) i = 200;
-            return i;
-        } else {
-            return 500;
-        }
-    }
+	/**
+	 * @return
+	 */
+	public int getMaxTrailerChunkSize() {
+		if (obw != null) {
+			int i = obw.maximumPacketLength();
+			i = i / 5;
+			/** Impose a minimum:
+			 * The chunk overhead is 10 bytes
+			 * Lets say the maximum acceptable overhead is 5%
+			 * That makes 200 bytes a reasonable minimum.
+			 */
+			if(i < 200) i = 200;
+			return i;
+		} else {
+			return 500;
+		}
+	}
 
-    long lastReportedRequestInterval = -1;
-    
+	long lastReportedRequestInterval = -1;
+	
 	public double getBytesSentLastMinute()
 	{
 		return outputBytesLastMinute.currentSum();
 	}
 
-    /**
-     * @param success whether the request succeeded
-     * @param backedOffCount the number of nodes that were tried and unavailable
-     * due to backoff or rate limiting, before we reached a node that eventually
-     * sent us a DNF or a transfer.
-     */
-    public void routingRequestEndedWithBackedOffCount(boolean success, int backedOffCount) {
-        if(backedOffCount > rtMaxNodes) backedOffCount = rtMaxNodes;
-        if(backedOffCount < 0) backedOffCount = 0;
-        synchronized(Node.syncCountsByBackoffCount) {
-            if(success)
-                Node.successesByBackoffCount[backedOffCount]++;
-            else
-                Node.failuresByBackoffCount[backedOffCount]++;
-        }
-    }
-    
-    public String routingResultsByBackoffCount() {
-        StringBuffer sb = new StringBuffer();
-        synchronized(Node.syncCountsByBackoffCount) {
-            sb.append("Backoff count       Successes      Failures\n");
-            for(int i=0;i<=rtMaxNodes;i++) {
-                long successes = Node.successesByBackoffCount[i];
-                long failures = Node.failuresByBackoffCount[i];
-                String s1 = Integer.toString(i);
-                sb.append(s1);
-                for(int j=0;j<20-s1.length();j++) sb.append(' ');
-                s1 = Long.toString(successes);
-                sb.append(s1);
-                for(int j=0;j<20-s1.length();j++) sb.append(' ');
-                s1 = Long.toString(failures);
-                sb.append(s1);
-                for(int j=0;j<20-s1.length();j++) sb.append(' ');
-                sb.append(Double.toString(successes/((double)failures+successes)));
-                sb.append('\n');
-            }
-        }
-        return sb.toString();
-    }
+	/**
+	 * @param success whether the request succeeded
+	 * @param backedOffCount the number of nodes that were tried and unavailable
+	 * due to backoff or rate limiting, before we reached a node that eventually
+	 * sent us a DNF or a transfer.
+	 */
+	public void routingRequestEndedWithBackedOffCount(boolean success, int backedOffCount) {
+		if(backedOffCount > rtMaxNodes) backedOffCount = rtMaxNodes;
+		if(backedOffCount < 0) backedOffCount = 0;
+		synchronized(Node.syncCountsByBackoffCount) {
+			if(success)
+				Node.successesByBackoffCount[backedOffCount]++;
+			else
+				Node.failuresByBackoffCount[backedOffCount]++;
+		}
+	}
+	
+	public String routingResultsByBackoffCount() {
+		StringBuffer sb = new StringBuffer();
+		synchronized(Node.syncCountsByBackoffCount) {
+			sb.append("Backoff count       Successes      Failures\n");
+			for(int i=0;i<=rtMaxNodes;i++) {
+				long successes = Node.successesByBackoffCount[i];
+				long failures = Node.failuresByBackoffCount[i];
+				String s1 = Integer.toString(i);
+				sb.append(s1);
+				for(int j=0;j<20-s1.length();j++) sb.append(' ');
+				s1 = Long.toString(successes);
+				sb.append(s1);
+				for(int j=0;j<20-s1.length();j++) sb.append(' ');
+				s1 = Long.toString(failures);
+				sb.append(s1);
+				for(int j=0;j<20-s1.length();j++) sb.append(' ');
+				sb.append(Double.toString(successes/((double)failures+successes)));
+				sb.append('\n');
+			}
+		}
+		return sb.toString();
+	}
 
-    /**
-     * @return
-     */
-    public double getActualRequestsPerHour() {
-        return receivedRequestCounter.getExtrapolatedEventsPerHour();
-    }
+	/**
+	 * @return
+	 */
+	public double getActualRequestsPerHour() {
+		return receivedRequestCounter.getExtrapolatedEventsPerHour();
+	}
 
-    /**
-     * @return whether we want a single incoming connection, right now.
-     */
-    public boolean wantIncomingConnection() {
-        // Is the last node in the RT newbie?
-        return connections.wantUnkeyedReference();
-    }
+	/**
+	 * @return whether we want a single incoming connection, right now.
+	 */
+	public boolean wantIncomingConnection() {
+		// Is the last node in the RT newbie?
+		return connections.wantUnkeyedReference();
+	}
 
 	/**
 	 * @return the highest seen build number for nodes of the same
@@ -5430,49 +5430,49 @@ public class Node extends Core implements ConnectionThrottler{
 		return new NodeBackgroundInserter(i,j,factory,bf2);
 	}
 
-    /**
-     * @return true if this particular request should be routed 
-     * to the newest node first.
-     */
-    public static boolean shouldRouteByNewness() {
-        return (getRandSource().nextInt(20) == 0);
-    }
+	/**
+	 * @return true if this particular request should be routed 
+	 * to the newest node first.
+	 */
+	public static boolean shouldRouteByNewness() {
+		return (getRandSource().nextInt(20) == 0);
+	}
 
-    /**
-     * Get a string-format address for a given identity
-     * @param origPeer
-     * @return
-     */
-    public String getStringAddress(Identity origPeer) {
-        NodeReference ref = rt.getNodeReference(origPeer);
-        if(ref == null) return "(null)";
-        return ref.firstPhysicalToString();
-    }
+	/**
+	 * Get a string-format address for a given identity
+	 * @param origPeer
+	 * @return
+	 */
+	public String getStringAddress(Identity origPeer) {
+		NodeReference ref = rt.getNodeReference(origPeer);
+		if(ref == null) return "(null)";
+		return ref.firstPhysicalToString();
+	}
 
-    static final int PADDING_CHUNK_SIZE = 160;
-    
-    /**
-     * Pad a packet size up to a reasonable level that minimizes the
-     * amount of information given away.
-     * For now, lets round to the nearest PADDING_CHUNK_SIZE bytes.
-     */
-    public static int padPacketSize(int totalLength) {
-        if(totalLength % PADDING_CHUNK_SIZE == 0) return totalLength;
-        return ((totalLength / PADDING_CHUNK_SIZE) + 1) * PADDING_CHUNK_SIZE;
-    }
+	static final int PADDING_CHUNK_SIZE = 160;
+	
+	/**
+	 * Pad a packet size up to a reasonable level that minimizes the
+	 * amount of information given away.
+	 * For now, lets round to the nearest PADDING_CHUNK_SIZE bytes.
+	 */
+	public static int padPacketSize(int totalLength) {
+		if(totalLength % PADDING_CHUNK_SIZE == 0) return totalLength;
+		return ((totalLength / PADDING_CHUNK_SIZE) + 1) * PADDING_CHUNK_SIZE;
+	}
 
-    public static int minPaddingChunkSize() {
-        return PADDING_CHUNK_SIZE;
-    }
+	public static int minPaddingChunkSize() {
+		return PADDING_CHUNK_SIZE;
+	}
 
-    public Checkpointed getRateLimitingWriterCheckpoint() {
-        return rlwc;
-    }
+	public Checkpointed getRateLimitingWriterCheckpoint() {
+		return rlwc;
+	}
 
-    /**
-     * Log a sent request
-     */
-    public void logOutgoingRequest() {
-        sentRequestCounter.logEvent();
-    }
+	/**
+	 * Log a sent request
+	 */
+	public void logOutgoingRequest() {
+		sentRequestCounter.logEvent();
+	}
 }
