@@ -30,20 +30,18 @@ import freenet.support.servlet.HtmlTemplate;
  * to add a bookmark.
  * <p>
  * Format: &lt;a
- * href=&quot;/servlet/bookmarkmanager?op=add&key=SSK@...//&title=MySiteName&description=The+site+descr&activelinkFile=activelink.png&back=SSK@...//&quot;&gt;
+ * href=&quot;/servlet/bookmarkmanager?op=add&amp;key=SSK@...//&amp;title=MySiteName&amp;description=The+site+descr&amp;activelinkFile=activelink.png&amp;back=SSK@...//&quot;&gt;
  * bookmark me&lt;/a&gt; op = add key = the freenet key (CHK@..., KSK@...,
  * SSK@..., etc) title = the title description = the description activelinkFile =
  * the file underneath the key (only relevent for KSK and SSK) back = link that
  * people will be able to click on to go back to the page All modifications are
  * disabled for public nodes. Remove and update ops only work if the link
  * specifies the old value (making it hard for malicious freesite authors to
- * say op=remove&num=0 (as they also need to know the freenet key that is at
+ * say op=remove&amp;num=0 (as they also need to know the freenet key that is at
  * index 0)
  * </p>
  */
-public class BookmarkManagerServlet
-	extends HttpServlet
-	implements ConfigUpdateListener {
+public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateListener {
 
 	private final static String NL = System.getProperty("line.separator");
 	private boolean allowUpdatingBookmarks;
@@ -87,6 +85,8 @@ public class BookmarkManagerServlet
 	public final static String PARAM_OP_UPDATE = "update";
 	public final static String PARAM_OP_REMOVE = "remove";
 	public final static String PARAM_OP_CONFIRM = "confirm";
+	public final static String PARAM_OP_MOVEUP = "move up";
+	public final static String PARAM_OP_MOVEDOWN = "move down";
 	
 	/*
 	 * These are used to render the HTML form.  yuck, I know.  so, when do we
@@ -103,20 +103,16 @@ public class BookmarkManagerServlet
 	 * bookmarks. what, the bookmarks should be under their own tree? or
 	 * perhaps in their own file?
 	 */
-	private final static String BOOKMARK_PATH =
-		"mainport.params.servlet.2.bookmarks";
+	private final static String BOOKMARK_PATH = "mainport.params.servlet.2.bookmarks";
 
 	public final void init() {
-		randSource =
-			(RandomSource) getServletContext().getAttribute(
-				"freenet.crypt.RandomSource");
+		randSource = (RandomSource) getServletContext().getAttribute("freenet.crypt.RandomSource");
 		bookmarks = loadDefaultBookmarks();
 		thisPath = "/servlet/bookmarkmanager";
 		pendingNewBookmark = null;
-		logDEBUG = Core.logger.shouldLog(Logger.DEBUG,this);
+		logDEBUG = Core.logger.shouldLog(Logger.DEBUG, this);
 		try {
-			pageTemplate =
-				HtmlTemplate.createTemplate("BookmarkManagerServletTmpl.html");
+			pageTemplate = HtmlTemplate.createTemplate("BookmarkManagerServletTmpl.html");
 		} catch (IOException ioe) {
 			Core.logger.log(this, "Error creating template", ioe, Logger.ERROR);
 		}
@@ -138,55 +134,38 @@ public class BookmarkManagerServlet
 				int maxBookmarks = -1;
 				if (countOpt != null) 
 					try {
-						maxBookmarks =
-							Integer.parseInt("" + countOpt.defaultValue());
+						maxBookmarks = Integer.parseInt("" + countOpt.defaultValue());
 					} catch (NumberFormatException nfe) {
 						maxBookmarks = -1;
 					}
 				int i = 0;
 				while (true) {
-					if ( (maxBookmarks >= 0) && (i >= maxBookmarks) )
+					if ((maxBookmarks >= 0) && (i >= maxBookmarks))
 						break;
 					
-					Option keyOpt =
-						params.getOption(BOOKMARK_PATH + "." + i + ".key");
+					Option keyOpt =	params.getOption(BOOKMARK_PATH + "." + i + ".key");
 					if (keyOpt == null)
 						break;
 					
-					Option titleOpt =
-						params.getOption(BOOKMARK_PATH + "." + i + ".title");
-					Option activelinkOpt =
-						params.getOption(
-							BOOKMARK_PATH + "." + i + ".activelinkFile");
-					Option descOpt =
-						params.getOption(
-							BOOKMARK_PATH + "." + i + ".description");
+					Option titleOpt = params.getOption(BOOKMARK_PATH + "." + i + ".title");
+					Option activelinkOpt = params.getOption(BOOKMARK_PATH + "." + i + ".activelinkFile");
+					Option descOpt = params.getOption(BOOKMARK_PATH + "." + i + ".description");
 				
-					String key = (String)keyOpt.defaultValue();
-					String title = (String)titleOpt.defaultValue();
-					String al = (String)activelinkOpt.defaultValue();
-					String desc = (String)descOpt.defaultValue();
+					String key = (String) keyOpt.defaultValue();
+					String title = (String) titleOpt.defaultValue();
+					String al = (String) activelinkOpt.defaultValue();
+					String desc = (String) descOpt.defaultValue();
 			
-			if(logDEBUG)
-				Core.logger.log(
-					BookmarkManagerServlet.class,
-					"Load a new bookmark [" + key + "]", 
-					Logger.DEBUG);
-			bmks.add(new Bookmark(key, title, al, desc));
-			i++;
+					if(logDEBUG)
+						Core.logger.log(BookmarkManagerServlet.class, "Load a new bookmark [" + key + "]", Logger.DEBUG);
+					bmks.add(new Bookmark(key, title, al, desc));
+					i++;
 				}
 			}
-		if(logDEBUG)
-			Core.logger.log(
-				BookmarkManagerServlet.class,
-				"Bookmarks found [" + bmks.size() + "] fieldset: " + params,
-				Logger.DEBUG);
+			if(logDEBUG)
+				Core.logger.log(BookmarkManagerServlet.class, "Bookmarks found [" + bmks.size() + "] fieldset: " + params, Logger.DEBUG);
 		} catch (Exception e) {
-			Core.logger.log(
-				this,
-				"Error loading default bookmarks: " + e.getMessage(),
-				e,
-				Logger.ERROR);
+			Core.logger.log(this, "Error loading default bookmarks: " + e.getMessage(), e, Logger.ERROR);
 		}
 		return bmks;
 	}
@@ -197,14 +176,10 @@ public class BookmarkManagerServlet
 	
 	/**
 	 * Put the bookmark in the confirm slot for further confirmation.
-	 * 
+	 *
 	 * @return success/fail message 
 	 */
-	private String addBookmark(
-		String key,
-		String title,
-		String description,
-		String activelinkFile) {
+	private String addBookmark(String key, String title, String description, String activelinkFile) {
 		logDEBUG = Core.logger.shouldLog(Logger.DEBUG,this);
 		if (!allowUpdatingBookmarks) {
 			return "Bookmarks cannot be updated on public nodes";
@@ -217,8 +192,7 @@ public class BookmarkManagerServlet
 			return "Unsafe description";
 		if(!safeLink(activelinkFile))
 			return "Unsafe activelink file";
-		pendingNewBookmark =
-			new Bookmark(key, title, activelinkFile, description);
+		pendingNewBookmark = new Bookmark(key, title, activelinkFile, description);
 		pendingNewBookmarkSecret = createSecret();
 		
 		return "Please confirm adding the bookmark";
@@ -257,19 +231,13 @@ public class BookmarkManagerServlet
 			return "Bookmarks cannot be updated on public nodes";
 		} 
 		
-		if ( (num < 0) || (num > bookmarks.size()) ) {
+		if ((num < 0) || (num >= bookmarks.size())) {
 			return "Invalid bookmark index specified";
 		}
 		
-		Bookmark bmk = (Bookmark)bookmarks.get(num);
-		if ( (bmk == null) || (bmk.getKey() == null) ) {
-			Core.logger.log(
-				this,
-				"on remove: bookmarks.get("
-					+ num
-					+ ") didn't have a valid key or was null.  bookmarks = "
-					+ bookmarks,
-				Logger.ERROR);
+		Bookmark bmk = (Bookmark) bookmarks.get(num);
+		if ((bmk == null) || (bmk.getKey() == null)) {
+			Core.logger.log(this, "on remove: bookmarks.get(" + num	+ ") didn't have a valid key or was null.  bookmarks = " + bookmarks, Logger.ERROR);
 			return "Internal error removing the bookmark.  No bookmarks have been changed";
 		}
 		if (!bmk.getKey().equals(key)) {
@@ -281,46 +249,34 @@ public class BookmarkManagerServlet
 		saveChanges();
 		return "Bookmark removed";
 	}
-	
+
 	/**
 	 * Actually update the bookmark at the index specified, only if the key
 	 * matches
 	 *
 	 * @return success/fail message
 	 */
-	private String updateBookmark(
-		int num,
-		String key,
-		String newKey,
-		String newTitle,
-		String newDesc,
-		String newActivelinkFile) {
-		logDEBUG = Core.logger.shouldLog(Logger.DEBUG,this);
+	private String updateBookmark(int num, String key, String newKey, String newTitle, String newDesc, String newActivelinkFile) {
+		logDEBUG = Core.logger.shouldLog(Logger.DEBUG, this);
 		if (!allowUpdatingBookmarks) {
 			return "Bookmarks cannot be updated on public nodes";
-		} 
+		}
 		
-		if ( (num < 0) || (num > bookmarks.size()) ) {
+		if ((num < 0) || (num >= bookmarks.size())) {
 			return "Invalid bookmark index specified";
 		}
 		
-		if(!safeKey(newKey))
+		if (!safeKey(newKey))
 			return "Unsafe key";
-		if(!safeTitle(newTitle))
+		if (!safeTitle(newTitle))
 			return "Unsafe title";
-		if(!safeDesc(newDesc))
+		if (!safeDesc(newDesc))
 			return "Unsafe description";
-		if(!safeLink(newActivelinkFile))
+		if (!safeLink(newActivelinkFile))
 			return "Unsafe activelink file";
-		Bookmark bmk = (Bookmark)bookmarks.get(num);
-		if ( (bmk == null) || (bmk.getKey() == null) ) {
-			Core.logger.log(
-				this,
-				"on update, bookmarks.get("
-					+ num
-					+ ") didn't have a valid key or was null.  bookmarks = "
-					+ bookmarks,
-				Logger.ERROR);
+		Bookmark bmk = (Bookmark) bookmarks.get(num);
+		if ((bmk == null) || (bmk.getKey() == null)) {
+			Core.logger.log(this, "on update, bookmarks.get(" + num + ") didn't have a valid key or was null.  bookmarks = " + bookmarks, Logger.ERROR);
 			return "Internal error updating the bookmark.  No bookmarks have been changed";
 		}
 		if (!bmk.getKey().equals(key)) {
@@ -334,6 +290,35 @@ public class BookmarkManagerServlet
 		
 		saveChanges();
 		return "Bookmark updated";
+	}
+
+	/**
+	 * Actually move the bookmark to the index specified, only if the key matches.
+	 *
+	 * @return success/failure message
+	 */
+	private String moveBookmark(int from, int to, String key) {
+		if (!allowUpdatingBookmarks)
+			return "Bookmarks cannot be moved on public nodes.";
+		if ((from == to) || (from < 0) || (to < 0) || (from >= bookmarks.size()) || (to >= bookmarks.size()))
+			return "Invalid bookmark indices specified.";
+
+		Bookmark fromB = (Bookmark) bookmarks.get(from);
+
+		if ((fromB == null) || (fromB.getKey() == null)) {
+			Core.logger.log(this, "on update, bookmarks.get(" + from + ") didn't have a valid key or was null.  bookmarks = " + bookmarks, Logger.ERROR);
+			return "Internal error updating the bookmark.  No bookmarks have been changed";
+		}
+		if (!fromB.getKey().equals(key)) {
+			return "Incorrect key specified to move... malicious link?";
+		}
+
+		Bookmark toB = (Bookmark) bookmarks.get(to);
+		bookmarks.set(to, fromB);
+		bookmarks.set(from, toB);
+
+		saveChanges();
+		return "Bookmark moved.";
 	}
 	
 	/**
@@ -349,18 +334,11 @@ public class BookmarkManagerServlet
 				if (f.exists()) {
 					boolean success = saveChanges(f);
 					if(logDEBUG)
-						Core.logger.log(
-							this,
-							"Saving to [" + f + "]: " + success,
-							Logger.DEBUG);
+						Core.logger.log(this,"Saving to [" + f + "]: " + success, Logger.DEBUG);
 				}
 				Main.getConfigUpdater().checkpoint();
 			} catch (Exception e) {
-				Core.logger.log(
-					this,
-					"Error saving changes: " + e.getMessage(),
-					e,
-					Logger.ERROR);
+				Core.logger.log(this, "Error saving changes: " + e.getMessage(), e, Logger.ERROR);
 			}
 		}
 	}
@@ -378,7 +356,7 @@ public class BookmarkManagerServlet
 				String line = null;
 				int oldLines = 0;
 				int updatedLines = 0;
-				while ( (line = reader.readLine()) != null) {
+				while ((line = reader.readLine()) != null) {
 					if (line.startsWith("%"+BOOKMARK_PATH)) {
 						// skip it
 					} else if (!line.startsWith(BOOKMARK_PATH)) {
@@ -392,49 +370,63 @@ public class BookmarkManagerServlet
 				reader.close();
 		
 				if(logDEBUG)
-					Core.logger.log(
-						this,
-						"Saving to "
-							+ f.getName()
-							+ " left "
-							+ oldLines
-							+ " and commented out "
-							+ updatedLines,
-					Logger.DEBUG);
+					Core.logger.log(this, "Saving to " + f.getName() + " left " + oldLines + " and commented out " + updatedLines, Logger.DEBUG);
 		
 		// now append the updated ones
-				updated.append(BOOKMARK_PATH).append(".count=").append(
-					bookmarks.size()).append(
-					NL);
+				updated
+					.append(BOOKMARK_PATH)
+					.append(".count=")
+					.append(bookmarks.size())
+					.append(NL);
 				for (int i = 0; i < bookmarks.size(); i++) {
 					Bookmark bmk = (Bookmark)bookmarks.get(i);
-					updated.append(BOOKMARK_PATH).append(".").append(i).append(
-						".");
+					updated
+						.append(BOOKMARK_PATH)
+						.append(".")
+						.append(i)
+						.append(".");
 					if (!safeKey(bmk.getKey()))
 						throw new IllegalStateException("invalid key writing out");
-					updated.append("key=").append(bmk.getKey()).append(NL);
+					updated
+						.append("key=")
+						.append(bmk.getKey())
+						.append(NL);
 			
-					updated.append(BOOKMARK_PATH).append(".").append(i).append(
-						".");
+					updated
+						.append(BOOKMARK_PATH)
+						.append(".")
+						.append(i)
+						.append(".");
 					if (!safeTitle(bmk.getTitle()))
 						throw new IllegalStateException("invalid title writing out");
-					updated.append("title=").append(bmk.getTitle()).append(NL);
+					updated
+						.append("title=")
+						.append(bmk.getTitle())
+						.append(NL);
 			
-					updated.append(BOOKMARK_PATH).append(".").append(i).append(
-						".");
+					updated
+						.append(BOOKMARK_PATH)
+						.append(".")
+						.append(i)
+						.append(".");
 					if (!safeLink(bmk.getActivelinkFile()))
 						throw new IllegalStateException("invalid activelink writing out");
-					updated.append("activelinkFile=").append(
-						bmk.getActivelinkFile()).append(
-						NL);
+					updated
+						.append("activelinkFile=")
+						.append(bmk.getActivelinkFile())
+						.append(NL);
 
-					updated.append(BOOKMARK_PATH).append(".").append(i).append(
-						".");
+					updated
+						.append(BOOKMARK_PATH)
+						.append(".")
+						.append(i)
+						.append(".");
 					if (!safeDesc(bmk.getDescription()))
-						throw new IllegalStateException("invaldi description writing out");
-					updated.append("description=").append(
-						bmk.getDescription()).append(
-						NL);
+						throw new IllegalStateException("invalid description writing out");
+					updated
+						.append("description=")
+						.append(bmk.getDescription())
+						.append(NL);
 				}
 		
 				FileOutputStream fos = new FileOutputStream(f);
@@ -442,11 +434,7 @@ public class BookmarkManagerServlet
 				fos.close();
 				return true;
 			} catch (IOException ioe) {
-				Core.logger.log(
-					this,
-					"Saving to " + f.getName() + " failed: " + ioe.getMessage(),
-					ioe,
-					Logger.NORMAL);
+				Core.logger.log(this, "Saving to " + f.getName() + " failed: " + ioe.getMessage(), ioe, Logger.NORMAL);
 				return false;
 			}
 		}
@@ -456,25 +444,19 @@ public class BookmarkManagerServlet
 		throws IOException {
 		processRequest(req, resp);
 	}
-	
+
 	/**
 	 * Distribute the request to addBookmark/updateBookmark/removeBookmark, and
 	 * then render the bookmarks page Synchronized, as this may write to files
 	 * and updates a class level var (bookmarks)
 	 */
-	private synchronized void processRequest(
-		HttpServletRequest req,
-		HttpServletResponse resp)
-		throws IOException {
+	private synchronized void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		StringBuffer resultMessage = new StringBuffer();
 	
 		String op = req.getParameter(PARAM_OP);
 		
 		if(logDEBUG)
-			Core.logger.log(
-				this,
-				"Processing a request w/ op: " + op,
-				Logger.DEBUG);
+			Core.logger.log(this, "Processing a request w/ op: " + op, Logger.DEBUG);
 		
 		if (PARAM_OP_ADD.equalsIgnoreCase(op)) {
 			String key = req.getParameter(PARAM_KEY);
@@ -506,21 +488,10 @@ public class BookmarkManagerServlet
 					String newTitle = req.getParameter(PARAM_TITLE);
 					String newDesc = req.getParameter(PARAM_DESCRIPTION);
 					String newAlFile = req.getParameter(PARAM_ACTIVELINKFILE);
-					resultMessage.append(
-						updateBookmark(
-							num,
-							key,
-							newKey,
-							newTitle,
-							newDesc,
-							newAlFile));
+					resultMessage.append(updateBookmark(num, key, newKey, newTitle, newDesc, newAlFile));
 				}
 			} catch (Exception e) {
-				Core.logger.log(
-					this,
-					"Error updating: " + e.getMessage(),
-					e,
-					Logger.NORMAL);
+				Core.logger.log(this, "Error updating: " + e.getMessage(), e, Logger.NORMAL);
 				resultMessage
 					.append("Invalid update index (")
 					.append(req.getParameter(PARAM_NUM))
@@ -541,25 +512,46 @@ public class BookmarkManagerServlet
 					resultMessage.append(removeBookmark(num, key));
 				}
 			} catch (Exception e) {
-				Core.logger.log(
-					this,
-					"Error removing: " + e.getMessage(),
-					e,
-					Logger.NORMAL);
+				Core.logger.log(this, "Error removing: " + e.getMessage(), e, Logger.NORMAL);
 				resultMessage
 					.append("Invalid remove index (")
 					.append(req.getParameter(PARAM_NUM))
 					.append(")");
 			}
 			pendingNewBookmark = null;
+		} else if (PARAM_OP_MOVEUP.equalsIgnoreCase(op)) {
+			try {
+				int num = Integer.parseInt(req.getParameter(PARAM_NUM));
+				String key = req.getParameter(PARAM_KEY);
+				resultMessage.append(moveBookmark(num, num - 1, key));
+			} catch (Exception e) {
+				Core.logger.log(this, "Error moving: " + e.getMessage(), e, Logger.NORMAL);
+				resultMessage
+					.append("Invalid remove index (")
+					.append(req.getParameter(PARAM_NUM));
+			}
+		} else if (PARAM_OP_MOVEDOWN.equalsIgnoreCase(op)) {
+			try {
+				int num = Integer.parseInt(req.getParameter(PARAM_NUM));
+				String key = req.getParameter(PARAM_KEY);
+				resultMessage.append(moveBookmark(num, num + 1, key));
+			} catch (Exception e) {
+				Core.logger.log(this, "Error moving: " + e.getMessage(), e, Logger.NORMAL);
+				resultMessage
+					.append("Invalid remove index (")
+					.append(req.getParameter(PARAM_NUM));
+			}
 		} else if (op != null) {
-			resultMessage.append("Invalid operation requested: ").append(
-				op).append(
-				"<br />");
-			resultMessage.append("Valid options: ");
-			resultMessage.append(PARAM_OP_ADD).append(" ");
-			resultMessage.append(PARAM_OP_UPDATE).append(" ");
-			resultMessage.append(PARAM_OP_REMOVE).append(" ");
+			resultMessage
+				.append("Invalid operation requested: ")
+				.append(op)
+				.append("<br />")
+				.append("Valid options: ")
+				.append(PARAM_OP_ADD).append(" ")
+				.append(PARAM_OP_UPDATE).append(" ")
+				.append(PARAM_OP_REMOVE).append(" ")
+				.append(PARAM_OP_MOVEUP).append(" ")
+				.append(PARAM_OP_MOVEDOWN).append(" ");
 			pendingNewBookmark = null;
 		} else {
 			// no op, just display
@@ -580,21 +572,13 @@ public class BookmarkManagerServlet
 			pageTemplate.toHtml(pw);
 		} catch (Throwable t) {
 			t.printStackTrace();
-			Core.logger.log(
-				this,
-				"Error rendering the form: " + t.getMessage(),
-				t,
-				Logger.ERROR);
+			Core.logger.log(this, "Error rendering the form: " + t.getMessage(), t, Logger.ERROR);
 		}
 		try {
 			pw.flush();
 			resp.flushBuffer();
 		} catch (IOException ioe) {
-			Core.logger.log(
-				this,
-				"I/O error writing the bookmark manager buffer... probably harmless",
-				ioe,
-				Logger.MINOR);
+			Core.logger.log(this, "I/O error writing the bookmark manager buffer... probably harmless", ioe, Logger.MINOR);
 		}
 	}
 	
@@ -625,7 +609,7 @@ public class BookmarkManagerServlet
 				.append(PARAM_OP)
 				.append('=')
 				.append(PARAM_OP_CONFIRM)
-				.append('&')
+				.append("&amp;")
 				.append(PARAM_CONFIRMID)
 				.append('=')
 				.append(pendingNewBookmarkSecret)
@@ -651,7 +635,7 @@ public class BookmarkManagerServlet
 		
 		if (bookmarks != null) {
 			for (int i = 0; i < bookmarks.size(); i++) {
-				Bookmark bookmark = (Bookmark)bookmarks.get(i);
+				Bookmark bookmark = (Bookmark) bookmarks.get(i);
 				String key = bookmark.getKey();
 				String title = bookmark.getTitle();
 				String activelinkFile = bookmark.getActivelinkFile();
@@ -662,25 +646,11 @@ public class BookmarkManagerServlet
 					if (key.endsWith("/"))
 						activelink = key + activelinkFile;
 					else if (key.indexOf('/') > 0) 
-						activelink =
-							key.substring(0, key.lastIndexOf('/') + 1)
-								+ activelinkFile;
+						activelink = key.substring(0, key.lastIndexOf('/') + 1) + activelinkFile;
 				}
 		
 				if(logDEBUG)
-					Core.logger.log(
-						this,
-						"Found full bookmark ["
-							+ i
-							+ "]: "
-							+ key
-							+ "/"
-							+ title
-							+ "/"
-							+ activelink
-							+ "/"
-							+ description,
-						Logger.DEBUG);
+					Core.logger.log(this, "Found full bookmark [" + i + "]: " + key	+ "/" + title + "/" + activelink + "/" + description, Logger.DEBUG);
 			
 				buf
 					.append("<tr><td colspan=\"2\">")
@@ -745,9 +715,28 @@ public class BookmarkManagerServlet
 					.append(description)
 					.append("</textarea></td></tr>")
 					.append(NL)
-					.append("<tr><td valign=\"top\"><input type=\"submit\" name=\"")
+					.append("<tr><td colspan=\"2\" valign=\"top\"><input type=\"submit\" name=\"")
 					.append(PARAM_OP)
-					.append("\" value=\"")
+					.append("\" value=\"");
+				if (i != 0) {
+					buf
+						.append(PARAM_OP_MOVEUP)
+						.append("\" />")
+						.append(NL)
+						.append("<input type=\"submit\" name=\"")
+						.append(PARAM_OP)
+						.append("\" value=\"");
+				}
+				if (i != bookmarks.size() - 1) {
+					buf
+						.append(PARAM_OP_MOVEDOWN)
+						.append("\" />")
+						.append(NL)
+						.append("<input type=\"submit\" name=\"")
+						.append(PARAM_OP)
+						.append("\" value=\"");
+				}
+				buf
 					.append(PARAM_OP_UPDATE)
 					.append("\" />")
 					.append(NL)
@@ -828,12 +817,14 @@ public class BookmarkManagerServlet
 			if (key.endsWith("/"))
 				activelink = key + activelinkFile;
 			else if (key.indexOf('/') > 0) 
-				activelink =
-					key.substring(0, key.lastIndexOf('/') + 1) + activelinkFile;
+				activelink = key.substring(0, key.lastIndexOf('/') + 1) + activelinkFile;
 		}
 		
 		StringBuffer buf = new StringBuffer();
-		buf.append("<a href=\"/").append(key).append("\">");
+		buf
+			.append("<a href=\"/")
+			.append(key)
+			.append("\">");
 		if (activelink != null)
 			buf
 				.append("<img src=\"/")
@@ -841,9 +832,13 @@ public class BookmarkManagerServlet
 				.append("\" alt=\"")
 				.append(title)
 				.append("\" width=\"95\" height=\"32\" /> ");
-		buf.append(title).append("</a>");
+		buf
+			.append(title)
+			.append("</a>");
 		if (description != null) 
-			buf.append(" - ").append(description);
+			buf
+				.append(" - ")
+				.append(description);
 		buf.append(NL);
 		return buf.toString();
 	}
@@ -895,10 +890,7 @@ public class BookmarkManagerServlet
 	public void configPropertyUpdated(String path, Params fs) {
 		logDEBUG = Core.logger.shouldLog(Logger.DEBUG,this);
 		if(logDEBUG)
-			Core.logger.log(
-				this,
-				"configPropertyUpdated called w/ path [" + path + "]",
-				Logger.DEBUG);
+			Core.logger.log(this, "configPropertyUpdated called w/ path [" + path + "]", Logger.DEBUG);
 		
 		int count = -1;
 		
@@ -915,10 +907,7 @@ public class BookmarkManagerServlet
 			try {
 				int specCount = params.getInt("count");
 				if(logDEBUG)
-					Core.logger.log(
-						this,
-						"Bookmarks.specCount = " + specCount,
-					Logger.DEBUG);
+					Core.logger.log(this, "Bookmarks.specCount = " + specCount, Logger.DEBUG);
 				count = specCount;
 			} catch (Exception e) {
 				try {
@@ -929,37 +918,22 @@ public class BookmarkManagerServlet
 			}
 			
 			if(logDEBUG)
-				Core.logger.log(
-					this,
-					"Bookmarks.count = "
-						+ count
-						+ "countOpt = ["
-						+ countOpt
-						+ "]",
-					Logger.DEBUG);
+				Core.logger.log(this, "Bookmarks.count = " + count + "countOpt = [" + countOpt + "]", Logger.DEBUG);
 			
 			int i = 0;
-			while (!((i >= count) && (count >= 0))) {
+			while ((i < count) || (count < 0)) {
 
 				fs = (Params) params.getSet(i + "");
 				if (fs == null) {
 					if (logDEBUG)
-						Core.logger.log(
-							this,
-							"bookmarks.getSet(" + i + ") returned null",
-							Logger.DEBUG);
+						Core.logger.log(this, "bookmarks.getSet(" + i + ") returned null", Logger.DEBUG);
 					break;
 				}
 					
-				Option keyOpt =
-					params.getOption(BOOKMARK_PATH + "." + i + ".key");
-				Option titleOpt =
-					params.getOption(BOOKMARK_PATH + "." + i + ".title");
-				Option activelinkOpt =
-					params.getOption(
-						BOOKMARK_PATH + "." + i + ".activelinkFile");
-				Option descOpt =
-					params.getOption(BOOKMARK_PATH + "." + i + ".description");
+				Option keyOpt = params.getOption(BOOKMARK_PATH + "." + i + ".key");
+				Option titleOpt = params.getOption(BOOKMARK_PATH + "." + i + ".title");
+				Option activelinkOpt = params.getOption(BOOKMARK_PATH + "." + i + ".activelinkFile");
+				Option descOpt = params.getOption(BOOKMARK_PATH + "." + i + ".description");
 
 				String k = fs.getString("key");
 				String t = fs.getString("title");
@@ -967,21 +941,8 @@ public class BookmarkManagerServlet
 				String desc = fs.getString("description");
 					
 				if(logDEBUG)
-					Core.logger.log(
-						this,
-						"bookmarks.isSet("
-							+ i
-							+ "/"
-							+ count
-							+ ") is true: k = "
-							+ k
-							+ " keyOpt = "
-							+ keyOpt,
-						Logger.DEBUG);
-				if ((k == null)
-					&& (t == null)
-					&& (al == null)
-					&& (desc == null)) {
+					Core.logger.log(this, "bookmarks.isSet(" + i + "/" + count + ") is true: k = " + k + " keyOpt = " + keyOpt, Logger.DEBUG);
+				if ((k == null) && (t == null) && (al == null) && (desc == null)) {
 						i++;
 						continue;
 					}
@@ -989,21 +950,11 @@ public class BookmarkManagerServlet
 				if (i >= newBookmarks.size()) {
 					newBookmarks.add(new Bookmark(k, t, al, desc));
 					if(logDEBUG)
-						Core.logger.log(
-							this,
-							"Update had a new bookmark [" + k + "]",
-							Logger.DEBUG);
+						Core.logger.log(this, "Update had a new bookmark [" + k + "]", Logger.DEBUG);
 				} else {
-					Bookmark bmk = (Bookmark)newBookmarks.get(i);
-					if(logDEBUG)
-						Core.logger.log(
-							this,
-							"Update changed a bookmark ["
-								+ bmk.getKey()
-								+ "] into ["
-								+ k
-								+ "]...",
-							Logger.DEBUG);
+					Bookmark bmk = (Bookmark) newBookmarks.get(i);
+					if (logDEBUG)
+						Core.logger.log(this, "Update changed a bookmark [" + bmk.getKey() + "] into ["	+ k + "]...", Logger.DEBUG);
 					if (k != null)
 						bmk.setKey(k);
 					if (t != null)
@@ -1013,31 +964,21 @@ public class BookmarkManagerServlet
 					if (desc != null)
 						bmk.setDescription(desc);
 				}
-					i++;
+				i++;
 			} // end looping over bookmarks
 		} else {
 			// (bookmarks NOT specified in update)
 			if(logDEBUG)
-				Core.logger.log(
-					this,
-					"bookmarks NOT specified in update",
-				Logger.DEBUG);
+				Core.logger.log(this, "bookmarks NOT specified in update", Logger.DEBUG);
 		}
 		
-		if (count >= 0) 
+		if (count >= 0)
 			while (count < newBookmarks.size())
 				newBookmarks.remove(count);
 		
 		bookmarks = newBookmarks;
 		if(logDEBUG)
-			Core.logger.log(
-				this,
-				"Bookmarks now contains "
-					+ bookmarks.size()
-					+ "/"
-					+ count
-					+ " bookmarks",
-				Logger.DEBUG);
+			Core.logger.log(this, "Bookmarks now contains " + bookmarks.size() + "/" + count + " bookmarks", Logger.DEBUG);
 		Core.logger.log(this, "Bookmarks updated on request",Logger.NORMAL);
 	}
 	
@@ -1047,71 +988,81 @@ public class BookmarkManagerServlet
 	// <'s would allow insertion of arbitrary HTML
 	
 	protected boolean safeKey(String s) {
-		return s.indexOf('\n') < 0
-			&& s.indexOf('\r') < 0
-			&& s.indexOf(':') < 0
-			&& s.indexOf('<') < 0;
+		return (s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0);
 	}
 	
 	protected boolean safeTitle(String s) {
-		return s.indexOf('\n') < 0
-			&& s.indexOf('\r') < 0
-			&& s.indexOf(':') < 0
-			&& s.indexOf('<') < 0;
+		return (s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0);
 	}
 	
 	protected boolean safeDesc(String s) {
-		return s.indexOf('\n') < 0
-			&& s.indexOf('\r') < 0
-			&& s.indexOf(':') < 0
-			&& s.indexOf('<') < 0;
+		return (s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0);
 	}
 	
 	protected boolean safeLink(String s) {
-		return s.indexOf('\n') < 0
-			&& s.indexOf('\r') < 0
-			&& s.indexOf(':') < 0
-			&& s.indexOf('<') < 0;
+		return (s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0);
 	}
-	
+
 	/**
 	 * Defines a bookmark
 	 */
-	public static class Bookmark {
+	public class Bookmark {
+
 		private String key;
 		private String title;
 		private String activelink;
 		private String description;
+
 		public Bookmark(String ky, String ttle, String alFile, String desc) { 
 			setKey(ky);
 			setTitle(ttle);
 			setActivelinkFile(alFile);
 			setDescription(desc);
 		}
+
 		public String getKey() {
 			return key;
 		}
+
+		// Empty strings in the configuration file are replaced with hard coded defaults. This appears to be the desired behavior. Therefore we must replace
+		// empty strings with something meaningful
+
 		public void setKey(String key) {
 			this.key = clean(key);
+			if (this.key.equals(""))
+				this.key = "key missing";
 		}
+
 		public String getTitle() {
 			return title;
 		}
+
 		public void setTitle(String title) {
 			this.title = clean(title);
+			if (this.title.equals(""))
+				this.title = "no title";
 		}
+
 		public String getActivelinkFile() {
 			return activelink;
 		}
+
 		public void setActivelinkFile(String file) {
 			activelink = clean(file);
+			if (activelink.equals(""))
+				activelink = "noactivelink" + randSource.nextInt() + ".png"; // should create broken link
 		}
+
 		public String getDescription() {
 			return description;
 		}
+
 		public void setDescription(String desc) { 
 			description = clean(desc); 
+			if (description.equals(""))
+				description = "no description";
 		}
+
 		private String clean(String string) {
 			if (string != null) {
 				string = string.replace('\n', ' ');
@@ -1119,8 +1070,9 @@ public class BookmarkManagerServlet
 			}
 			return string;
 		}
+
 		public String toString() {
 			return getKey();
 		}
-	}   
+	}
 }
