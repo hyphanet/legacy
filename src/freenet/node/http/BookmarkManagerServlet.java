@@ -832,6 +832,8 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 				.append("\" alt=\"")
 				.append(title)
 				.append("\" width=\"95\" height=\"32\" /> ");
+		else
+			buf.append("(active link missing)");
 		buf
 			.append(title)
 			.append("</a>");
@@ -959,8 +961,7 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 						bmk.setKey(k);
 					if (t != null)
 						bmk.setTitle(t);
-					if (al != null)
-						bmk.setActivelinkFile(al);
+					bmk.setActivelinkFile(al);
 					if (desc != null)
 						bmk.setDescription(desc);
 				}
@@ -1000,7 +1001,7 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 	}
 	
 	protected boolean safeLink(String s) {
-		return (s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0);
+		return (s == null) || ((s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0));
 	}
 
 	/**
@@ -1043,6 +1044,11 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 				this.title = "no title";
 		}
 
+		/**
+		 * Obtain path to active link picture relative to site.
+		 * When this method returns null, no link should be displayed.
+		 */
+
 		public String getActivelinkFile() {
 			return activelink;
 		}
@@ -1050,7 +1056,7 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 		public void setActivelinkFile(String file) {
 			activelink = clean(file);
 			if (activelink.equals(""))
-				activelink = "noactivelink" + randSource.nextInt() + ".png"; // should create broken link
+				activelink = null;
 		}
 
 		public String getDescription() {
