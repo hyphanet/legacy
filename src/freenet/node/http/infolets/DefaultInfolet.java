@@ -261,8 +261,8 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 				String activelinkFile = bookmark.getString("activelinkFile");
 				String description = bookmark.getString("description");
 
-				String activelink = null;
-				if ((activelinkFile != null) && (activelinkFile.trim().length() > 0)) {
+				String activelink = "";
+				if (activelinkFile.trim().length() > 0) {
 					if (key.endsWith("/"))
 						activelink = key + activelinkFile;
 					else if (key.indexOf('/') > 0)
@@ -273,31 +273,38 @@ public class DefaultInfolet extends Infolet implements ConfigUpdateListener {
 					Core.logger.log(DefaultInfolet.class, "Found full bookmark [" + i + "]: " + key + "/" + title + "/" + activelink + "/" + description, Logger.DEBUG);
 				}
 
-				link
-					.append("<tr><td><a href=\"/")
-					.append(key)
-					.append("\">\n");
-				if (activelink != null)
+				link.append("<tr><td>");
+				if (!key.equals("")) {
 					link
-						.append("<img src=\"/")
-						.append(activelink)
-						.append("\" alt=\"")
-						.append(title)
-						.append("\" width=\"95\" height=\"32\" />");
-				link.append("</a></td>\n");
-				link
-					.append("<td><a href=\"/")
-					.append(key)
-					.append("\">")
-					.append(title)
-					.append("</a></td>\n");
-				if (description != null) {
-					link
-						.append("<td>")
-						.append(description)
-						.append("</td>\n");
+						.append("<a href=\"/")
+						.append(key)
+						.append("\">\n");
+					if (!activelink.equals(""))
+						link
+							.append("<img src=\"/")
+							.append(activelink)
+							.append("\" alt=\"")
+							.append(title)
+							.append("\" width=\"95\" height=\"32\" />");
+					else if (key.indexOf('/') <= 0)
+						link.append("invalid key");
+					else
+						link.append("no active link");
+					link.append("</a>");
 				}
-				link.append("</tr>\n");
+				link.append("</td>\n<td>");
+				if (!key.equals(""))
+					link
+						.append("<a href=\"/")
+						.append(key)
+						.append("\">")
+						.append(title)
+						.append("</a>");
+				else
+					link.append("key missing");
+				link.append("</td>\n<td>");
+				link.append(description);
+				link.append("</td></tr>\n");
 				i++;
 			}
 		}

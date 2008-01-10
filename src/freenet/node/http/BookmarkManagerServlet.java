@@ -642,7 +642,7 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 				String description = bookmark.getDescription();
 			
 				String activelink = null;
-				if (activelinkFile != null) { 
+				if (!activelinkFile.equals("")) {
 					if (key.endsWith("/"))
 						activelink = key + activelinkFile;
 					else if (key.indexOf('/') > 0) 
@@ -812,8 +812,8 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 		String activelinkFile = bookmark.getActivelinkFile();
 		String description = bookmark.getDescription();
 			
-		String activelink = null;
-		if (activelinkFile != null) { 
+		String activelink = "";
+		if (!activelinkFile.equals("")) { 
 			if (key.endsWith("/"))
 				activelink = key + activelinkFile;
 			else if (key.indexOf('/') > 0) 
@@ -821,11 +821,14 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 		}
 		
 		StringBuffer buf = new StringBuffer();
-		buf
-			.append("<a href=\"/")
-			.append(key)
-			.append("\">");
-		if (activelink != null)
+		if (!key.equals(""))
+			buf
+				.append("<a href=\"/")
+				.append(key)
+				.append("\">");
+		else
+			buf.append("key missing");
+		if (!activelink.equals(""))
 			buf
 				.append("<img src=\"/")
 				.append(activelink)
@@ -1001,7 +1004,7 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 	}
 	
 	protected boolean safeLink(String s) {
-		return (s == null) || ((s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0));
+		return (s.indexOf('\n') < 0) && (s.indexOf('\r') < 0) && (s.indexOf(':') < 0) && (s.indexOf('<') < 0);
 	}
 
 	/**
@@ -1030,8 +1033,6 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 
 		public void setKey(String key) {
 			this.key = clean(key);
-			if (this.key.equals(""))
-				this.key = "key missing";
 		}
 
 		public String getTitle() {
@@ -1046,7 +1047,7 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 
 		/**
 		 * Obtain path to active link picture relative to site.
-		 * When this method returns null, no link should be displayed.
+		 * When this method returns an empty string, no link should be displayed.
 		 */
 
 		public String getActivelinkFile() {
@@ -1055,8 +1056,6 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 
 		public void setActivelinkFile(String file) {
 			activelink = clean(file);
-			if (activelink.equals(""))
-				activelink = null;
 		}
 
 		public String getDescription() {
@@ -1074,6 +1073,8 @@ public class BookmarkManagerServlet extends HttpServlet implements ConfigUpdateL
 				string = string.replace('\n', ' ');
 				string = string.replace('=', ' ');
 			}
+			else
+				string = "";
 			return string;
 		}
 
