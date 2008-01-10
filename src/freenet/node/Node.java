@@ -1,4 +1,3 @@
-/* -*- Mode: java; c-basic-indent: 4; tab-width: 4 -*- */
 package freenet.node;
 
 import java.io.DataInputStream;
@@ -4230,77 +4229,82 @@ public class Node extends Core implements ConnectionThrottler{
 		return false;
 	}
 
-		 static class TickStat {
-		 long user;
-		 long nice;
-		 long system;
-		 long spare;
+	static class TickStat {
 
-		 boolean read(File f) {
-			 String firstline;
-			 try {
-			 FileInputStream fis = new FileInputStream(f);
-			 ReadInputStream ris = new ReadInputStream(fis);
-			 firstline = ris.readln();
-			 ris.close();
-			 } catch (IOException e) { return false; }
-			 logger.log(this, "Read first line: "+firstline,
-					 Logger.DEBUG);
-			 if(!firstline.startsWith("cpu")) return false;
-			 long[] data = new long[4];
-			 for(int i=0;i<4;i++) {
-			 firstline = firstline.substring("cpu".length()).trim();
-			 firstline = firstline + ' ';
-			 int x = firstline.indexOf(' ');
-			 if(x == -1) return false;
-			 String firstbit = firstline.substring(0, x);
-			 try {
-				 data[i] = Long.parseLong(firstbit);
-			 } catch (NumberFormatException e) {
-				 return false;
-			 }
-			 firstline = firstline.substring(x);
-			 }
-			 user = data[0];
-			 nice = data[1];
-			 system = data[2];
-			 spare = data[3];
-			 logger.log(this, "Read from file: user "+user+" nice "+nice+
-					 " system "+system+" spare "+spare, Logger.DEBUG);
-			 return true;
-		 }
+		long user;
 
-		 int calculate(TickStat old) {
-			 long userdiff = user - old.user;
-			 long nicediff = nice - old.nice;
-			 long systemdiff = system - old.system;
-			 long sparediff = spare - old.spare;
+		long nice;
 
-			 if(userdiff + nicediff + systemdiff + sparediff <= 0) return 0;
-			 logger.log(this, "User changed by "+userdiff+", Nice: "+nicediff+
-					 ", System: "+systemdiff+", Spare: "+sparediff,
-					 Logger.DEBUG);
-			 int usage = (int)((100 * (userdiff + nicediff + systemdiff)) /
-					   (userdiff + nicediff + systemdiff + sparediff));
-			 logger.log(this, "CPU usage: "+usage, Logger.DEBUG);
-			 return usage;
-		 }
+		long system;
 
-		 void copyFrom(TickStat old) {
-			 user = old.user;
-			 nice = old.nice;
-			 system = old.system;
-			 spare = old.spare;
-		 }
-		 }
+		long spare;
 
-		 int lastCPULoadEstimate = 0;
-		 long lastCPULoadEstimateTime = 0;
+		boolean read(File f) {
+			String firstline;
+			try {
+				FileInputStream fis = new FileInputStream(f);
+				ReadInputStream ris = new ReadInputStream(fis);
+				firstline = ris.readln();
+				ris.close();
+			} catch (IOException e) {
+				return false;
+			}
+			logger.log(this, "Read first line: " + firstline, Logger.DEBUG);
+			if(!firstline.startsWith("cpu")) return false;
+			long[] data = new long[4];
+			for(int i = 0; i < 4; i++) {
+				firstline = firstline.substring("cpu".length()).trim();
+				firstline = firstline + ' ';
+				int x = firstline.indexOf(' ');
+				if(x == -1)
+					return false;
+				String firstbit = firstline.substring(0, x);
+				try {
+					data[i] = Long.parseLong(firstbit);
+				} catch (NumberFormatException e) {
+					return false;
+				}
+				firstline = firstline.substring(x);
+			}
+			user = data[0];
+			nice = data[1];
+			system = data[2];
+			spare = data[3];
+			logger.log(this, "Read from file: user " + user + " nice " + nice + " system " +system + " spare " + spare, Logger.DEBUG);
+			return true;
+		}
 
-		 File proc = File.separator.equals("/") ?
-		 new File("/proc/stat") : null;
-		 TickStat tsOld = new TickStat();
-		 TickStat tsNew = null;
+		int calculate(TickStat old) {
+			long userdiff = user - old.user;
+			long nicediff = nice - old.nice;
+			long systemdiff = system - old.system;
+			long sparediff = spare - old.spare;
+
+			if (userdiff + nicediff + systemdiff + sparediff <= 0)
+				return 0;
+			logger.log(this, "User changed by " + userdiff + ", Nice: " + nicediff + ", System: " + systemdiff + ", Spare: " + sparediff, Logger.DEBUG);
+			int usage = (int) ((100 * (userdiff + nicediff + systemdiff)) / (userdiff + nicediff + systemdiff + sparediff));
+			logger.log(this, "CPU usage: " + usage, Logger.DEBUG);
+			return usage;
+		}
+
+		void copyFrom(TickStat old) {
+			user = old.user;
+			nice = old.nice;
+			system = old.system;
+			spare = old.spare;
+		}
+	}
+
+	int lastCPULoadEstimate = 0;
+
+	long lastCPULoadEstimateTime = 0;
+
+	File proc = File.separator.equals("/") ? new File("/proc/stat") : null;
+
+	TickStat tsOld = new TickStat();
+
+	TickStat tsNew = null;
 
 	float lastEstimatedLoad = 0;
 	float lastEstimatedRateLimitingLoad = 0;
@@ -4322,6 +4326,7 @@ public class Node extends Core implements ConnectionThrottler{
 	public final float estimatedLoad(boolean forRateLimiting) {
 		return estimatedLoad(null, forRateLimiting);
 	}
+
 	public final float estimatedLoad(StringBuffer why, boolean forRateLimiting) {
 		double ret;
 
@@ -4877,37 +4882,23 @@ public class Node extends Core implements ConnectionThrottler{
 					 * So we route the request and see what the estimate is for
 					 * the first node on the list.
 					 */
-					NGRouting routes =
-						(NGRouting) (Main
-							.origRT
-							.route(
-								searchKey,
-								hopsToLive,
-								calculateStandardFileSize(),
-								// searchKey.getExpectedTransmissionLength(),
-									   //Don't bias the estimate with the size of the key
-								false,
-								false,
-								false,
-								false,
-								false));
-					
-					if (routes.getNextRoute() == null){
+					NGRouting routes = (NGRouting) (Main.origRT.route(searchKey, hopsToLive, calculateStandardFileSize(),
+						/* searchKey.getExpectedTransmissionLength(), */ //Don't bias the estimate with the size of the key
+						false, false, false, false, false));
+
+					if (routes.getNextRoute() == null) {
 						// Sh*t happens
 						// No currently contactable nodes we could route to
 						rankFraction = Math.random();
-						logger.log(this, "Initial getNextRoute() call during load "+
-								"calculation returned no estimate, using random value "+
-								"for rankFraktion, routes="+routes, Logger.MINOR);
+						logger.log(this, "Initial getNextRoute() call during load calculation returned no estimate, using random value "
+							+ "for rankFraktion, routes=" + routes, Logger.MINOR);
 					} else {
-					double estimate = routes.lastEstimatedTime();
-					routes.terminateNoDiagnostic();
-					rankFraction = getRankFraction(estimate);
+						double estimate = routes.lastEstimatedTime();
+						routes.terminateNoDiagnostic();
+						rankFraction = getRankFraction(estimate);
 						if(logger.shouldLog(Logger.DEBUG, this))
-							logger.log(this, "Unobtanium: key=" + searchKey + 
-									", hopsToLive=" + hopsToLive + " -> estimate: "
-									+ estimate + " -> rank: " + rankFraction, 
-						Logger.MINOR);
+							logger.log(this, "Unobtanium: key=" + searchKey + ", hopsToLive=" + hopsToLive + " -> estimate: " + estimate
+								+ " -> rank: " + rankFraction, Logger.MINOR);
 					}
 				} else {
 					rankFraction = Math.random();
