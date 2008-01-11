@@ -504,202 +504,44 @@ public class Node extends Core implements ConnectionThrottler{
 			"Web Interface",
 			4123);
 
-		// default bookmarks. bookmarks start at 6000 so they come last in the
-		// config file
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.count",
-			1,
-			-1,
-			6000);
+		// default bookmarks. Bookmarks start at 6000 so they come last in the config file
+		config.addOption("mainport.params.servlet.2.bookmarks.count", 1, -1, 6000);
 
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.0.key",
-			1,
-			"SSK@rBjVda8pC-Kq04jUurIAb8IzAGcPAgM/TFE//",
-			6100);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.0.title",
-			1,
-			"The Freedom Engine",
-			6101);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.0.activelinkFile",
-			1,
-			"ActiveLink.jpg",
-			6102);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.0.description",
-			1,
-			"Oldest living Freenet index site (no categories, but has activelinks)",
-			6103);
+		config.addOption("mainport.params.servlet.2.bookmarks.0.key", 1, "SSK@qe3ZRJg1Nv1XErADrz7ZYjhDidUPAgM/nubile/11//", 6100);
+		config.addOption("mainport.params.servlet.2.bookmarks.0.title", 1, "Nubile", 6101);
+		config.addOption("mainport.params.servlet.2.bookmarks.0.activelinkFile", 1, "nubile.png", 6102);
+		config.addOption("mainport.params.servlet.2.bookmarks.0.description", 1,
+			"Freesite aimed at beginners. Learn basic methods of retrieving and inserting data from and into freenet. " +
+			"Unfortunately some of the specifics are slightly outdated.", 6103);
 
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.1.key",
-//            1,
-//            "SSK@rjYFfgPHfolmcStiaoxESFfBXz8PAgM/FreenetHelp//",
-//            6110);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.1.title",
-//            1,
-//            "The Freenet Help Index",
-//            6111);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.1.activelinkFile",
-//            1,
-//            "ActiveLink.png",
-//            6112);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.1.description",
-//            1,
-//            "Index of Freenet help resources",
-//            6113);
-//
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.2.key",
-//            1,
-//            "SSK@IWmzQkYKOlOefQoWbGCQSrkS3vsPAgM,NzRr-Pj88cVT0bN~1urLVg/FIND//",
-//            6120);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.2.title",
-//            1,
-//            "FIND is Not Dolphin",
-//            6121);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.2.activelinkFile",
-//            1,
-//            "activelink.png",
-//            6122);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.2.description",
-//            1,
-//            "Index of sites available within the \"stable\" network, often available here too",
-//            6123);
-//
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.key",
-			1,
-			"SSK@9G4s~jLQJB7ALQg-v2q5xKAJy9YPAgM/CofE//",
-			6130);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.title",
-			1,
-			"Content of Evil",
-			6131);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.activelinkFile",
-			1,
-			"CofETitle.jpg",
-			6132);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.1.description",
-			1,
-			"One of Freenet's oldest Freesites, witty discussion of Freenet, the universe, and everything",
-			6133);
+		config.addOption("mainport.params.servlet.2.bookmarks.1.key", 1, "SSK@a7SLJXxcl2eT967cHE5~mzQaYTkPAgM/newtofn/7//", 6130);
+		config.addOption("mainport.params.servlet.2.bookmarks.1.title", 1, "New to Freenet?", 6131);
+		config.addOption("mainport.params.servlet.2.bookmarks.1.activelinkFile", 1, "newtofn.jpg", 6132);
+		config.addOption("mainport.params.servlet.2.bookmarks.1.description", 1,
+			"Another freesite aimed at beginners, with emphasis on Windows  users connecting via modem.", 6133);
 
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.4.key",
-//            1,
-//            "SSK@Sc6qV~D6iFhaYord6HtbjJ8MaEYPAgM/YoYo//",
-//            6140);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.4.title",
-//            1,
-//            "YoYo!",
-//            6141);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.4.activelinkFile",
-//            1,
-//            "activelink.png",
-//            6142);
-//        config.addOption(
-//            "mainport.params.servlet.2.bookmarks.4.description",
-//            1,
-//            "Categorized freenet index",
-//            6143);
-//        
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.key",
-			1,
-			"SSK@JiqlnfX6MK4nHDl6ZjOrSaMnDB8PAgM,CUnDuNQdRTeTXiDMRM93dQ/OFIFY//",
-			6140);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.title",
-			1,
-			"Oskar Finds It For You",
-			6141);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.activelinkFile",
-			1,
-			"activelink.png",
-			6142);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.2.description",
-			1,
-			"Another index freesite (one page per category)",
-			6143);
-		
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.key",
-			1,
-			"SSK@y~-NCd~il6RMxOe9jjf~VR7mSYwPAgM,ds52dBUTmr8fSHePn1Sn4g/OneMore//",
-			6150);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.title",
-			1,
-			"One More Time",
-			6151);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.activelinkFile",
-			1,
-			"activelink.gif",
-			6152);
-		config.addOption(
-			"mainport.params.servlet.2.bookmarks.3.description",
-			1,
-			"Yet another index freesite (one page per category)",
-			6153);
+		config.addOption("mainport.params.servlet.2.bookmarks.2.key", 1, "SSK@y~-NCd~il6RMxOe9jjf~VR7mSYwPAgM,ds52dBUTmr8fSHePn1Sn4g/OneMore//", 6140);
+		config.addOption("mainport.params.servlet.2.bookmarks.2.title", 1, "One More Time", 6141);
+		config.addOption("mainport.params.servlet.2.bookmarks.2.activelinkFile", 1, "activelink.gif", 6142);
+		config.addOption("mainport.params.servlet.2.bookmarks.2.description", 1,
+			"A freesite indexing other freesites. The index is categorized, with one page per category.", 6143);
 
-		config.addOption(
-				"mainport.params.servlet.2.bookmarks.4.key",
-				1,
-				"SSK@sPolFAwS69lG2Le~TTRzNEVarcEPAgM/DFI//",
-				6160);
-			config.addOption(
-				"mainport.params.servlet.2.bookmarks.4.title",
-				1,
-				"Dolphin's Freenet Index",
-				6161);
-			config.addOption(
-				"mainport.params.servlet.2.bookmarks.4.activelinkFile",
-				1,
-				"activelink.png",
-				6162);
-			config.addOption(
-				"mainport.params.servlet.2.bookmarks.4.description",
-				1,
-				"Another categorized Freenet index (one big page)",
-				6163);
+		config.addOption("mainport.params.servlet.2.bookmarks.3.key", 1, "SSK@pHWN3FglLQOoBleE3pQ3EX3PLFoPAgM,xgvJe~4roO7d3lT~4QPIzA/atwocentindex//", 6150);
+		config.addOption("mainport.params.servlet.2.bookmarks.3.title", 1, "A Two Cent Index", 6151);
+		config.addOption("mainport.params.servlet.2.bookmarks.3.activelinkFile", 1, "activelink.jpg", 6152);
+		config.addOption("mainport.params.servlet.2.bookmarks.3.description", 1, "A freesite index with narrower inclusion criteria.", 6153);
 
-		config.addOption(
-				"mainport.params.servlet.2.bookmarks.5.key",
-				1,
-				"SSK@rVxBgVi4oLfrFEWPdPas1XZSYooPAgM,QZvYaKsdFJxfCjq~FiC5XA/CICFI//",
-				6160);
-			config.addOption(
-				"mainport.params.servlet.2.bookmarks.5.title",
-				1,
-				"CIC's Freesite Index",
-				6161);
-			config.addOption(
-				"mainport.params.servlet.2.bookmarks.5.activelinkFile",
-				1,
-				"activelink.png",
-				6162);
-			config.addOption(
-				"mainport.params.servlet.2.bookmarks.5.description",
-				1,
-				"Yet another categorized single page Freenet index",
-				6163);
+		config.addOption("mainport.params.servlet.2.bookmarks.4.key", 1, "SSK@rgFrfo~dAesFgV5vylYVNvNGXO0PAgM,wo3T~oLnVbWq-vuD2Kr86Q/frost/19//", 6160);
+		config.addOption("mainport.params.servlet.2.bookmarks.4.title", 1, "Frost", 6161);
+		config.addOption("mainport.params.servlet.2.bookmarks.4.activelinkFile", 1, "activelink.png", 6162);
+		config.addOption("mainport.params.servlet.2.bookmarks.4.description", 1, "Bulletin board and filesharing software.", 6163);
+
+		config.addOption("mainport.params.servlet.2.bookmarks.5.key", 1, "SSK@TEx6TiaPeszpV4AFw3ToutDb49EPAgM/mytwocents/59//", 6200);
+		config.addOption("mainport.params.servlet.2.bookmarks.5.title", 1, "My Two Cents Worth", 6201);
+		config.addOption("mainport.params.servlet.2.bookmarks.5.activelinkFile", 1, "activelink.jpg", 6202);
+		config.addOption("mainport.params.servlet.2.bookmarks.5.description", 1,
+			"A flog (freenet blog) about \"my 2cents worth on just about any subject\", according to the author.", 6203);
+		// end bookmarks
 
 		
 		
